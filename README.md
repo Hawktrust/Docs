@@ -96,7 +96,8 @@ Migration 0003 enforces that distinction in the database rather than leaving it
 to discipline: a record that was not directly fetched cannot be authoritative,
 and therefore cannot be a `FACT`.
 
-See `ingest/README.md` for the full account and the three steps that finish it.
+See `ingest/README.md` for the full account, and
+`docs/EGRESS-ALLOWLIST-REQUEST.md` for the exact hosts to permit.
 
 ## Three design notes worth reading before extending this
 
