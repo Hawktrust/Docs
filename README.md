@@ -16,8 +16,8 @@ reach the source.
 
 | Path | What it is |
 |---|---|
-| `migrations/` | the schema, and the row-level security policies |
-| `seeds/` | named users, the weight config, twenty synthetic mandates |
+| `migrations/` | the schema, the RLS policies, and retrieval provenance |
+| `seeds/` | named users, the weight config, twenty synthetic mandates, the relay leads |
 | `ingest/` | `SIGNAL -> EVIDENCE`: retrieval, provenance validation, review queue |
 | `crown/` | the rest of the loop, plus the web app |
 | `tests/` | the acceptance criteria, as tests |
@@ -58,7 +58,7 @@ afterwards. CI runs the same three checks.
 
 | # | Criterion | Status | Where |
 |---|---|---|---|
-| 1 | Real amendment from each of 3 LGAs, full provenance | **FAIL** | blocked at egress — see below |
+| 1 | Real amendment from each of 3 LGAs, full provenance | **FAIL** | blocked at egress; 7 real leads queued for verification |
 | 2 | Re-running ingestion produces zero duplicates | PASS | `tests/test_ingest.py` |
 | 3 | Missing provenance rejected to review queue | PASS | `tests/test_ingest.py` |
 | 4 | Opportunity linked to evidence, named human owner | PASS | `tests/test_opportunity.py` |
@@ -78,16 +78,25 @@ is a repository setting rather than a file.
 ## The one criterion that fails
 
 Acceptance criterion 1 requires a real, current amendment from Wyndham, Melton
-and Hume in the database with complete provenance. There are none.
+and Hume in the database with complete provenance. **The graph is empty.**
 
-Egress to `planning.vic.gov.au` is denied by the build environment's network
-policy. The ingestion path is complete up to the point of parsing the live page,
-and refuses to invent anything: a failed retrieval writes no rows, and
-`from_html()` raises rather than guessing at markup it has never seen. See
-`ingest/README.md`.
+Egress is a strict allowlist: `planning.vic.gov.au`, the planning schemes app,
+`data.vic.gov.au` and the council sites are all refused, `WebFetch` is refused
+for every domain, and the only reachable hosts are the Anthropic API, GitHub and
+the package registries.
 
-Everything downstream of that parser is built and tested, so the remaining work
-is: allowlist the host, observe the page, write the parser.
+A server-side web search did get through, and it produced real amendment
+identifiers for all three LGAs — but cross-checking showed it cannot be trusted
+for detail: two searches disagreed on when C232melt was gazetted, and two
+described different amendments under the number C272hume. Those seven leads are
+in `evidence_review_queue` with their canonical URLs, marked with whether they
+corroborated or contradicted, and none of them is evidence.
+
+Migration 0003 enforces that distinction in the database rather than leaving it
+to discipline: a record that was not directly fetched cannot be authoritative,
+and therefore cannot be a `FACT`.
+
+See `ingest/README.md` for the full account and the three steps that finish it.
 
 ## Three design notes worth reading before extending this
 

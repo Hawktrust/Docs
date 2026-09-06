@@ -1,0 +1,85 @@
+{
+  "_provenance": {
+    "discovered_by": "server-side web search, 2026-09-06",
+    "why_not_evidence": "The pages themselves were never fetched: egress to planning.vic.gov.au, planning-schemes.app.planning.vic.gov.au and the council sites is refused by the network policy (403 at CONNECT). What is recorded here is what a search intermediary reported.",
+    "reliability_finding": "The relay is reliable for identifiers and URL structure, and unreliable for detail. Two independent searches for C232melt gave different gazettal dates (7 May 2026 and 8 May 2026). Two for C272hume described substantively different amendments. Both are marked CONTRADICTED below and none of the relay_claims should be treated as established.",
+    "canonical_url_pattern": "https://planning-schemes.app.planning.vic.gov.au/{Scheme}/amendments/{AmendmentNumber}"
+  },
+  "leads": [
+    {
+      "lga": "Wyndham",
+      "amendment_number": "C266wynd",
+      "canonical_url": "https://planning-schemes.app.planning.vic.gov.au/Wyndham/amendments/C266wynd",
+      "corroboration": "CORROBORATED",
+      "relay_claims": {
+        "title": "Update to the Wyndham Municipal Planning Strategy",
+        "status": "GAZETTED",
+        "claimed_gazettal": "2026-05-08"
+      },
+      "notes": "Two independent searches agreed on the gazettal date. Still unverified: neither fetched the page."
+    },
+    {
+      "lga": "Wyndham",
+      "amendment_number": "C267wynd",
+      "canonical_url": "https://planning-schemes.app.planning.vic.gov.au/Wyndham/amendments/C267wynd",
+      "corroboration": "SINGLE_SOURCE",
+      "relay_claims": {
+        "status": "APPROVED",
+        "claimed_notice": "Special Government Gazette, 2025-12-12"
+      },
+      "notes": "Seen once. A panel report URL for this amendment also appeared in results."
+    },
+    {
+      "lga": "Wyndham",
+      "amendment_number": "C269wynd",
+      "canonical_url": "https://planning-schemes.app.planning.vic.gov.au/Wyndham/amendments/C269wynd",
+      "corroboration": "SINGLE_SOURCE",
+      "relay_claims": {
+        "status": "EXHIBITED",
+        "claimed_exhibition": "2026-06-25 to 2026-07-27"
+      },
+      "notes": "Seen once. Amendment number appeared without the wynd suffix in the summary; the suffix is inferred from the scheme's naming convention and must be confirmed."
+    },
+    {
+      "lga": "Melton",
+      "amendment_number": "C232melt",
+      "canonical_url": "https://planning-schemes.app.planning.vic.gov.au/Melton/amendments/C232melt",
+      "corroboration": "CONTRADICTED",
+      "relay_claims": {
+        "title": "Toolern Development Contributions Plan and Precinct Structure Plan refresh",
+        "status": "GAZETTED",
+        "claimed_gazettal_a": "2026-05-07",
+        "claimed_gazettal_b": "2026-05-08"
+      },
+      "notes": "Two searches gave different gazettal dates. The identifier and the canonical URL are consistent across both."
+    },
+    {
+      "lga": "Hume",
+      "amendment_number": "C272hume",
+      "canonical_url": "https://planning-schemes.app.planning.vic.gov.au/Hume/amendments/C272hume",
+      "corroboration": "CONTRADICTED",
+      "relay_claims": {
+        "status": "ADOPTION_UNDER_CONSIDERATION",
+        "description_a": "heritage design guidelines, seven properties added to heritage precincts",
+        "description_b": "materials recycling in the Merrifield Employment Precinct, deletion of HO259"
+      },
+      "notes": "Two searches described different amendments under the same number. Do not rely on either description."
+    },
+    {
+      "lga": "Hume",
+      "amendment_number": "C267hume",
+      "canonical_url": "https://planning-schemes.app.planning.vic.gov.au/Hume/amendments/C267hume",
+      "corroboration": "URL_ONLY",
+      "relay_claims": {},
+      "notes": "The canonical URL appeared in search results. Nothing is claimed about its content or status."
+    },
+    {
+      "lga": "Hume",
+      "amendment_number": "C261hume",
+      "canonical_url": "https://planning-schemes.app.planning.vic.gov.au/Hume/amendments/C261hume",
+      "corroboration": "URL_ONLY",
+      "relay_claims": {},
+      "notes": "The canonical URL appeared in search results. Nothing is claimed about its content or status."
+    }
+  ]
+}

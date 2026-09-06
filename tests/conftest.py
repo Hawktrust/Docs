@@ -25,7 +25,9 @@ ROOT = os.path.join(HERE, "..")
 MIGRATIONS = [
     os.path.join(ROOT, "migrations", "0001_ticket01_thin_loop.sql"),
     os.path.join(ROOT, "migrations", "0002_rls_policies.sql"),
+    os.path.join(ROOT, "migrations", "0003_retrieval_method.sql"),
 ]
+LEADS_FILE = os.path.join(ROOT, "seeds", "relay_leads.json")
 SEEDS = [
     os.path.join(ROOT, "seeds", "001_users_and_config.sql"),
     os.path.join(ROOT, "seeds", "002_buyer_mandates.sql"),

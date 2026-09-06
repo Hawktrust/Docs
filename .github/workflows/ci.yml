@@ -54,6 +54,8 @@ jobs:
                -f migrations/0001_ticket01_thin_loop.sql
           psql -v ON_ERROR_STOP=1 -d "postgresql://postgres:postgres@127.0.0.1:5432/crown_migration_check" \
                -f migrations/0002_rls_policies.sql
+          psql -v ON_ERROR_STOP=1 -d "postgresql://postgres:postgres@127.0.0.1:5432/crown_migration_check" \
+               -f migrations/0003_retrieval_method.sql
 
       - name: Test suite
         run: python -m pytest -q

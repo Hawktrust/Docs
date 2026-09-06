@@ -31,40 +31,88 @@ and ingestion concludes nothing.
 
 ## Blocked: no live data has been ingested
 
-**No real amendment has been ingested, for Wyndham or any other LGA.** Egress to
-`planning.vic.gov.au` and `data.vic.gov.au` is denied by the session's
-organization network policy — the proxy answers `403` to the CONNECT, and its
-own documentation says such denials must be reported rather than routed around.
+**No amendment has entered the graph, for any LGA.** Egress from this environment
+is a strict allowlist. Everything relevant is refused with a 403 at the CONNECT:
+
+| Host | Result |
+|---|---|
+| `www.planning.vic.gov.au` | blocked |
+| `planning-schemes.app.planning.vic.gov.au` | blocked |
+| `data.vic.gov.au` | blocked |
+| `www.wyndham.vic.gov.au` | blocked |
+| `en.wikipedia.org` (control) | blocked |
+
+The allowlist permits the Anthropic API, GitHub and the package registries, and
+nothing else. `WebFetch` is refused for every domain, so it is not an alternative
+route. The proxy's own documentation says a policy denial must be reported rather
+than routed around, so it has not been.
 
 Running the live path produces exactly this, and writes nothing:
 
 ```
 $ python -m ingest.cli --lga Wyndham
-retrieval failed, nothing ingested: GET https://www.planning.vic.gov.au/... 
-  (Caused by ProxyError('Tunnel connection failed: 403 Forbidden'))
+retrieval failed, nothing ingested: ... ProxyError('Tunnel connection failed: 403 Forbidden')
 $ echo $?
 3
 ```
 
-That is the intended behaviour. A failed retrieval yields no rows at all, rather
-than placeholder evidence that would later be indistinguishable from the real
-thing.
+### What did get through, and why it is not evidence
 
-Two consequences worth being explicit about:
+One channel is open: a server-side web search, which does not pass through this
+container's proxy. It returned **real amendment identifiers** for all three LGAs
+and the canonical URL pattern
+`https://planning-schemes.app.planning.vic.gov.au/{Scheme}/amendments/{Number}`.
 
-- **Acceptance criterion 1 cannot be met from this environment.** It requires a
-  real, current amendment from each of Wyndham, Melton and Hume with complete
-  provenance. Unblocking the host is a prerequisite, not a detail.
-- **There is no parser for the live page.** `from_html()` raises
-  `SourceFormatUnknown` on purpose. The page has never been observed from here,
-  and a parser written against a guessed DOM would emit records carrying real
-  URLs and real retrieval timestamps around content that was never checked —
-  a build that looks correct and is not. The parser should be written once
-  against the real markup, and `test_live_page_parser_refuses_to_guess` should
-  be replaced at that point.
+It is not good enough to base evidence on, and this is measured rather than
+assumed. Cross-checking each claim with a second, independently worded search:
 
-Everything downstream of the parser is implemented and tested, so the work to
-finish item 1 is: allowlist the host, observe the page, write `from_html`.
+- **C232melt** — one search reported gazettal on 7 May 2026, the other on
+  8 May 2026.
+- **C272hume** — one search described heritage design guidelines and seven added
+  properties; the other described materials recycling at Merrifield and the
+  deletion of HO259. Two different amendments under one number.
+
+A summary of a page is not the page. Identifiers and URL structure survived
+cross-checking because they come from the shape of the results rather than from
+a summary of them; every date, title and status did not.
+
+So the leads go to `evidence_review_queue` — the place the schema already
+provides for records that cannot fill their mandatory provenance — and never into
+the graph:
+
+```
+$ python -m ingest.cli --lga Wyndham --leads seeds/relay_leads.json
+queued 7 lead(s) for direct verification; none entered the graph
+
+$ python -m ingest.cli --lga Wyndham --verify
+  C266wynd: ... could not be retrieved: 403 Forbidden
+  ... (7 of 7)
+verified 0, still queued 7
+```
+
+Migration 0003 makes this structural rather than a matter of discipline.
+`evidence_record.retrieval_method` records how a record was actually obtained,
+and a CHECK forbids anything but `DIRECT_FETCH` from being `AUTHORITATIVE` or
+`STRONG`. Read with `fact_needs_strong_source` from 0001, that makes it
+impossible for a relayed claim to be classified `FACT` — the database refuses,
+whatever a future ingestion path believes.
+
+### What finishes this
+
+1. Allowlist `planning-schemes.app.planning.vic.gov.au` for the environment.
+2. Run `python -m ingest.cli --lga Wyndham --verify`. It retrieves each queued
+   lead's canonical URL and promotes it.
+3. Write `from_html` against the real markup, and replace
+   `test_live_page_parser_refuses_to_guess`.
+
+Steps 1 and 3 need a human. Step 2 is built and tested — `tests/test_relay_leads.py`
+exercises the promotion path with an injected fetcher and shows a promoted record
+arriving as `DIRECT_FETCH` / `AUTHORITATIVE` / `FACT`.
+
+There is no parser for the live page. `from_html()` raises
+`SourceFormatUnknown` on purpose: the page has never been observed from here, and
+a parser written against a guessed DOM would emit records carrying real URLs and
+real retrieval timestamps around content nobody checked.
 
 ## Tests
 
