@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block body %}
+<h1>Sign in</h1>
+<form method="post">
+  <input name="email" placeholder="you@crown.local" size="34" required>
+  <button type="submit">Sign in</button>
+</form>
+<p class="note">Your role is read from the database on every request. It cannot be
+supplied, overridden or hinted at by the client.</p>
+{% endblock %}

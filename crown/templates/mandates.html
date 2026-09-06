@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block body %}
+<h1>Buyer mandates</h1>
+<p><strong>{{ real_count }}</strong> real mandates.
+   <span class="note">{{ shown }} records exist in total; the
+   {{ shown - real_count }} marked {{ synthetic_label }} are excluded from this
+   count and from every other figure shown to a person.</span></p>
+<table>
+  <tr><th>Buyer</th><th>Geographies</th><th>Asset types</th><th>Price band</th>
+      <th>Mandate date</th><th>Active</th></tr>
+  {% for id, label, origin, geos, assets, pmin, pmax, mdate, active in rows %}
+  <tr>
+    <td>{{ label }}
+      {% if origin == 'DEMO_SYNTHETIC' %}<span class="synthetic">{{ synthetic_label }}</span>{% endif %}
+    </td>
+    <td>{{ geos|join(', ') }}</td>
+    <td>{{ assets|join(', ') }}</td>
+    <td>{{ '{:,}'.format(pmin) }}–{{ '{:,}'.format(pmax) }}</td>
+    <td>{{ mdate }}</td>
+    <td>{{ 'yes' if active else 'no' }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}

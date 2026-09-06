@@ -11,7 +11,9 @@ import json
 import sys
 from datetime import datetime, timezone
 
-from . import db, registry
+from crown import db
+
+from . import registry
 from .adapters import vic_planning
 from .fetch import Retrieval, RetrievalBlocked, fetch
 from .pipeline import ingest

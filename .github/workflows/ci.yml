@@ -1,0 +1,65 @@
+# The ticket's automated review: the test suite, type checking and a dependency
+# audit. All three must pass.
+#
+# "A failing check blocks the merge — no human override" is a branch protection
+# setting, not something this file can assert. Require this workflow on main and
+# disable administrator override for it.
+
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      CROWN_ADMIN_DSN: postgresql://postgres:postgres@127.0.0.1:5432/postgres
+      PGPASSWORD: postgres
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install psql
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+
+      - name: Migration applies to an empty database
+        run: |
+          psql -v ON_ERROR_STOP=1 -d "$CROWN_ADMIN_DSN" -c 'CREATE DATABASE crown_migration_check'
+          psql -v ON_ERROR_STOP=1 -d "postgresql://postgres:postgres@127.0.0.1:5432/crown_migration_check" \
+               -f migrations/0001_ticket01_thin_loop.sql
+          psql -v ON_ERROR_STOP=1 -d "postgresql://postgres:postgres@127.0.0.1:5432/crown_migration_check" \
+               -f migrations/0002_rls_policies.sql
+
+      - name: Test suite
+        run: python -m pytest -q
+
+      - name: Type check
+        run: python -m mypy
+
+      - name: Dependency audit
+        run: python -m pip_audit -r requirements.txt --progress-spinner off

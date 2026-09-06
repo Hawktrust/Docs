@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block body %}
+<h1>Approval queue</h1>
+<p class="note">Nothing is exported, emailed or drafted for outreach until one of
+these carries a stored approval id.</p>
+<table>
+  <tr><th>Geography</th><th>Stage</th><th>Buyer</th><th>Score</th><th></th></tr>
+  {% for mid, oid, score, buyer, origin, lga, label, stage, rule in rows %}
+  <tr>
+    <td>{{ label }} <span class="note">({{ lga }})</span></td>
+    <td class="stage">{{ stage }}<div class="rule">{{ rule }}</div></td>
+    <td>{{ buyer }}
+      {% if origin == 'DEMO_SYNTHETIC' %}<span class="synthetic">{{ synthetic_label }}</span>{% endif %}
+    </td>
+    <td>{{ '%.4f'|format(score) }}</td>
+    <td><a href="/queue/{{ mid }}">Open</a></td>
+  </tr>
+  {% else %}
+  <tr><td colspan="5">Queue is empty.</td></tr>
+  {% endfor %}
+</table>
+{% endblock %}

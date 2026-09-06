@@ -1,0 +1,35 @@
+<!doctype html>
+<title>{% block title %}Crown AI{% endblock %}</title>
+<style>
+  body { font: 14px/1.5 system-ui, sans-serif; margin: 0; color: #1a1a1a; background: #fafafa; }
+  header { background: #14213d; color: #fff; padding: 12px 20px; display: flex; gap: 20px; align-items: baseline; }
+  header a { color: #cfd8e8; text-decoration: none; }
+  header a:hover { color: #fff; }
+  main { padding: 20px; max-width: 1100px; }
+  table { border-collapse: collapse; width: 100%; background: #fff; }
+  th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid #e5e5e5; vertical-align: top; }
+  th { background: #f0f2f5; font-weight: 600; }
+  .synthetic { background: #b00020; color: #fff; padding: 1px 6px; border-radius: 3px;
+               font-size: 11px; font-weight: 700; letter-spacing: .04em; white-space: nowrap; }
+  .stage { font-weight: 600; }
+  .rule { color: #555; font-size: 12px; }
+  .excluded td { color: #8a8a8a; background: #f7f7f7; }
+  .bar { display: inline-block; height: 9px; background: #14213d; vertical-align: middle; }
+  .indeterminate { color: #8a6d00; font-size: 12px; }
+  .note { color: #555; font-size: 12px; }
+  .flash { background: #ffe9e9; border: 1px solid #b00020; padding: 8px 12px; margin-bottom: 12px; }
+  code { background: #eef0f3; padding: 1px 4px; }
+</style>
+<header>
+  <strong>Crown AI</strong>
+  <a href="/opportunities">Opportunities</a>
+  <a href="/queue">Approval queue</a>
+  <a href="/mandates">Buyer mandates</a>
+  <span style="margin-left:auto">
+    {% if identity %}{{ identity.display_name }} · {{ identity.role }}{% else %}not signed in{% endif %}
+  </span>
+</header>
+<main>
+  {% for message in get_flashed_messages() %}<div class="flash">{{ message }}</div>{% endfor %}
+  {% block body %}{% endblock %}
+</main>

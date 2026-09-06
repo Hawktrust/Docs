@@ -1,0 +1,4 @@
+# Runtime dependencies for the Ticket 01 thin loop.
+flask==3.1.3
+psycopg[binary]==3.3.5
+requests==2.33.1

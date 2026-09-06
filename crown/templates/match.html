@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block body %}
+<h1>{{ m[4] }} — {{ m[5] }}</h1>
+<p>{{ m[2] }}
+  {% if m[3] == 'DEMO_SYNTHETIC' %}<span class="synthetic">{{ synthetic_label }}</span>{% endif %}
+  · score {{ '%.4f'|format(m[1]) }}</p>
+<p><span class="stage">{{ m[6] }}</span> — <span class="rule">{{ m[7] }}</span></p>
+
+<h2>Evidence pack</h2>
+<table>
+  <tr><th>Reference</th><th>Title</th><th>Class</th><th>Reliability</th>
+      <th>Status</th><th>Source</th><th>Retrieved</th></tr>
+  {% for eid, ref, title, cls, rel, url, retrieved, observed, status, lga in pack %}
+  <tr><td>{{ ref }}</td><td>{{ title }}</td><td>{{ cls }}</td><td>{{ rel }}</td>
+      <td>{{ status or '—' }}</td>
+      <td><a href="{{ url }}">{{ url }}</a></td><td>{{ retrieved }}</td></tr>
+  {% endfor %}
+</table>
+
+{% if identity and identity.role in ('ADMIN', 'COMPLIANCE') %}
+<h2>Decision</h2>
+<form method="post" action="/queue/{{ m[0] }}/decide">
+  <textarea name="reason" rows="3" cols="70" placeholder="Reason for the decision" required></textarea><br>
+  <button name="decision" value="APPROVED" type="submit">Approve</button>
+  <button name="decision" value="REJECTED" type="submit">Reject</button>
+</form>
+{% else %}
+<p class="note">Your role may not decide approvals. ADMIN or COMPLIANCE is required.</p>
+{% endif %}
+{% endblock %}

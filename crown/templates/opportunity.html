@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block body %}
+<h1>{{ o[2] }} <span class="note">({{ o[1] }})</span></h1>
+<p><span class="stage">{{ o[3] }}</span> — <span class="rule">{{ o[4] }}</span><br>
+   <span class="note">Owner: {{ o[5] }}</span></p>
+
+<h2>Evidence</h2>
+<table>
+  <tr><th>Reference</th><th>Title</th><th>Class</th><th>Source</th><th>Retrieved</th></tr>
+  {% for ref, title, cls, url, retrieved in evidence %}
+  <tr><td>{{ ref }}</td><td>{{ title }}</td><td>{{ cls }}</td>
+      <td><a href="{{ url }}">{{ url }}</a></td><td>{{ retrieved }}</td></tr>
+  {% endfor %}
+</table>
+
+<h2>Ranked buyers</h2>
+{% if identity.role in ('ADMIN', 'ANALYST') %}
+<form method="post" action="/opportunities/{{ o[0] }}/rematch" style="margin-bottom:8px">
+  <button type="submit">Recompute and store this ranking</button>
+  <span class="note">Storing is what puts these matches in the approval queue.</span>
+</form>
+{% endif %}
+<p class="rule">Weight config version {{ weights.version }} —
+  geographic {{ weights.geographic_fit }}, asset {{ weights.asset_fit }},
+  price {{ weights.price_fit }}, size {{ weights.size_fit }},
+  freshness {{ weights.mandate_freshness }}.
+  Weights are configuration; changing one and activating that version reorders
+  this table with no code change.</p>
+<table>
+  <tr>
+    <th>Buyer</th><th>Score</th>
+    {% for f in factors %}<th>{{ f.replace('_', ' ') }}</th>{% endfor %}
+    <th>Why not</th>
+  </tr>
+  {% for s in scores %}
+  <tr class="{{ 'excluded' if s.is_excluded else '' }}">
+    <td>
+      {{ s.buyer_label }}
+      {% if s.origin == 'DEMO_SYNTHETIC' %}<span class="synthetic">{{ synthetic_label }}</span>{% endif %}
+    </td>
+    <td><strong>{{ '%.4f'|format(s.total) }}</strong></td>
+    {% for f in factors %}
+      {% set factor = s.factor(f) %}
+      <td>
+        {% if factor.determinable %}
+          {{ '%.4f'|format(factor.contribution) }}
+          <span class="bar" style="width: {{ (factor.raw * 40)|round|int }}px"></span>
+          <div class="note">{{ factor.note }}</div>
+        {% else %}
+          <span class="indeterminate">indeterminate</span>
+          <div class="note">{{ factor.note }}</div>
+        {% endif %}
+      </td>
+    {% endfor %}
+    <td>{{ s.why_not or '' }}</td>
+  </tr>
+  {% endfor %}
+</table>
+<p class="note">The total is the weighted mean over the factors that could be
+evaluated. Factors marked indeterminate are excluded from it rather than scored
+zero, so a missing input does not masquerade as a poor fit.</p>
+{% endblock %}
