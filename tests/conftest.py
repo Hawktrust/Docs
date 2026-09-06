@@ -28,6 +28,7 @@ MIGRATIONS = [
     os.path.join(ROOT, "migrations", "0003_retrieval_method.sql"),
     os.path.join(ROOT, "migrations", "0004_integrity_fixes.sql"),
     os.path.join(ROOT, "migrations", "0005_audit_and_controls.sql"),
+    os.path.join(ROOT, "migrations", "0006_real_authentication.sql"),
 ]
 LEADS_FILE = os.path.join(ROOT, "seeds", "relay_leads.json")
 SEEDS = [
@@ -144,9 +145,19 @@ def add_evidence(conn, *, reference, lga="Wyndham", evidence_class="FACT",
 
 
 @pytest.fixture()
-def client(app_dsn, monkeypatch):
-    """A test client for the web app, connected as the unprivileged app role."""
+def client(app_dsn, database, monkeypatch):
+    """A test client for the web app, connected as the unprivileged app role.
+
+    Seeded users have no password (0006 leaves password_hash NULL, so nobody can
+    be them until someone sets one). The fixture gives them a known one.
+    """
+    import psycopg
+
     from crown.web import create_app
+
+    owner_dsn, _ = database
+    with psycopg.connect(owner_dsn) as setup:
+        give_everyone_a_password(setup)
 
     monkeypatch.setenv("CROWN_SECRET", "test-secret-not-for-production")
     monkeypatch.setenv("CROWN_INSECURE_COOKIES", "1")   # the test client is not https
@@ -155,8 +166,24 @@ def client(app_dsn, monkeypatch):
     return app.test_client()
 
 
-def sign_in(client, email):
-    response = client.post("/login", data={"email": email}, follow_redirects=False)
+TEST_PASSWORD = "test-password-not-a-secret"
+
+
+def give_everyone_a_password(conn):
+    """The seeded users have no password, so they cannot sign in at all.
+
+    Tests that exercise the UI need credentials; this sets the same one for
+    every seeded account and commits.
+    """
+    from crown import auth
+    for (email,) in conn.execute("SELECT email FROM app_user").fetchall():
+        auth.set_password(conn, email, TEST_PASSWORD)
+    conn.commit()
+
+
+def sign_in(client, email, password=TEST_PASSWORD):
+    response = client.post("/login", data={"email": email, "password": password},
+                           follow_redirects=False)
     assert response.status_code in (302, 200), response.status_code
     return response
 

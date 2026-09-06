@@ -1,0 +1,244 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Crown AI — amendment capture</title>
+<style>
+  body { font: 14px/1.6 system-ui, sans-serif; margin: 0; background: #fafafa; color: #1a1a1a; }
+  header { background: #14213d; color: #fff; padding: 14px 22px; }
+  main { padding: 22px; max-width: 1000px; }
+  h2 { margin-top: 28px; font-size: 16px; }
+  textarea { width: 100%; height: 150px; font: 12px/1.4 ui-monospace, monospace; }
+  input[type=text], input[type=date] { font: 13px system-ui; padding: 4px 6px; }
+  table { border-collapse: collapse; width: 100%; background: #fff; margin-top: 8px; }
+  th, td { border-bottom: 1px solid #e5e5e5; padding: 6px 8px; text-align: left; vertical-align: top; }
+  th { background: #f0f2f5; font-size: 12px; }
+  .note { color: #555; font-size: 12px; }
+  .warn { background: #fff6e0; border: 1px solid #c99700; padding: 10px 14px; margin: 12px 0; }
+  .bad  { background: #ffe9e9; border: 1px solid #b00020; padding: 10px 14px; margin: 12px 0; }
+  .ok   { background: #e8f6ec; border: 1px solid #1a7f37; padding: 10px 14px; margin: 12px 0; }
+  button { font: 14px system-ui; padding: 7px 14px; cursor: pointer; }
+  code { background: #eef0f3; padding: 1px 4px; }
+  .suggested { color: #8a6d00; }
+</style>
+<header><strong>Crown AI</strong> — amendment capture</header>
+<main>
+
+<p>The build environment cannot reach <code>planning.vic.gov.au</code>. Your browser can.
+This page turns a page you have opened into an evidence bundle the pipeline accepts,
+with the bytes kept so anything drawn from it can be rechecked.</p>
+
+<p class="note">It runs entirely in your browser. It makes no network requests — you can
+check that with the network tab, and it works with the machine offline.</p>
+
+<h2>1. Paste the page</h2>
+<p class="note">Open the amendment page, press <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+<kbd>U</kbd>
+to view source, select all, and paste it here. Or save the page and paste the file's contents.</p>
+<p><label>Page URL <input type="text" id="url" size="80"
+   placeholder="https://planning-schemes.app.planning.vic.gov.au/Wyndham/amendments/C266wynd"></label></p>
+<textarea id="html" placeholder="Paste the page source here"></textarea>
+<p><button id="analyse">Read it</button>
+   <span id="hash" class="note"></span></p>
+
+<h2>2. Check every field</h2>
+<div id="suggestion-warning" class="warn" style="display:none">
+  The fields below are <strong>suggestions read from the page, and they may be wrong</strong>.
+  Nothing is exported until you have checked each one against what you can see on the page.
+  Anything you leave blank goes to the review queue instead of the graph.
+</div>
+<table id="records"><tbody></tbody></table>
+<p><button id="add">Add another amendment</button></p>
+
+<h2>3. Confirm and export</h2>
+<p><label><input type="checkbox" id="confirmed">
+   I opened this page myself and checked every field above against it.</label></p>
+<p class="note">This becomes <code>confirmed_by_operator</code> in the bundle. The importer
+refuses a bundle without it, and your name is recorded against every record it creates.</p>
+<p><button id="export">Export bundle</button></p>
+<div id="result"></div>
+
+<h2>4. Import it</h2>
+<pre class="note">python -m ingest.cli --capture crown-capture-....json --as you@crown.local</pre>
+
+</main>
+<script>
+// ---------------------------------------------------------------- sha256
+// Implemented here rather than via crypto.subtle so the page works from
+// file:// in any browser, offline, with no secure-context requirement.
+function sha256(ascii) {
+  function rr(n, x) { return (n >>> x) | (n << (32 - x)); }
+  const K = [];
+  const H = [];
+  let primes = [], n = 2;
+  while (primes.length < 64) {
+    let isPrime = true;
+    for (let f = 2; f * f <= n; f++) if (n % f === 0) { isPrime = false; break; }
+    if (isPrime) primes.push(n);
+    n++;
+  }
+  for (let i = 0; i < 64; i++) K[i] = (Math.pow(primes[i], 1 / 3) % 1 * 0x100000000) | 0;
+  for (let i = 0; i < 8; i++) H[i] = (Math.pow(primes[i], 1 / 2) % 1 * 0x100000000) | 0;
+
+  const bytes = new TextEncoder().encode(ascii);
+  const bitLen = bytes.length * 8;
+  const withPad = [...bytes, 0x80];
+  while (withPad.length % 64 !== 56) withPad.push(0);
+  const view = new DataView(new ArrayBuffer(8));
+  view.setBigUint64(0, BigInt(bitLen));
+  for (let i = 0; i < 8; i++) withPad.push(view.getUint8(i));
+
+  const w = new Int32Array(64);
+  for (let off = 0; off < withPad.length; off += 64) {
+    for (let i = 0; i < 16; i++)
+      w[i] = (withPad[off + i * 4] << 24) | (withPad[off + i * 4 + 1] << 16)
+           | (withPad[off + i * 4 + 2] << 8) | withPad[off + i * 4 + 3];
+    for (let i = 16; i < 64; i++) {
+      const s0 = rr(w[i - 15], 7) ^ rr(w[i - 15], 18) ^ (w[i - 15] >>> 3);
+      const s1 = rr(w[i - 2], 17) ^ rr(w[i - 2], 19) ^ (w[i - 2] >>> 10);
+      w[i] = (w[i - 16] + s0 + w[i - 7] + s1) | 0;
+    }
+    let [a, b, c, d, e, f, g, h] = H;
+    for (let i = 0; i < 64; i++) {
+      const S1 = rr(e, 6) ^ rr(e, 11) ^ rr(e, 25);
+      const ch = (e & f) ^ (~e & g);
+      const t1 = (h + S1 + ch + K[i] + w[i]) | 0;
+      const S0 = rr(a, 2) ^ rr(a, 13) ^ rr(a, 22);
+      const maj = (a & b) ^ (a & c) ^ (b & c);
+      const t2 = (S0 + maj) | 0;
+      h = g; g = f; f = e; e = (d + t1) | 0;
+      d = c; c = b; b = a; a = (t1 + t2) | 0;
+    }
+    const v = [a, b, c, d, e, f, g, h];
+    for (let i = 0; i < 8; i++) H[i] = (H[i] + v[i]) | 0;
+  }
+  return H.map(x => (x >>> 0).toString(16).padStart(8, '0')).join('');
+}
+
+// ------------------------------------------------- best-effort extraction
+// These are suggestions. The operator confirms or corrects every one; nothing
+// here is trusted enough to export on its own.
+const STATUSES = ['GAZETTED', 'APPROVED', 'EXHIBITED', 'ADOPTED', 'ABANDONED', 'LAPSED'];
+
+function suggestFrom(html, url) {
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  const text = (doc.body ? doc.body.innerText || doc.body.textContent : '') || '';
+  const title = (doc.querySelector('title') || {}).textContent || '';
+
+  const fromUrl = (url.match(/\/amendments\/([A-Za-z0-9]+)/) || [])[1] || '';
+  const inText = (text.match(/\b([Cc]\d{2,4}[a-z]{0,6})\b/) || [])[1] || '';
+  const scheme = (url.match(/planning-schemes[^/]*\/([A-Za-z ]+)\//) || [])[1] || '';
+
+  let status = '';
+  for (const s of STATUSES) if (new RegExp(s, 'i').test(text)) { status = s; break; }
+
+  const iso = (text.match(/\b(\d{4}-\d{2}-\d{2})\b/) || [])[1] || '';
+  const dmy = (text.match(/\b(\d{1,2})\s+([A-Z][a-z]+)\s+(\d{4})\b/) || null);
+  let observed = iso;
+  if (!observed && dmy) {
+    const months = {January:'01',February:'02',March:'03',April:'04',May:'05',June:'06',
+                    July:'07',August:'08',September:'09',October:'10',November:'11',December:'12'};
+    if (months[dmy[2]]) observed = `${dmy[3]}-${months[dmy[2]]}-${String(dmy[1]).padStart(2,'0')}`;
+  }
+
+  const heading = (doc.querySelector('h1') || {}).textContent || '';
+  return {
+    amendment_number: fromUrl || inText,
+    lga: scheme,
+    title: (heading || title).trim().slice(0, 200),
+    status: status,
+    observed_at: observed,
+    detail_url: url,
+    suburb: ''
+  };
+}
+
+// -------------------------------------------------------------------- ui
+const FIELDS = [
+  ['amendment_number', 'Amendment number', 'text'],
+  ['lga', 'LGA', 'text'],
+  ['title', 'Title', 'text'],
+  ['status', 'Status', 'text'],
+  ['observed_at', 'Date it was true upstream', 'date'],
+  ['suburb', 'Suburb / precinct (optional)', 'text'],
+];
+
+function addRow(values) {
+  const tbody = document.querySelector('#records tbody');
+  const tr = document.createElement('tr');
+  tr.innerHTML = '<td></td>';
+  const cell = tr.firstChild;
+  FIELDS.forEach(([key, label, type]) => {
+    const wrap = document.createElement('p');
+    const suggested = (values && values[key]) || '';
+    wrap.innerHTML = `<label style="display:inline-block;min-width:230px">${label}</label>`;
+    const input = document.createElement('input');
+    input.type = type; input.size = 52; input.dataset.key = key; input.value = suggested;
+    if (suggested) input.classList.add('suggested');
+    input.addEventListener('input', () => input.classList.remove('suggested'));
+    wrap.appendChild(input);
+    cell.appendChild(wrap);
+  });
+  const remove = document.createElement('button');
+  remove.textContent = 'Remove'; remove.onclick = () => tr.remove();
+  cell.appendChild(remove);
+  tbody.appendChild(tr);
+}
+
+let currentHash = '', currentHtml = '';
+
+document.querySelector('#analyse').onclick = () => {
+  currentHtml = document.querySelector('#html').value;
+  const url = document.querySelector('#url').value.trim();
+  if (!currentHtml || !url) {
+    document.querySelector('#result').innerHTML =
+      '<div class="bad">Paste the page source and its URL first.</div>';
+    return;
+  }
+  currentHash = sha256(currentHtml);
+  document.querySelector('#hash').textContent =
+    `${currentHtml.length.toLocaleString()} characters · sha256 ${currentHash.slice(0, 16)}…`;
+  document.querySelector('#suggestion-warning').style.display = 'block';
+  document.querySelector('#records tbody').innerHTML = '';
+  addRow(suggestFrom(currentHtml, url));
+};
+
+document.querySelector('#add').onclick = () => addRow({ detail_url: document.querySelector('#url').value });
+
+document.querySelector('#export').onclick = () => {
+  const out = document.querySelector('#result');
+  if (!currentHtml || !currentHash) {
+    out.innerHTML = '<div class="bad">Read a page first.</div>'; return;
+  }
+  if (!document.querySelector('#confirmed').checked) {
+    out.innerHTML = '<div class="bad">The importer refuses a bundle you have not confirmed.</div>';
+    return;
+  }
+  const records = [...document.querySelectorAll('#records tbody tr')].map(tr => {
+    const r = {};
+    tr.querySelectorAll('input').forEach(i => { if (i.value.trim()) r[i.dataset.key] = i.value.trim(); });
+    if (r.suburb) { r.geography = { suburbs: [r.suburb] }; delete r.suburb; }
+    return r;
+  }).filter(r => Object.keys(r).length);
+
+  if (!records.length) { out.innerHTML = '<div class="bad">No records to export.</div>'; return; }
+
+  const bundle = {
+    capture: {
+      source_url: document.querySelector('#url').value.trim(),
+      captured_at: new Date().toISOString(),
+      page_title: (new DOMParser().parseFromString(currentHtml, 'text/html')
+                    .querySelector('title') || {}).textContent || null,
+      sha256: currentHash,
+      raw_html: currentHtml
+    },
+    confirmed_by_operator: true,
+    records: records
+  };
+
+  const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `crown-capture-${currentHash.slice(0, 12)}.json`;
+  a.click();
+  out.innerHTML = `<div class="ok">Exported ${records.length} record(s).
+    Import with <code>python -m ingest.cli --capture ${a.download} --as you@crown.local</code></div>`;
+};
+</script>

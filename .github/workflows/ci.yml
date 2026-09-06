@@ -60,6 +60,8 @@ jobs:
                -f migrations/0004_integrity_fixes.sql
           psql -v ON_ERROR_STOP=1 -d "postgresql://postgres:postgres@127.0.0.1:5432/crown_migration_check" \
                -f migrations/0005_audit_and_controls.sql
+          psql -v ON_ERROR_STOP=1 -d "postgresql://postgres:postgres@127.0.0.1:5432/crown_migration_check" \
+               -f migrations/0006_real_authentication.sql
 
       - name: Test suite
         run: python -m pytest -q

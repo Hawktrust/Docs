@@ -36,6 +36,10 @@ def main(argv=None) -> int:
                              "verification instead of ingesting")
     parser.add_argument("--verify", action="store_true",
                         help="attempt direct retrieval of every queued lead")
+    parser.add_argument("--capture",
+                        help="a bundle exported by tools/collector.html")
+    parser.add_argument("--as", dest="operator",
+                        help="the email of the person who took the capture")
     args = parser.parse_args(argv)
 
     with db.connect(args.dsn) as conn:
@@ -45,6 +49,28 @@ def main(argv=None) -> int:
         except (registry.SourceNotRegistered, registry.SourceNotIngestible) as exc:
             print(f"refused by the data rights register: {exc}", file=sys.stderr)
             return 2
+
+        if args.capture:
+            from . import capture as capture_module
+            if not args.operator:
+                print("--capture needs --as you@crown.local: a capture is "
+                      "attributable or it is not evidence", file=sys.stderr)
+                return 2
+            operator = conn.execute(
+                "SELECT id FROM app_user WHERE email = %s AND is_active",
+                (args.operator,)).fetchone()
+            if operator is None:
+                print(f"no active user {args.operator}", file=sys.stderr)
+                return 2
+            try:
+                capture_report = capture_module.ingest_capture(
+                    conn, source, capture_module.load(args.capture), operator[0])
+            except capture_module.BadCapture as exc:
+                print(f"capture refused: {exc}", file=sys.stderr)
+                return 6
+            conn.commit()
+            print(capture_report.summary())
+            return 0
 
         if args.leads:
             from . import leads as leads_module

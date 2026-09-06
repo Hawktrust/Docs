@@ -17,6 +17,7 @@ for f in migrations/0001_ticket01_thin_loop.sql \
          migrations/0003_retrieval_method.sql \
          migrations/0004_integrity_fixes.sql \
          migrations/0005_audit_and_controls.sql \
+         migrations/0006_real_authentication.sql \
          seeds/001_users_and_config.sql \
          seeds/002_buyer_mandates.sql \
          seeds/dev_only_demo_evidence.sql; do
@@ -42,4 +43,6 @@ echo "Demo database ready. Run the app with:"
 echo "  CROWN_DSN='$BASE/$DB' CROWN_SECRET=dev CROWN_INSECURE_COOKIES=1 \\"
 echo "    flask --app crown.web:create_app run"
 echo "  (CROWN_INSECURE_COOKIES=1 only because the dev server is http; never set it in production)"
-echo "Sign in as hawk@crown.local, analyst@crown.local, compliance@crown.local or agent@crown.local"
+echo "Set a password first (seeded accounts have none, so nobody can be them):"
+echo "  CROWN_DSN='$BASE/$DB' python3 scripts/set_password.py hawk@crown.local"
+echo "Then sign in as hawk@crown.local, analyst@crown.local, compliance@crown.local or agent@crown.local"

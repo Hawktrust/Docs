@@ -97,7 +97,25 @@ and a CHECK forbids anything but `DIRECT_FETCH` from being `AUTHORITATIVE` or
 impossible for a relayed claim to be classified `FACT` — the database refuses,
 whatever a future ingestion path believes.
 
-### What finishes this
+### The way through that does not need the network policy to change
+
+`tools/collector.html` — one self-contained file, opened in any browser, making
+no network requests of its own. A named human pastes the real page into it, and
+it produces a bundle the pipeline accepts:
+
+```
+python -m ingest.cli --capture crown-capture-....json --as you@crown.local
+```
+
+The raw bytes and their sha256 come with it and are retained, the hash is
+recomputed on import, and the operator has to confirm every field. Migration
+0006 grades it `OPERATOR_CAPTURE`: allowed to be `STRONG`, so a gazetted
+amendment captured this way can be a `FACT`, but never `AUTHORITATIVE`. A
+capture also closes the queued lead for that amendment.
+
+This is the fastest route to acceptance criterion 1: three pages, one per LGA.
+
+### What still finishes the automated path
 
 1. Allowlist `planning-schemes.app.planning.vic.gov.au` for the environment.
 2. Run `python -m ingest.cli --lga Wyndham --verify`. It retrieves each queued

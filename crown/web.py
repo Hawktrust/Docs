@@ -13,7 +13,7 @@ X-Crown-Role: ADMIN on every request and it will change nothing.
 import hmac
 import os
 import secrets
-from datetime import date
+from datetime import date, datetime, timezone
 from functools import wraps
 
 import psycopg
@@ -53,16 +53,32 @@ def create_app(dsn: str | None = None) -> Flask:
         SESSION_COOKIE_HTTPONLY=True,
         SESSION_COOKIE_SAMESITE="Strict",
         SESSION_COOKIE_SECURE=os.environ.get("CROWN_INSECURE_COOKIES") != "1",
+        PERMANENT_SESSION_LIFETIME=auth.SESSION_IDLE_TIMEOUT,
     )
 
     # ---------------------------------------------------------- request cycle
+
+    def _session_is_stale() -> bool:
+        """An unattended browser stops being an approver after the idle timeout."""
+        last_seen = session.get("last_seen")
+        if not last_seen:
+            return False
+        try:
+            seen_at = datetime.fromisoformat(last_seen)
+        except ValueError:
+            return True
+        return datetime.now(timezone.utc) - seen_at > auth.SESSION_IDLE_TIMEOUT
 
     @app.before_request
     def _open_connection():
         g.conn = db.connect(app.config["DSN"])
         # Identity comes from the signed cookie, and the role from the database.
         # request.headers is deliberately not consulted here or anywhere below.
+        if _session_is_stale():
+            session.clear()
         g.identity = auth.load(g.conn, session.get("user_id", ""))
+        if g.identity is not None:
+            session["last_seen"] = datetime.now(timezone.utc).isoformat()
         db.set_identity(
             g.conn,
             g.identity.user_id if g.identity else "",
@@ -174,17 +190,29 @@ def create_app(dsn: str | None = None) -> Flask:
     def login():
         if request.method == "POST":
             try:
-                identity = auth.authenticate(g.conn, request.form.get("email", "").strip())
+                identity = auth.authenticate(
+                    g.conn,
+                    request.form.get("email", "").strip(),
+                    request.form.get("password", ""))
             except auth.AuthenticationFailed as exc:
                 audit.write(g.conn, audit.new_correlation_id(), "SIGN_IN_FAILED",
                             "app_user", request.form.get("email", "")[:200],
-                            new_state={"reason": str(exc)}, actor_agent=ACTOR_AGENT)
+                            new_state={"reason": str(exc),
+                                       "locked": isinstance(exc, auth.AccountLocked)},
+                            actor_agent=ACTOR_AGENT)
+                # the attempt counter is part of the same transaction
                 g.conn.commit()
                 flash(str(exc))
                 return render_template("login.html"), 401
             # Only the user id goes in the cookie. The role is looked up fresh
             # on every subsequent request.
+            # A new session on every sign-in: an attacker who fixed a session
+            # id before the user signed in does not inherit the signed-in one.
+            session.clear()
             session["user_id"] = identity.user_id
+            session["signed_in_at"] = datetime.now(timezone.utc).isoformat()
+            session["last_seen"] = session["signed_in_at"]
+            session.permanent = True
             audit.write(g.conn, audit.new_correlation_id(), "SIGN_IN", "app_user",
                         identity.user_id, new_state={"role": identity.role},
                         actor_user_id=identity.user_id, actor_agent=ACTOR_AGENT)

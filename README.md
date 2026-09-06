@@ -21,6 +21,7 @@ reach the source.
 | `ingest/` | `SIGNAL -> EVIDENCE`: retrieval, provenance validation, review queue |
 | `crown/` | the rest of the loop, plus the web app |
 | `tests/` | the acceptance criteria, as tests |
+| `tools/collector.html` | capture a real page from your own browser |
 | `scripts/demo.sh` | build a throwaway demo database and run the app |
 
 ## Running it
@@ -60,7 +61,7 @@ afterwards. CI runs the same three checks.
 
 | # | Criterion | Status | Where |
 |---|---|---|---|
-| 1 | Real amendment from each of 3 LGAs, full provenance | **FAIL** | blocked at egress; 7 real leads queued for verification |
+| 1 | Real amendment from each of 3 LGAs, full provenance | **FAIL** | no amendment ingested yet; unblocked by `tools/collector.html` without waiting on the network policy |
 | 2 | Re-running ingestion produces zero duplicates | PASS | `tests/test_ingest.py` |
 | 3 | Missing provenance rejected to review queue | PASS | `tests/test_ingest.py` |
 | 4 | Opportunity linked to evidence, named human owner | PASS | `tests/test_opportunity.py` |
@@ -106,6 +107,40 @@ and therefore cannot be a `FACT`.
 
 See `ingest/README.md` for the full account, and
 `docs/EGRESS-ALLOWLIST-REQUEST.md` for the exact hosts to permit.
+
+## Getting real amendments in while the source is unreachable
+
+The build environment cannot reach any Victorian planning host, and that is not
+going to change on our say-so. A person with a browser is not so constrained,
+and that is a real channel rather than a workaround: it is the publisher's own
+page, opened by a named human, with the bytes kept.
+
+`tools/collector.html` is one self-contained file. Open it in any browser —
+no server, no install, and it makes **no network requests at all**, which you
+can confirm in the network tab or by running it with the machine offline.
+
+1. Open the amendment page, view source, paste it in with the URL.
+2. The collector reads what it can and marks every field as a *suggestion*.
+   It will not export until you have checked each one.
+3. Tick the confirmation and export a bundle.
+4. `python -m ingest.cli --capture crown-capture-....json --as you@crown.local`
+
+What makes the result evidence rather than hearsay:
+
+- **The bytes are kept.** `capture_artifact` stores the raw HTML, so anything
+  drawn from it can be rechecked against what was actually on the page.
+- **The bytes are fingerprinted.** The bundle carries a sha256 recomputed on
+  import; a bundle whose hash does not match its own content is refused. The
+  collector's hash implementation is checked against Python's in the test suite.
+- **A person is on the hook.** `captured_by` names them, and the operator
+  confirms each field rather than accepting what a parser guessed.
+
+Graded honestly: a capture may be `STRONG`, so a gazetted amendment captured
+this way **can be a `FACT`** — better than a search intermediary's summary. It
+can never be `AUTHORITATIVE`; that stays reserved for a fetch the system made
+and can make again. The database enforces both.
+
+A capture also closes any queued lead waiting on that amendment.
 
 ## Defects found reviewing this, and fixed
 
@@ -187,15 +222,23 @@ A second pass asked two different questions: *can you prove what happened?* and
   of the score, and the approval. A gated export that says only `{"note": ""}`
   is gated and useless.
 
-## Known weakness: authentication is a placeholder
+## Authentication
 
-`POST /login` takes an email and no password. Authorisation is real and tested —
-roles come from the database, row-level security enforces them, forged headers
-change nothing — but **authentication is not**. Anyone who can reach the app can
-sign in as anyone. This is fine for a thin loop on a private host and must not
-meet the internet. Putting real credentials or SSO behind `crown.auth.authenticate`
-is the one change needed; nothing else in the request cycle assumes how identity
-was established.
+Passwords are hashed with scrypt (N=2^15, r=8, 16-byte salt, ~160 ms per hash),
+using the standard library so there is no dependency to keep current. The
+parameters travel with each digest, so they can be raised later without
+invalidating existing passwords.
+
+- Five failed attempts locks an account for fifteen minutes, and the correct
+  password does not open it while it is locked.
+- An unknown account and a wrong password return the same message, and take
+  comparable time, so neither reveals which addresses are real.
+- Seeded accounts have **no password**, which means nobody can be them until
+  someone sets one: `python scripts/set_password.py hawk@crown.local`.
+- Signing in starts a fresh session, so a fixed session id is not inherited.
+- A session idle for eight hours stops being signed in.
+
+Every sign-in, sign-out, failed attempt and lockout is audited.
 
 ## Three design notes worth reading before extending this
 

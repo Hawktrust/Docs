@@ -30,7 +30,7 @@ def test_relayed_data_cannot_be_called_authoritative(db):
     """Migration 0003. Second-hand is not proof."""
     src = source(db)
     with pytest.raises(psycopg.errors.CheckViolation,
-                       match="only_direct_fetch_can_be_strong"):
+                       match="retrieval_method_limits_reliability"):
         db.execute(
             """INSERT INTO evidence_record (source_id, source_reference, source_url,
                    provider, retrieved_at, observed_at, last_verified_at, lane,
