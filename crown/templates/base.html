@@ -22,9 +22,11 @@
 </style>
 <header>
   <strong>Crown AI</strong>
+  <a href="/overview">Overview</a>
   <a href="/opportunities">Opportunities</a>
   <a href="/queue">Approval queue</a>
   <a href="/mandates">Buyer mandates</a>
+  {% if identity and identity.role in ('ADMIN', 'COMPLIANCE') %}<a href="/compliance">Compliance</a>{% endif %}
   <span style="margin-left:auto">
     {% if identity %}{{ identity.display_name }} · {{ identity.role }}{% else %}not signed in{% endif %}
   </span>

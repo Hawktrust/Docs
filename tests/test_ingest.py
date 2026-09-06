@@ -108,8 +108,11 @@ def test_every_transition_writes_one_audit_row(db, retrieval):
     """Ticket item 8 / Constitution §5."""
     src = source(db)
     ingest(db, src, retrieval, [WYNDHAM_GAZETTED, WYNDHAM_INCOMPLETE], "Wyndham")
+    # scoped to this actor: the seed itself writes a SCORING_WEIGHTS_INSERT row,
+    # because migration 0005 audits every change to the scoring weights.
     actions = [r[0] for r in db.execute(
-        "SELECT action FROM audit_event ORDER BY id").fetchall()]
+        "SELECT action FROM audit_event WHERE actor_agent = 'ingest.pipeline' ORDER BY id"
+    ).fetchall()]
     assert actions == ["RAW_INGESTED", "EVIDENCE_CREATED",
                        "RAW_INGESTED", "EVIDENCE_REJECTED_TO_REVIEW"]
 

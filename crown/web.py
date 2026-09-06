@@ -20,9 +20,11 @@ import psycopg
 from flask import (Flask, abort, flash, g, redirect, render_template, request,
                    session, url_for)
 
-from . import approval, attribution, auth, db, matching, opportunity, outbound
+from . import (approval, attribution, audit, auth, db, matching, opportunity,
+               outbound, reports)
 
 SYNTHETIC_LABEL = "DEMO / SYNTHETIC DATA"
+ACTOR_AGENT = "crown.web"
 
 
 class InsecureConfiguration(Exception):
@@ -128,6 +130,19 @@ def create_app(dsn: str | None = None) -> Flask:
                 if not g.identity.has_role(*roles):
                     # The role compared here came from the database in
                     # _open_connection, never from the request.
+                    #
+                    # A refused attempt is worth more to an auditor than a
+                    # permitted one, so it is recorded before the refusal.
+                    audit.write(g.conn, audit.new_correlation_id(),
+                                "AUTHORISATION_DENIED", "app_user",
+                                g.identity.user_id,
+                                new_state={"endpoint": request.endpoint,
+                                           "method": request.method,
+                                           "role_held": g.identity.role,
+                                           "roles_required": list(roles)},
+                                actor_user_id=g.identity.user_id,
+                                actor_agent=ACTOR_AGENT)
+                    g.conn.commit()
                     abort(403)
                 return view(*a, **kw)
             return wrapper
@@ -137,7 +152,23 @@ def create_app(dsn: str | None = None) -> Flask:
 
     @app.get("/")
     def index():
-        return redirect(url_for("opportunities") if g.get("identity") else url_for("login"))
+        return redirect(url_for("overview") if g.get("identity") else url_for("login"))
+
+    @app.get("/overview")
+    @login_required
+    def overview():
+        """The honest state of the system, zeros included."""
+        return render_template("overview.html", o=reports.overview(g.conn))
+
+    @app.get("/compliance")
+    @role_required("ADMIN", "COMPLIANCE")
+    def compliance():
+        return render_template(
+            "compliance.html",
+            exceptions=reports.data_rights_exceptions(g.conn),
+            queue=reports.unresolved_review_queue(g.conn),
+            weights=reports.scoring_weight_history(g.conn),
+            trail=reports.audit_trail(g.conn, limit=100))
 
     @app.route("/login", methods=["GET", "POST"])
     def login():
@@ -145,16 +176,28 @@ def create_app(dsn: str | None = None) -> Flask:
             try:
                 identity = auth.authenticate(g.conn, request.form.get("email", "").strip())
             except auth.AuthenticationFailed as exc:
+                audit.write(g.conn, audit.new_correlation_id(), "SIGN_IN_FAILED",
+                            "app_user", request.form.get("email", "")[:200],
+                            new_state={"reason": str(exc)}, actor_agent=ACTOR_AGENT)
+                g.conn.commit()
                 flash(str(exc))
                 return render_template("login.html"), 401
             # Only the user id goes in the cookie. The role is looked up fresh
             # on every subsequent request.
             session["user_id"] = identity.user_id
-            return redirect(url_for("opportunities"))
+            audit.write(g.conn, audit.new_correlation_id(), "SIGN_IN", "app_user",
+                        identity.user_id, new_state={"role": identity.role},
+                        actor_user_id=identity.user_id, actor_agent=ACTOR_AGENT)
+            return redirect(url_for("overview"))
         return render_template("login.html")
 
     @app.post("/logout")
     def logout():
+        if g.get("identity"):
+            audit.write(g.conn, audit.new_correlation_id(), "SIGN_OUT", "app_user",
+                        g.identity.user_id, actor_user_id=g.identity.user_id,
+                        actor_agent=ACTOR_AGENT)
+            g.conn.commit()
         session.clear()
         return redirect(url_for("login"))
 
@@ -276,11 +319,13 @@ def create_app(dsn: str | None = None) -> Flask:
         """AC8: an export or outreach draft without a usable approval id fails here,
         server-side, before the database is asked."""
         try:
+            approval_id = request.form.get("approval_id") or None
             artifact_id = outbound.create(
                 g.conn,
-                request.form.get("approval_id") or None,
+                approval_id,
                 request.form.get("artifact_type", "EXPORT"),
-                {"note": request.form.get("note", "")},
+                outbound.build_content(g.conn, approval_id,
+                                       note=request.form.get("note", "")),
                 g.identity.user_id,
             )
         except outbound.ApprovalRequired as exc:

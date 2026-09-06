@@ -68,7 +68,12 @@ def test_row_level_security_rejects_a_forged_role_at_the_database(app_db, db):
     """Below HTTP: even a caller who can set the session variable directly is
     constrained, because the policy is evaluated by the database."""
     match_id = a_match(db)
-    approver = user_id(db, "analyst@crown.local")
+    # an analyst who does NOT own the opportunity, so the refusal under test is
+    # the row-level security policy and not the self-approval trigger
+    db.execute("""INSERT INTO app_user (email, display_name, role)
+                  VALUES ('analyst2@crown.local', 'Second Analyst', 'ANALYST')""")
+    db.commit()
+    approver = user_id(db, "analyst2@crown.local")
 
     crown_db.set_identity(app_db, str(approver), "ANALYST")
     with pytest.raises(psycopg.errors.InsufficientPrivilege):

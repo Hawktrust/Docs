@@ -140,6 +140,53 @@ request (approving is the act the system exists to gate), `HttpOnly` /
 without `CROWN_SECRET` rather than generating one that silently invalidates
 every session on restart.
 
+## Reviewed as an auditor and as a CEO
+
+A second pass asked two different questions: *can you prove what happened?* and
+*does this tell me the truth about my business?* Six more things were wrong.
+
+**Could not be answered before, can now:**
+
+1. **"Who signed in, and who tried?"** Nothing recorded authentication at all.
+   Sign-in, sign-out and failed sign-in are now audited — and so is every
+   refused action, because an attempt that fails is worth more to an auditor
+   than one that succeeds.
+2. **"Who changed the numbers that pick the buyer?"** The five scoring weights
+   are configuration precisely so they can change without a deploy, which meant
+   changing them left no trace. A trigger now records every change with its
+   before and after, whatever writes it — application, migration, or a psql
+   prompt.
+3. **"Who did this?"** `actor_user_id` and `actor_agent` were both nullable
+   with nothing requiring either, so an audit row could be attributed to nobody.
+   Now a CHECK requires one.
+4. **"Did they approve their own work?"** Nothing connected `approver_id` to
+   `owner_user_id`. The analyst who raised an opportunity could approve the
+   match on it. Now refused by trigger. *If this is impractical at Crown's
+   headcount, that trigger is the one thing to drop — but drop it deliberately.*
+5. **"What are we ingesting without permission?"** The register carries
+   `register_confirmed_by`, described as NULL until a named adviser signs. The
+   one ingestible source has been ingestible from the start with it empty.
+   `data_rights_exception` now reports it, and the compliance page shows it.
+   **It is not empty today.**
+6. **Demo data was laundering into real figures.** Five demo evidence records
+   produced four opportunities recorded as `REAL` — the `origin` column exists
+   to prevent exactly this and the rule engine never set it. An opportunity is
+   now only as real as the evidence under it, a match only as real as both sides
+   of it, and the overview counts accordingly.
+
+**Added because a person could not see the answer:**
+
+- `/overview` — the honest state, zeros included, with a banner saying plainly
+  that no real evidence has been ingested. Demo records are reported separately
+  and never folded into a figure.
+- `/compliance` (ADMIN, COMPLIANCE) — data rights exceptions, the queue waiting
+  on a human, every change to the scoring weights, and the audit trail. An
+  append-only table nobody can read is a table nobody checks.
+- Outbound artifacts now carry the chain that justifies them — geography, the
+  rule that staged it, the evidence with its provenance, the buyer, every factor
+  of the score, and the approval. A gated export that says only `{"note": ""}`
+  is gated and useless.
+
 ## Known weakness: authentication is a placeholder
 
 `POST /login` takes an email and no password. Authorisation is real and tested —

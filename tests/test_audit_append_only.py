@@ -32,11 +32,13 @@ def test_application_code_cannot_delete_an_audit_row(app_db, db):
     db.commit()
     crown_db.set_identity(app_db, str(user_id(db, "hawk@crown.local")), "ADMIN")
 
+    before = db.execute("SELECT count(*) FROM audit_event").fetchone()[0]
+
     with pytest.raises(psycopg.Error):
         app_db.execute("DELETE FROM audit_event")
     app_db.rollback()
 
-    assert db.execute("SELECT count(*) FROM audit_event").fetchone()[0] == 1
+    assert db.execute("SELECT count(*) FROM audit_event").fetchone()[0] == before
 
 
 def test_the_trigger_refuses_even_the_table_owner(db):

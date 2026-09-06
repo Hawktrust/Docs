@@ -16,12 +16,15 @@ for f in migrations/0001_ticket01_thin_loop.sql \
          migrations/0002_rls_policies.sql \
          migrations/0003_retrieval_method.sql \
          migrations/0004_integrity_fixes.sql \
+         migrations/0005_audit_and_controls.sql \
          seeds/001_users_and_config.sql \
          seeds/002_buyer_mandates.sql \
          seeds/dev_only_demo_evidence.sql; do
     psql -q -v ON_ERROR_STOP=1 -d "$BASE/$DB" -f "$f"
     echo "applied $f"
 done
+
+python3 -m ingest.cli --lga Wyndham --leads seeds/relay_leads.json --dsn "$DEMO_DSN" || true
 
 python3 -c "
 import os, psycopg

@@ -89,6 +89,7 @@ class OpportunityChange:
     stage_rule: str
     created: bool
     evidence_ids: list
+    origin: str = "REAL"
 
 
 def geography_label_for(evidence_row) -> str:
@@ -113,7 +114,8 @@ def refresh(conn, owner_user_id, *, correlation_id=None, lga=None) -> list[Oppor
     """
     correlation_id = correlation_id or audit.new_correlation_id()
 
-    sql = """SELECT id, lga, geography, evidence_class::text, source_reference
+    sql = """SELECT id, lga, geography, evidence_class::text, source_reference,
+                    origin::text
              FROM evidence_record"""
     params: tuple = ()
     if lga:
@@ -123,19 +125,26 @@ def refresh(conn, owner_user_id, *, correlation_id=None, lga=None) -> list[Oppor
 
     # group the evidence by the geography it affects
     grouped: dict[tuple[str, str], list] = {}
-    for evidence_id, row_lga, geography, evidence_class, reference in rows:
+    for evidence_id, row_lga, geography, evidence_class, reference, origin in rows:
         key = (row_lga, geography_label_for((row_lga, geography)))
-        grouped.setdefault(key, []).append((evidence_id, evidence_class, reference))
+        grouped.setdefault(key, []).append((evidence_id, evidence_class, reference, origin))
 
     changes = []
     for (row_lga, label), evidence in sorted(grouped.items()):
         # one class per amendment, not per evidence record
         stage, reason = stage_for(
-            strongest_class_per_amendment((ref, cls) for _, cls, ref in evidence))
-        evidence_ids = [e for e, _, _ in evidence]
+            strongest_class_per_amendment((ref, cls) for _, cls, ref, _ in evidence))
+        evidence_ids = [e for e, _, _, _ in evidence]
+
+        # An opportunity is only as real as the evidence under it. Left to the
+        # column default, an opportunity built entirely from demo records was
+        # recorded as REAL and counted in figures shown to people.
+        origin = ("REAL" if any(o == "REAL" for _, _, _, o in evidence)
+                  else "DEMO_SYNTHETIC")
 
         existing = conn.execute(
-            "SELECT id, stage::text FROM opportunity WHERE lga = %s AND geography_label = %s",
+            """SELECT id, stage::text, origin::text FROM opportunity
+               WHERE lga = %s AND geography_label = %s""",
             (row_lga, label),
         ).fetchone()
 
@@ -143,24 +152,26 @@ def refresh(conn, owner_user_id, *, correlation_id=None, lga=None) -> list[Oppor
             opportunity_id = conn.execute(
                 """
                 INSERT INTO opportunity (lga, geography_label, stage, stage_rule,
-                                         owner_user_id, next_action)
-                VALUES (%s,%s,%s,%s,%s,%s) RETURNING id
+                                         owner_user_id, next_action, origin)
+                VALUES (%s,%s,%s,%s,%s,%s,%s) RETURNING id
                 """,
                 (row_lga, label, stage, reason, owner_user_id,
-                 "Review the evidence pack and confirm the geography is worth working"),
+                 "Review the evidence pack and confirm the geography is worth working",
+                 origin),
             ).fetchone()[0]
             created = True
             audit.write(conn, correlation_id, "OPPORTUNITY_CREATED", "opportunity",
                         opportunity_id, new_state={"stage": stage, "stage_rule": reason},
                         actor_user_id=owner_user_id, actor_agent=ACTOR_AGENT)
         else:
-            opportunity_id, previous_stage = existing
+            opportunity_id, previous_stage, previous_origin = existing
             created = False
-            if previous_stage != stage:
+            if previous_stage != stage or previous_origin != origin:
                 conn.execute(
-                    """UPDATE opportunity SET stage = %s, stage_rule = %s, updated_at = now()
+                    """UPDATE opportunity SET stage = %s, stage_rule = %s, origin = %s,
+                              updated_at = now()
                        WHERE id = %s""",
-                    (stage, reason, opportunity_id),
+                    (stage, reason, origin, opportunity_id),
                 )
                 audit.write(conn, correlation_id, "OPPORTUNITY_RESTAGED", "opportunity",
                             opportunity_id, previous_state={"stage": previous_stage},
@@ -177,6 +188,7 @@ def refresh(conn, owner_user_id, *, correlation_id=None, lga=None) -> list[Oppor
         changes.append(OpportunityChange(
             opportunity_id=opportunity_id, lga=row_lga, geography_label=label,
             stage=stage, stage_rule=reason, created=created, evidence_ids=evidence_ids,
+            origin=origin,
         ))
 
     return changes

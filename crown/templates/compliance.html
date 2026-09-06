@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block body %}
+<h1>Compliance</h1>
+
+<h2>Data rights exceptions</h2>
+<p class="note">Sources being ingested without a complete register entry.
+This should be empty before go-live.</p>
+<table>
+  <tr><th>Source</th><th>Provider</th><th>Lane</th><th>Exception</th></tr>
+  {% for code, name, provider, lane, reason, notes in exceptions %}
+  <tr><td><code>{{ code }}</code><div class="note">{{ name }}</div></td>
+      <td>{{ provider }}</td><td>{{ lane }}</td>
+      <td><span class="synthetic">OPEN</span> {{ reason }}</td></tr>
+  {% else %}
+  <tr><td colspan="4">None. Every ingestible source has a complete register entry.</td></tr>
+  {% endfor %}
+</table>
+
+<h2>Awaiting a human</h2>
+<table>
+  <tr><th>Amendment</th><th>LGA</th><th>Corroboration</th><th>Cannot fill</th><th>Queued</th></tr>
+  {% for qid, number, lga, corroboration, reason, missing, created in queue %}
+  <tr><td>{{ number or '—' }}</td><td>{{ lga or '—' }}</td>
+      <td>{{ corroboration or '—' }}</td>
+      <td class="note">{{ missing|join(', ') }}</td>
+      <td>{{ created.strftime('%Y-%m-%d') }}</td></tr>
+  {% else %}
+  <tr><td colspan="5">Queue is empty.</td></tr>
+  {% endfor %}
+</table>
+
+<h2>Changes to the scoring weights</h2>
+<p class="note">These five numbers decide which buyer ranks first, and they can
+be changed without a deploy. Every change is recorded.</p>
+<table>
+  <tr><th>When</th><th>Action</th><th>By</th><th>New weights</th></tr>
+  {% for when, action, who, previous, new in weights %}
+  <tr><td>{{ when.strftime('%Y-%m-%d %H:%M') }}</td><td>{{ action }}</td><td>{{ who }}</td>
+      <td class="note">v{{ new.version }} — geo {{ new.geographic_fit }},
+          asset {{ new.asset_fit }}, price {{ new.price_fit }},
+          size {{ new.size_fit }}, freshness {{ new.mandate_freshness }}
+          {% if new.is_active %}<strong>(active)</strong>{% endif %}</td></tr>
+  {% else %}
+  <tr><td colspan="4">No changes recorded.</td></tr>
+  {% endfor %}
+</table>
+
+<h2>Audit trail</h2>
+<p class="note">Append-only. The database refuses UPDATE, DELETE and TRUNCATE on
+this table, from application code and from its owner.</p>
+<table>
+  <tr><th>When</th><th>Action</th><th>Object</th><th>Actor</th><th>Correlation</th></tr>
+  {% for when, action, table, object_id, actor, correlation, state in trail %}
+  <tr><td>{{ when.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+      <td>{{ action }}</td>
+      <td class="note">{{ table }} {{ object_id[:8] }}</td>
+      <td>{{ actor }}</td>
+      <td class="note">{{ correlation|string|truncate(8, true, '') }}</td></tr>
+  {% else %}
+  <tr><td colspan="5">No audit rows.</td></tr>
+  {% endfor %}
+</table>
+{% endblock %}

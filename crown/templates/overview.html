@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block body %}
+<h1>Overview</h1>
+
+{% if not o.has_real_evidence %}
+<div class="flash">
+  <strong>No real evidence has been ingested.</strong>
+  Signal ingestion is blocked: the amendment source is unreachable from this
+  environment. {{ o.leads_awaiting_verification }} lead(s) are queued awaiting
+  direct retrieval. Everything below that is non-zero rests on demo records.
+</div>
+{% endif %}
+
+<h2>Real</h2>
+<table>
+  <tr><th>Evidence records</th><td><strong>{{ o.real_evidence }}</strong></td></tr>
+  <tr><th>Buyer mandates</th><td><strong>{{ o.real_mandates }}</strong></td></tr>
+  <tr><th>Opportunities</th><td>{{ o.opportunities }}</td></tr>
+  <tr><th>Matches awaiting a decision</th><td>{{ o.matches_awaiting_decision }}</td></tr>
+  <tr><th>Approvals recorded</th><td>{{ o.approvals }}</td></tr>
+  <tr><th>Attribution records</th><td>{{ o.attributions }}</td></tr>
+  <tr><th>Exports and drafts released</th><td>{{ o.outbound_artifacts }}</td></tr>
+</table>
+
+<h2>Needs a person</h2>
+<table>
+  <tr><th>Leads awaiting direct verification</th><td>{{ o.leads_awaiting_verification }}</td></tr>
+  <tr><th>Data rights exceptions</th>
+      <td>{% if o.data_rights_exceptions %}<span class="synthetic">{{ o.data_rights_exceptions }}</span>
+          {% if identity.role in ('ADMIN','COMPLIANCE') %}<a href="/compliance">review</a>{% endif %}
+          {% else %}0{% endif %}</td></tr>
+</table>
+
+<h2>Not counted above</h2>
+<p class="note">Demo and synthetic records exist so the loop can be exercised.
+They are excluded from every figure in this page.</p>
+<table>
+  <tr><th>Demo opportunities</th>
+      <td>{{ o.demo_opportunities }} <span class="synthetic">{{ synthetic_label }}</span></td></tr>
+  <tr><th>Demo matches awaiting a decision</th>
+      <td>{{ o.demo_matches_awaiting_decision }} <span class="synthetic">{{ synthetic_label }}</span></td></tr>
+  <tr><th>Demo evidence records</th>
+      <td>{{ o.demo_evidence }} <span class="synthetic">{{ synthetic_label }}</span></td></tr>
+  <tr><th>Synthetic buyer mandates</th>
+      <td>{{ o.synthetic_mandates }} <span class="synthetic">{{ synthetic_label }}</span></td></tr>
+</table>
+{% endblock %}
