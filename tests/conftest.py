@@ -26,6 +26,7 @@ MIGRATIONS = [
     os.path.join(ROOT, "migrations", "0001_ticket01_thin_loop.sql"),
     os.path.join(ROOT, "migrations", "0002_rls_policies.sql"),
     os.path.join(ROOT, "migrations", "0003_retrieval_method.sql"),
+    os.path.join(ROOT, "migrations", "0004_integrity_fixes.sql"),
 ]
 LEADS_FILE = os.path.join(ROOT, "seeds", "relay_leads.json")
 SEEDS = [
@@ -147,6 +148,7 @@ def client(app_dsn, monkeypatch):
     from crown.web import create_app
 
     monkeypatch.setenv("CROWN_SECRET", "test-secret-not-for-production")
+    monkeypatch.setenv("CROWN_INSECURE_COOKIES", "1")   # the test client is not https
     app = create_app(app_dsn)
     app.config["TESTING"] = True
     return app.test_client()
@@ -156,3 +158,14 @@ def sign_in(client, email):
     response = client.post("/login", data={"email": email}, follow_redirects=False)
     assert response.status_code in (302, 200), response.status_code
     return response
+
+
+def csrf(client):
+    """The token the server issued for this session, as a form field."""
+    with client.session_transaction() as session:
+        token = session.get("csrf_token")
+    if token is None:                      # not yet issued: render a page to mint one
+        client.get("/opportunities")
+        with client.session_transaction() as session:
+            token = session["csrf_token"]
+    return {"csrf_token": token}

@@ -16,6 +16,7 @@
 <h2>Ranked buyers</h2>
 {% if identity.role in ('ADMIN', 'ANALYST') %}
 <form method="post" action="/opportunities/{{ o[0] }}/rematch" style="margin-bottom:8px">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
   <button type="submit">Recompute and store this ranking</button>
   <span class="note">Storing is what puts these matches in the approval queue.</span>
 </form>

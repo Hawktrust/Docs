@@ -10,10 +10,13 @@ Every request follows the same shape:
 Nothing in that sequence consults a request header. A client may send
 X-Crown-Role: ADMIN on every request and it will change nothing.
 """
+import hmac
 import os
+import secrets
 from datetime import date
 from functools import wraps
 
+import psycopg
 from flask import (Flask, abort, flash, g, redirect, render_template, request,
                    session, url_for)
 
@@ -22,10 +25,33 @@ from . import approval, attribution, auth, db, matching, opportunity, outbound
 SYNTHETIC_LABEL = "DEMO / SYNTHETIC DATA"
 
 
+class InsecureConfiguration(Exception):
+    """The app refuses to start in a state that would quietly weaken it."""
+
+
 def create_app(dsn: str | None = None) -> Flask:
     app = Flask(__name__)
-    app.config["SECRET_KEY"] = os.environ.get("CROWN_SECRET") or os.urandom(32).hex()
+
+    # A generated secret would work and would silently invalidate every session
+    # on restart, and differ between processes behind a load balancer. Refuse
+    # rather than paper over it; tests and local runs set CROWN_SECRET.
+    secret = os.environ.get("CROWN_SECRET")
+    if not secret:
+        raise InsecureConfiguration(
+            "CROWN_SECRET is not set. Set it to a long random value; it signs "
+            "the session cookie that carries the authenticated user id."
+        )
+    app.config["SECRET_KEY"] = secret
     app.config["DSN"] = dsn or os.environ.get("CROWN_DSN")
+
+    app.config.update(
+        # The cookie carries the identity every authorisation decision is made
+        # from, so it does not go to script, does not ride cross-site requests,
+        # and outside development does not travel in clear.
+        SESSION_COOKIE_HTTPONLY=True,
+        SESSION_COOKIE_SAMESITE="Strict",
+        SESSION_COOKIE_SECURE=os.environ.get("CROWN_INSECURE_COOKIES") != "1",
+    )
 
     # ---------------------------------------------------------- request cycle
 
@@ -53,7 +79,36 @@ def create_app(dsn: str | None = None) -> Flask:
 
     @app.context_processor
     def _template_globals():
-        return {"identity": g.get("identity"), "synthetic_label": SYNTHETIC_LABEL}
+        return {"identity": g.get("identity"), "synthetic_label": SYNTHETIC_LABEL,
+                "csrf_token": _csrf_token()}
+
+    # ------------------------------------------------------ cross-site forgery
+    #
+    # Approving a match is the act the whole system exists to gate. Without a
+    # token, any page a signed-in approver visits could post an approval on
+    # their behalf. SameSite=Strict above blocks the common case; this makes it
+    # not depend on the browser.
+
+    def _csrf_token() -> str:
+        if "csrf_token" not in session:
+            session["csrf_token"] = secrets.token_urlsafe(32)
+        return session["csrf_token"]
+
+    @app.before_request
+    def _check_csrf():
+        if request.method not in ("POST", "PUT", "PATCH", "DELETE"):
+            return None
+        if request.endpoint == "login":       # no session to protect yet
+            return None
+        if g.get("identity") is None:
+            # Nothing to forge on behalf of. Let the view answer 401 so "who are
+            # you" and "you may not" stay distinguishable.
+            return None
+        sent = request.form.get("csrf_token") or request.headers.get("X-CSRF-Token", "")
+        expected = session.get("csrf_token", "")
+        if not expected or not hmac.compare_digest(sent, expected):
+            abort(403, "missing or invalid CSRF token")
+        return None
 
     # ---------------------------------------------------------- authorisation
 
@@ -204,6 +259,12 @@ def create_app(dsn: str | None = None) -> Flask:
         except (approval.NotAuthorised, ValueError) as exc:
             flash(str(exc))
             return redirect(url_for("queue_item", match_result_id=match_result_id))
+        except psycopg.errors.UniqueViolation:
+            # Someone already decided this match — a double submit, or a second
+            # approver arriving at the same moment. The first decision stands.
+            g.conn.rollback()
+            flash("This match has already been decided. The first decision stands.")
+            return redirect(url_for("queue")), 409
 
         if decision == "APPROVED":
             attribution.progress(g.conn, approval_id)

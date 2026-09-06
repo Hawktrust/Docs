@@ -16,7 +16,7 @@ reach the source.
 
 | Path | What it is |
 |---|---|
-| `migrations/` | the schema, the RLS policies, and retrieval provenance |
+| `migrations/` | the schema, RLS policies, retrieval provenance, integrity fixes |
 | `seeds/` | named users, the weight config, twenty synthetic mandates, the relay leads |
 | `ingest/` | `SIGNAL -> EVIDENCE`: retrieval, provenance validation, review queue |
 | `crown/` | the rest of the loop, plus the web app |
@@ -29,6 +29,8 @@ reach the source.
 createdb crown_ai
 psql -v ON_ERROR_STOP=1 -d crown_ai -f migrations/0001_ticket01_thin_loop.sql
 psql -v ON_ERROR_STOP=1 -d crown_ai -f migrations/0002_rls_policies.sql
+psql -v ON_ERROR_STOP=1 -d crown_ai -f migrations/0003_retrieval_method.sql
+psql -v ON_ERROR_STOP=1 -d crown_ai -f migrations/0004_integrity_fixes.sql
 psql -v ON_ERROR_STOP=1 -d crown_ai -f seeds/001_users_and_config.sql
 psql -v ON_ERROR_STOP=1 -d crown_ai -f seeds/002_buyer_mandates.sql
 
@@ -69,11 +71,17 @@ afterwards. CI runs the same three checks.
 | 9 | Forged role header rejected | PASS | `tests/test_authorisation.py` |
 | 10 | Audit table append-only | PASS | `tests/test_audit_append_only.py` |
 | 11 | Attribution traces to source URL and retrieval date | PASS | `tests/test_attribution_trace.py` |
-| 12 | Test suite green in CI | PASS | `.github/workflows/ci.yml` |
+| 12 | Test suite green in CI | **NOT ATTEMPTED** | workflow defined; no run has executed |
 
-AC12 counts the workflow as defined and passing its steps locally; "a failing
-check blocks the merge" additionally needs branch protection on `main`, which
-is a repository setting rather than a file.
+AC12 is **not** claimed. The workflow is defined and every one of its steps
+passes locally, but the pull request shows zero check runs — GitHub Actions has
+never executed it, so there is no green CI to point at. Enabling Actions on the
+repository is the missing step. Branch protection on `main` is then needed
+separately for "a failing check blocks the merge".
+
+AC4 and AC11 pass against fixture evidence, because AC1 is blocked and there is
+no real evidence to link an opportunity to. The mechanisms are demonstrated; they
+have not been demonstrated on a real amendment.
 
 ## The one criterion that fails
 
@@ -98,6 +106,49 @@ and therefore cannot be a `FACT`.
 
 See `ingest/README.md` for the full account, and
 `docs/EGRESS-ALLOWLIST-REQUEST.md` for the exact hosts to permit.
+
+## Defects found reviewing this, and fixed
+
+Each was reproduced before it was fixed, and each reproduction is kept as a
+regression test in `tests/test_integrity.py`. All five were reachable from
+ordinary use.
+
+1. **`buyer_mandate_real` bypassed row-level security.** A view runs with its
+   owner's rights unless declared otherwise, so the view the schema tells you to
+   use for "any figure shown to a person" was the one path that ignored the
+   policies on the table beneath it — a connection with no identity set could
+   read real mandates through it. Now `security_invoker`.
+2. **A match could be approved twice.** A double-clicked button was enough.
+   Now `UNIQUE (match_result_id)` on `approval`, and the UI answers 409 instead
+   of falling over.
+3. **One approval could produce unlimited attribution records.** Attribution is
+   append-only, so those duplicates could never be removed — permanently wrong
+   rows in the record that answers "which signal created this". Now
+   `UNIQUE (approval_id)`.
+4. **An approved match could be rescored underneath its approval.** A match
+   approved at 0.7639 read 0.5444 after a recompute, with the approval still
+   pointing at it. Recomputing now skips decided matches, and a trigger enforces
+   it whatever code does the writing.
+5. **The stage rule counted revisions of one amendment as separate amendments.**
+   Ingestion writes a new evidence record when a payload changes upstream, so a
+   council editing a page escalated an opportunity from DEVELOPING to
+   HIGH_CONFIDENCE. The rule now takes the strongest class per amendment.
+
+Security hardening in the same pass: CSRF tokens on every state-changing
+request (approving is the act the system exists to gate), `HttpOnly` /
+`SameSite=Strict` / `Secure` session cookies, and the app now refuses to start
+without `CROWN_SECRET` rather than generating one that silently invalidates
+every session on restart.
+
+## Known weakness: authentication is a placeholder
+
+`POST /login` takes an email and no password. Authorisation is real and tested —
+roles come from the database, row-level security enforces them, forged headers
+change nothing — but **authentication is not**. Anyone who can reach the app can
+sign in as anyone. This is fine for a thin loop on a private host and must not
+meet the internet. Putting real credentials or SSO behind `crown.auth.authenticate`
+is the one change needed; nothing else in the request cycle assumes how identity
+was established.
 
 ## Three design notes worth reading before extending this
 

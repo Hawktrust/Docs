@@ -1,6 +1,6 @@
 """The loop as a person walks it: opportunity -> ranking -> queue -> decision."""
 from crown import matching, opportunity
-from tests.conftest import add_evidence, sign_in, user_id
+from tests.conftest import add_evidence, csrf, sign_in, user_id
 
 
 def an_opportunity(db):
@@ -27,7 +27,7 @@ def test_recomputing_stores_the_ranking_and_fills_the_queue(client, db):
 
     assert client.get("/queue").get_data(as_text=True).count("Queue is empty") == 1
 
-    response = client.post(f"/opportunities/{oid}/rematch")
+    response = client.post(f"/opportunities/{oid}/rematch", data=csrf(client))
     assert response.status_code == 302
     assert db.execute("SELECT count(*) FROM match_result").fetchone()[0] == 20
 
@@ -38,7 +38,8 @@ def test_recomputing_stores_the_ranking_and_fills_the_queue(client, db):
 def test_an_agent_may_not_recompute_a_ranking(client, db):
     oid = an_opportunity(db)
     sign_in(client, "agent@crown.local")
-    assert client.post(f"/opportunities/{oid}/rematch").status_code == 403
+    assert client.post(f"/opportunities/{oid}/rematch",
+                       data=csrf(client)).status_code == 403
     assert db.execute("SELECT count(*) FROM match_result").fetchone()[0] == 0
 
 
@@ -95,7 +96,8 @@ def test_approving_writes_the_attribution_in_the_same_step(client, db):
 
     sign_in(client, "compliance@crown.local")
     response = client.post(f"/queue/{match_id}/decide",
-                           data={"decision": "APPROVED", "reason": "pack checked"})
+                           data={"decision": "APPROVED", "reason": "pack checked",
+                                 **csrf(client)})
     assert response.status_code == 302
 
     row = db.execute(
@@ -114,5 +116,6 @@ def test_a_decision_without_a_reason_is_refused(client, db):
         "SELECT id FROM match_result WHERE NOT is_excluded LIMIT 1").fetchone()[0]
 
     sign_in(client, "compliance@crown.local")
-    client.post(f"/queue/{match_id}/decide", data={"decision": "APPROVED", "reason": "  "})
+    client.post(f"/queue/{match_id}/decide",
+                data={"decision": "APPROVED", "reason": "  ", **csrf(client)})
     assert db.execute("SELECT count(*) FROM approval").fetchone()[0] == 0

@@ -34,7 +34,15 @@ RULE_DESCRIPTION = (
 
 
 def stage_for(evidence_classes) -> tuple[str, str]:
-    """Return (stage, the human-readable reason it is at that stage)."""
+    """Return (stage, the human-readable reason it is at that stage).
+
+    Takes one class per *amendment*, not per evidence record. Ingestion writes a
+    new evidence record whenever an amendment's payload changes upstream, so a
+    single amendment revised twice yields two records. Counting those as two
+    amendments escalated an opportunity from DEVELOPING to HIGH_CONFIDENCE on
+    the strength of one amendment being edited. Callers must deduplicate by
+    source_reference first; strongest_class_per_amendment does that.
+    """
     classes = list(evidence_classes)
     facts = classes.count("FACT")
     hypotheses = classes.count("HYPOTHESIS")
@@ -55,6 +63,21 @@ def stage_for(evidence_classes) -> tuple[str, str]:
     return "WATCH", (
         "evidence affects this geography but none of it is classified FACT or HYPOTHESIS"
     )
+
+
+# Strongest first: an amendment that has been gazetted is a FACT whatever an
+# earlier revision of the same amendment was classified as.
+CLASS_STRENGTH = {"FACT": 3, "HYPOTHESIS": 2, "INFERENCE": 1, "PREDICTION": 0, "UNKNOWN": 0}
+
+
+def strongest_class_per_amendment(evidence) -> list[str]:
+    """Collapse (source_reference, evidence_class) pairs to one class per amendment."""
+    best: dict[str, str] = {}
+    for reference, evidence_class in evidence:
+        current = best.get(reference)
+        if current is None or CLASS_STRENGTH.get(evidence_class, 0) > CLASS_STRENGTH.get(current, 0):
+            best[reference] = evidence_class
+    return list(best.values())
 
 
 @dataclass
@@ -90,7 +113,7 @@ def refresh(conn, owner_user_id, *, correlation_id=None, lga=None) -> list[Oppor
     """
     correlation_id = correlation_id or audit.new_correlation_id()
 
-    sql = """SELECT id, lga, geography, evidence_class::text
+    sql = """SELECT id, lga, geography, evidence_class::text, source_reference
              FROM evidence_record"""
     params: tuple = ()
     if lga:
@@ -100,14 +123,16 @@ def refresh(conn, owner_user_id, *, correlation_id=None, lga=None) -> list[Oppor
 
     # group the evidence by the geography it affects
     grouped: dict[tuple[str, str], list] = {}
-    for evidence_id, row_lga, geography, evidence_class in rows:
+    for evidence_id, row_lga, geography, evidence_class, reference in rows:
         key = (row_lga, geography_label_for((row_lga, geography)))
-        grouped.setdefault(key, []).append((evidence_id, evidence_class))
+        grouped.setdefault(key, []).append((evidence_id, evidence_class, reference))
 
     changes = []
     for (row_lga, label), evidence in sorted(grouped.items()):
-        stage, reason = stage_for(c for _, c in evidence)
-        evidence_ids = [e for e, _ in evidence]
+        # one class per amendment, not per evidence record
+        stage, reason = stage_for(
+            strongest_class_per_amendment((ref, cls) for _, cls, ref in evidence))
+        evidence_ids = [e for e, _, _ in evidence]
 
         existing = conn.execute(
             "SELECT id, stage::text FROM opportunity WHERE lga = %s AND geography_label = %s",

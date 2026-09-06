@@ -20,6 +20,7 @@
 {% if identity and identity.role in ('ADMIN', 'COMPLIANCE') %}
 <h2>Decision</h2>
 <form method="post" action="/queue/{{ m[0] }}/decide">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
   <textarea name="reason" rows="3" cols="70" placeholder="Reason for the decision" required></textarea><br>
   <button name="decision" value="APPROVED" type="submit">Approve</button>
   <button name="decision" value="REJECTED" type="submit">Reject</button>

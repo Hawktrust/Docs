@@ -8,7 +8,7 @@ import psycopg
 import pytest
 
 from crown import auth, db as crown_db
-from tests.conftest import add_evidence, sign_in, user_id
+from tests.conftest import add_evidence, csrf, sign_in, user_id
 
 FORGED = {h: "ADMIN" for h in auth.IGNORED_ROLE_HEADERS}
 
@@ -40,7 +40,7 @@ def test_analyst_with_a_forged_admin_header_cannot_approve(client, db):
     sign_in(client, "analyst@crown.local")
 
     response = client.post(f"/queue/{match_id}/decide",
-                           data={"decision": "APPROVED", "reason": "forged"},
+                           data={"decision": "APPROVED", "reason": "forged", **csrf(client)},
                            headers=FORGED)
     assert response.status_code == 403
     assert db.execute("SELECT count(*) FROM approval").fetchone()[0] == 0
@@ -58,7 +58,8 @@ def test_compliance_may_approve(client, db):
     match_id = a_match(db)
     sign_in(client, "compliance@crown.local")
     response = client.post(f"/queue/{match_id}/decide",
-                           data={"decision": "APPROVED", "reason": "evidence checked"})
+                           data={"decision": "APPROVED", "reason": "evidence checked",
+                                 **csrf(client)})
     assert response.status_code == 302
     assert db.execute("SELECT count(*) FROM approval").fetchone()[0] == 1
 
@@ -103,10 +104,58 @@ def test_the_role_is_read_from_the_database_not_the_session_cookie(client, db):
     match_id = a_match(db)
     sign_in(client, "compliance@crown.local")
 
+    token = csrf(client)
     db.execute("UPDATE app_user SET is_active = false WHERE email = 'compliance@crown.local'")
     db.commit()
-
     response = client.post(f"/queue/{match_id}/decide",
-                           data={"decision": "APPROVED", "reason": "should not land"})
+                           data={"decision": "APPROVED", "reason": "should not land", **token})
     assert response.status_code == 401
     assert db.execute("SELECT count(*) FROM approval").fetchone()[0] == 0
+
+
+# ---------------------------------------------------------------- forgery
+
+def test_a_state_changing_post_without_a_csrf_token_is_rejected(client, db):
+    """Approving is the act the whole system exists to gate. Without a token,
+    any page a signed-in approver visits could post an approval for them."""
+    match_id = a_match(db)
+    sign_in(client, "compliance@crown.local")
+
+    response = client.post(f"/queue/{match_id}/decide",
+                           data={"decision": "APPROVED", "reason": "forged"})
+    assert response.status_code == 403
+    assert db.execute("SELECT count(*) FROM approval").fetchone()[0] == 0
+
+
+def test_a_stolen_token_from_another_session_does_not_work(client, db, app_dsn, monkeypatch):
+    from crown.web import create_app
+
+    match_id = a_match(db)
+    sign_in(client, "compliance@crown.local")
+
+    other = create_app(app_dsn).test_client()
+    other.get("/login")
+    with other.session_transaction() as session:
+        session["csrf_token"] = "a-token-minted-for-somebody-else"
+
+    response = client.post(f"/queue/{match_id}/decide",
+                           data={"decision": "APPROVED", "reason": "forged",
+                                 "csrf_token": "a-token-minted-for-somebody-else"})
+    assert response.status_code == 403
+    assert db.execute("SELECT count(*) FROM approval").fetchone()[0] == 0
+
+
+def test_the_session_cookie_is_not_readable_by_script_or_sent_cross_site(client):
+    app = client.application
+    assert app.config["SESSION_COOKIE_HTTPONLY"] is True
+    assert app.config["SESSION_COOKIE_SAMESITE"] == "Strict"
+
+
+def test_the_app_refuses_to_start_without_a_signing_secret(app_dsn, monkeypatch):
+    """A generated secret would work, and would silently invalidate every
+    session on restart and differ between processes behind a load balancer."""
+    from crown.web import InsecureConfiguration, create_app
+
+    monkeypatch.delenv("CROWN_SECRET", raising=False)
+    with pytest.raises(InsecureConfiguration, match="CROWN_SECRET"):
+        create_app(app_dsn)

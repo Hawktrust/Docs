@@ -4,7 +4,7 @@ import psycopg
 import pytest
 
 from crown import approval, matching, opportunity, outbound
-from tests.conftest import add_evidence, sign_in, user_id
+from tests.conftest import add_evidence, csrf, sign_in, user_id
 
 
 def approved_match(db, decision="APPROVED"):
@@ -71,7 +71,8 @@ def test_the_database_refuses_an_artifact_with_no_approval_even_if_code_is_bypas
 
 def test_the_http_endpoint_refuses_an_export_with_no_approval_id(client, db):
     sign_in(client, "agent@crown.local")
-    response = client.post("/outbound", data={"artifact_type": "EXPORT", "note": "x"})
+    response = client.post("/outbound", data={"artifact_type": "EXPORT", "note": "x",
+                                              **csrf(client)})
     assert response.status_code == 403
     assert "approval id" in response.get_json()["error"]
     assert db.execute("SELECT count(*) FROM outbound_artifact").fetchone()[0] == 0
@@ -81,6 +82,7 @@ def test_the_http_endpoint_accepts_an_export_with_a_valid_approval(client, db):
     approval_id, _ = approved_match(db)
     sign_in(client, "agent@crown.local")
     response = client.post("/outbound", data={"artifact_type": "EXPORT",
-                                              "approval_id": str(approval_id)})
+                                              "approval_id": str(approval_id),
+                                              **csrf(client)})
     assert response.status_code == 201
     assert db.execute("SELECT count(*) FROM outbound_artifact").fetchone()[0] == 1

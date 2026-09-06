@@ -296,6 +296,11 @@ def rank(conn, opportunity_id, *, as_of: date | None = None,
                           is_excluded = EXCLUDED.is_excluded,
                           why_not = EXCLUDED.why_not,
                           computed_at = now()
+            -- A decided match keeps the numbers its approver saw. The trigger
+            -- from migration 0004 enforces this; skipping here means a rerun
+            -- rescores everything else instead of aborting.
+            WHERE NOT EXISTS (SELECT 1 FROM approval a
+                              WHERE a.match_result_id = match_result.id)
             """,
             (opportunity_id, result.buyer_mandate_id, weights.version, result.total,
              result.factor("geographic_fit").contribution,
