@@ -109,6 +109,37 @@ and therefore cannot be a `FACT`.
 See `ingest/README.md` for the full account, and
 `docs/EGRESS-ALLOWLIST-REQUEST.md` for the exact hosts to permit.
 
+## Prospecting controls
+
+`docs/PRODUCT-REVIEW.md` reviews the prospecting vision and finds where it leaks.
+Four of those leaks were code, and migration 0008 closes them.
+
+- **Suppression.** A person who asks not to be contacted is not contacted,
+  whatever an approval says. Checked in the path that creates outbound
+  artifacts, across person, address, parcel and organisation at once — so a
+  request to stop contacting someone is not defeated by addressing the company.
+  A suppression is never deleted; releasing one records who and why.
+- **Principal and conflict.** Crown invests for its own book, advises clients and
+  matches developers — three principals, one ranked pipeline. An opportunity now
+  records who it is worked for, and the same geography being worked for two
+  principals stops outbound until a disclosure is on record.
+- **Recommendations are gated.** An Acquire reaching a client or an investment
+  committee is consequential, so it takes an approval id like any export, and it
+  is append-only afterwards.
+- **Confidence is derived, never typed.** CONFIRMED rests on a directly
+  retrieved FACT, PROBABLE on an operator capture or a retrieved HYPOTHESIS,
+  SPECULATIVE otherwise. A second confidence field would drift from the evidence
+  classification within weeks and then contradict it in front of a client. A
+  relay-sourced lead cannot reach CONFIRMED, because 0003 already forbids relayed
+  evidence from being a FACT.
+- **Economics ship with their assumptions**, enforced by the tool and the
+  database. A residual land value moves enormously on a small change to a sales
+  rate; printed beside provenanced planning evidence it borrows a credibility it
+  has not earned.
+- **Briefs snapshot their evidence.** What the recommendation rested on, as it
+  was, at the moment it was made — so "what did we know when we recommended
+  this?" has an answer six months later.
+
 ## The data rights register
 
 Seven sources, one ingestible. Being in the register is documentation, not
