@@ -20,8 +20,8 @@ import psycopg
 from flask import (Flask, abort, flash, g, redirect, render_template, request,
                    session, url_for)
 
-from . import (approval, attribution, audit, auth, db, matching, opportunity,
-               outbound, reports)
+from . import (approval, attribution, audit, auth, db, land, matching,
+               opportunity, outbound, reports)
 
 SYNTHETIC_LABEL = "DEMO / SYNTHETIC DATA"
 ACTOR_AGENT = "crown.web"
@@ -279,6 +279,47 @@ def create_app(dsn: str | None = None) -> Flask:
         matching.rank(g.conn, opportunity_id, as_of=date.today(),
                       actor_user_id=g.identity.user_id)
         return redirect(url_for("opportunity_detail", opportunity_id=opportunity_id))
+
+    @app.get("/land")
+    @login_required
+    def land_search():
+        """The prospecting query: council, suburb, acreage, zoning, overlays,
+        planning status, dwelling."""
+        def as_list(name):
+            raw = request.args.get(name, "").strip()
+            return [v.strip().upper() for v in raw.split(",") if v.strip()]
+
+        def as_float(name):
+            raw = request.args.get(name, "").strip()
+            try:
+                return float(raw) if raw else None
+            except ValueError:
+                return None
+
+        dwelling = request.args.get("dwelling", "")
+        query = land.LandQuery(
+            lga=request.args.get("lga", "").strip() or None,
+            locality=request.args.get("locality", "").strip() or None,
+            min_acres=as_float("min_acres"),
+            max_acres=as_float("max_acres"),
+            zone_codes=as_list("zones"),
+            any_overlay=as_list("overlays"),
+            exclude_overlay=as_list("exclude_overlays"),
+            planning_status=as_list("status"),
+            has_dwelling={"yes": True, "no": False}.get(dwelling),
+            include_crown_land=request.args.get("crown") == "1",
+            include_demo=request.args.get("demo") == "1",
+        )
+        return render_template("land.html", q=query, args=request.args,
+                               found=land.search(g.conn, query),
+                               statuses=land.PLANNING_STATUSES)
+
+    @app.get("/land/<uuid:parcel_id>/nearby")
+    @login_required
+    def land_nearby(parcel_id):
+        radius = min(int(request.args.get("radius", 2000)), 20000)
+        return render_template("nearby.html", parcel_id=parcel_id, radius=radius,
+                               rows=land.nearby(g.conn, parcel_id, radius))
 
     @app.get("/mandates")
     @login_required

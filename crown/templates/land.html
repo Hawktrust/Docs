@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block body %}
+<h1>Land search</h1>
+
+<form method="get" style="background:#fff;padding:12px 14px;border:1px solid #e5e5e5">
+  <p>
+    <label>Council <input name="lga" value="{{ args.get('lga','') }}" size="14"></label>
+    <label>Suburb <input name="locality" value="{{ args.get('locality','') }}" size="14"></label>
+    <label>Acres from <input name="min_acres" value="{{ args.get('min_acres','') }}" size="5"></label>
+    <label>to <input name="max_acres" value="{{ args.get('max_acres','') }}" size="5"></label>
+  </p>
+  <p>
+    <label>Zones <input name="zones" value="{{ args.get('zones','') }}" size="18"
+           placeholder="UGZ,FZ,RLZ"></label>
+    <label>Any overlay <input name="overlays" value="{{ args.get('overlays','') }}" size="16"
+           placeholder="DPO,DCPO"></label>
+    <label>Without overlay <input name="exclude_overlays" value="{{ args.get('exclude_overlays','') }}"
+           size="16" placeholder="BMO,LSIO"></label>
+  </p>
+  <p>
+    <label>Planning status
+      <select name="status">
+        <option value="">any</option>
+        {% for s in statuses %}
+        <option value="{{ s }}" {% if args.get('status') == s %}selected{% endif %}>{{ s }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>Dwelling
+      <select name="dwelling">
+        <option value="">any</option>
+        <option value="yes" {% if args.get('dwelling')=='yes' %}selected{% endif %}>with a house</option>
+        <option value="no"  {% if args.get('dwelling')=='no'  %}selected{% endif %}>without</option>
+      </select>
+    </label>
+    <label><input type="checkbox" name="crown" value="1"
+           {% if args.get('crown') %}checked{% endif %}> include Crown land</label>
+    <button type="submit">Search</button>
+  </p>
+</form>
+
+{% for field, why in found.unanswerable.items() %}
+<div class="flash"><strong>{{ field }}:</strong> {{ why }}.
+  Parcels with no observation are excluded rather than assumed — the result below
+  is only the parcels somebody has actually checked.</div>
+{% endfor %}
+
+<p class="note">{{ found.sql_explained }} — <strong>{{ found.total_matched }}</strong> matched.</p>
+
+{% if found.is_empty_because_no_data %}
+<div class="flash">
+  <strong>No parcels are loaded.</strong> The cadastre comes from Vicmap Property,
+  which is registered and Creative Commons licensed but not yet ingested — the
+  environment cannot reach it. This search works the moment it lands; nothing
+  about it is waiting on code.
+</div>
+{% endif %}
+
+<table>
+  <tr><th>Parcel</th><th>Acres</th><th>Zone</th><th>Overlays</th>
+      <th>PSP</th><th>Dwelling</th><th>Amendments</th><th></th></tr>
+  {% for r in found.results %}
+  <tr>
+    <td>{{ r.address }}
+      {% if r.origin != 'REAL' %}<span class="synthetic">{{ synthetic_label }}</span>{% endif %}
+    </td>
+    <td><strong>{{ '%.1f'|format(r.acres) }}</strong></td>
+    <td>{{ r.zone_code or '—' }}<div class="note">{{ r.zone_name or '' }}</div></td>
+    <td class="note">{{ r.overlays|join(', ') if r.overlays else '—' }}</td>
+    <td>{{ r.psp_status or '—' }}<div class="note">{{ r.psp_name or '' }}</div></td>
+    <td>{% if r.dwelling == 'UNKNOWN' %}<span class="indeterminate">unknown</span>
+        {% else %}{{ r.dwelling|lower }}{% endif %}</td>
+    <td>{{ r.amendments_touching }}</td>
+    <td><a href="/land/{{ r.parcel_id }}/nearby">nearby</a></td>
+  </tr>
+  {% endfor %}
+</table>
+
+<p class="note">No owner is shown because no open source carries one: the cadastre
+and the Titles Register are separate systems and the bridge between them is
+licensed and privacy-bound. See <code>docs/DATA-SOURCE-SURVEY.md</code>.</p>
+{% endblock %}

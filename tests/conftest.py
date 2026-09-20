@@ -32,6 +32,7 @@ MIGRATIONS = [
     os.path.join(ROOT, "migrations", "0007_personal_information.sql"),
     os.path.join(ROOT, "migrations", "0008_prospecting_controls.sql"),
     os.path.join(ROOT, "migrations", "0009_automated_access.sql"),
+    os.path.join(ROOT, "migrations", "0010_land_layer.sql"),
 ]
 LEADS_FILE = os.path.join(ROOT, "seeds", "relay_leads.json")
 SEEDS = [

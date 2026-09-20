@@ -109,6 +109,35 @@ and therefore cannot be a `FACT`.
 See `ingest/README.md` for the full account, and
 `docs/EGRESS-ALLOWLIST-REQUEST.md` for the exact hosts to permit.
 
+## Land search
+
+`/land` answers the prospecting query — council, suburb, acreage, zone,
+overlays, planning status, dwelling — over the cadastre. Migration 0010 adds
+`parcel`, `parcel_planning` and `parcel_dwelling`.
+
+Ticket 01 ruled out parcel-level resolution along with owner-level. They are
+different problems: owners are licensed and privacy-bound, parcels are Creative
+Commons and carry no personal information at all. This is the parcel half, built
+ahead of the data, so the day Vicmap Property is ingested the query already works.
+
+```
+/land?lga=Whittlesea&min_acres=20&max_acres=150&status=DRAFT
+```
+
+Three things it is careful about:
+
+- **Zoning is history, not a column.** `parcel_planning` holds an observation per
+  date, because the change in zoning is the signal Crown trades on.
+- **An unobserved dwelling is UNKNOWN, never No.** Modelling it as a boolean on
+  the parcel would have made every parcel read "no house" the moment the table
+  was created — a lie with a default value. Filtering on it says the result is
+  partial.
+- **No result carries an owner**, because the source does not have one.
+
+`nearby()` finds parcels within a radius by centroid distance and says so: that
+is a proxy for adjacency, not adjacency. True touching needs PostGIS, which this
+cluster does not have.
+
 ## Prospecting controls
 
 `docs/PRODUCT-REVIEW.md` reviews the prospecting vision and finds where it leaks.
