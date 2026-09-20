@@ -66,6 +66,8 @@ jobs:
                -f migrations/0007_personal_information.sql
           psql -v ON_ERROR_STOP=1 -d "postgresql://postgres:postgres@127.0.0.1:5432/crown_migration_check" \
                -f migrations/0008_prospecting_controls.sql
+          psql -v ON_ERROR_STOP=1 -d "postgresql://postgres:postgres@127.0.0.1:5432/crown_migration_check" \
+               -f migrations/0009_automated_access.sql
 
       - name: Test suite
         run: python -m pytest -q

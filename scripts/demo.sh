@@ -20,6 +20,7 @@ for f in migrations/0001_ticket01_thin_loop.sql \
          migrations/0006_real_authentication.sql \
          migrations/0007_personal_information.sql \
          migrations/0008_prospecting_controls.sql \
+         migrations/0009_automated_access.sql \
          seeds/001_users_and_config.sql \
          seeds/002_buyer_mandates.sql \
          seeds/003_candidate_sources.sql \

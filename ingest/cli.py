@@ -46,8 +46,12 @@ def main(argv=None) -> int:
     with db.connect(args.dsn) as conn:
         # The register decides whether this source may be touched at all.
         try:
-            source = registry.resolve(conn, SOURCE_CODE)
-        except (registry.SourceNotRegistered, registry.SourceNotIngestible) as exc:
+            # A capture is a person with a browser, so it does not need the
+            # publisher's terms to permit a crawler. Everything else does.
+            source = registry.resolve(conn, SOURCE_CODE,
+                                      automated=not bool(args.capture))
+        except (registry.SourceNotRegistered, registry.SourceNotIngestible,
+                registry.AutomatedAccessNotPermitted) as exc:
             print(f"refused by the data rights register: {exc}", file=sys.stderr)
             return 2
 

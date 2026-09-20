@@ -102,6 +102,55 @@ Vicmap Property gives you the neighbours.
 
 ---
 
+## 3b. Scraping marketplaces, portals and Google
+
+Asked directly, the answer is no on each, and the reasons differ enough to matter.
+
+**Google.** The terms prohibit "the sending of automated queries of any sort to
+our system without express permission" and access "through the use of any
+automated means (such as robots, spiders or scrapers)". Google litigates this.
+The Custom Search JSON API — the licensed route — is closed to new customers and
+retires on 2027-01-01, so it is not a path Crown can start down now.
+
+  *The better answer:* Crown does not want the web. It wants seven councils, DTP,
+  the VPA, the gazette and a list of developer sites — perhaps forty domains.
+  Vertex AI Search covers up to fifty nominated domains and is a supported
+  product. That is the shape of the actual requirement, and it is licensed.
+  Where a site publishes an RSS feed or an email alert, that is the publisher
+  offering the channel; using it is permitted by design and free.
+
+**Social marketplaces.** Platform terms prohibit automated collection, and Meta
+enforces it. More seriously, listings by private sellers are personal
+information about identifiable people. The OAIC, jointly with eleven other
+regulators, has stated that publicly accessible personal information remains
+subject to privacy law and that scraping can constitute a notifiable data
+breach. Public accessibility is not consent, and "it was public" is not a
+defence in Australia. Scraping Marketplace would be collecting personal
+information by means that are neither lawful nor fair under APP 3.
+
+**Property portals.** On-market data is real and obtainable, but the portals
+prohibit scraping and enforce it. The route is a commercial feed per portal,
+which makes each one a Lane A entry with a contract, not a crawler target.
+
+**Off-market platforms.** Per platform, and mostly the same answer. But this is
+the wrong place to look.
+
+### The off-market source Crown already owns
+
+Off-market approaches are already arriving — agents email them to Crown. That is
+first-party correspondence Crown lawfully holds, and it is the only genuine
+source of off-market status that exists, because off-market is a fact about a
+relationship rather than about a parcel.
+
+Ingested with the sender, the message id and the date as provenance, an emailed
+approach is evidence like any other, and it is the one dataset no competitor can
+copy, because it is Crown's relationships. `CROWN_INBOX` is registered for it.
+It carries personal information, so it needs a privacy basis before any contact
+detail inside it is used for outreach — but reading Crown's own mail is not a
+terms problem at all.
+
+Building that is worth more than any crawler discussed above.
+
 ## 4. Architectural leaks
 
 ### A parallel confidence score will drift

@@ -15,7 +15,8 @@
 
 INSERT INTO data_source (code, display_name, provider, lane, licence_reference,
                          attribution_text, is_ingestible, notes,
-                         carries_personal_information)
+                         carries_personal_information, automated_access,
+                         terms_reference, terms_read_by, terms_read_at)
 VALUES
     ('VICMAP_PROPERTY',
      'Vicmap Property (cadastre)',
@@ -26,7 +27,8 @@ VALUES
      false,
      'Parcel and property polygons, SPI, parcel area, Crown vs freehold, easements. '
      'Contains NO owner information — the cadastre and the Titles Register are separate systems.',
-     false),
+     false,
+     'PERMITTED', 'https://www.land.vic.gov.au/maps-and-spatial/spatial-data/how-to-access-spatial-data/licensing', 'Crown AI review 2026-09-20', now()),
 
     ('VICMAP_PLANNING',
      'Vicmap Planning (zones and overlays)',
@@ -36,7 +38,8 @@ VALUES
      'Contains information from the State Government of Victoria, licensed under Creative Commons Attribution.',
      false,
      'Zones and overlays for all 79 LGAs, Urban Growth Boundary and Growth Area. Updated weekly.',
-     false),
+     false,
+     'PERMITTED', 'https://www.land.vic.gov.au/maps-and-spatial/spatial-data/how-to-access-spatial-data/licensing', 'Crown AI review 2026-09-20', now()),
 
     ('VPA_PSP',
      'Victorian Planning Authority precinct structure plans',
@@ -46,7 +49,8 @@ VALUES
      'Contains information from the Victorian Planning Authority.',
      false,
      'Greenfield PSP boundaries and approved PSP land use.',
-     false),
+     false,
+     'PERMITTED', 'https://vpa.vic.gov.au/strategy-guidelines/open-data/', 'Crown AI review 2026-09-20', now()),
 
     ('VG_PROPERTY_SALES',
      'Valuer General property sales',
@@ -57,7 +61,8 @@ VALUES
      false,
      'Sale prices and dates. Lane C until the licence is read: some Valuer General '
      'products carry restrictions on marketing use. Confirm before any use.',
-     true),
+     true,
+     'UNKNOWN', NULL, NULL, NULL),
 
     ('LANDATA_TITLES',
      'Landata / Victorian Titles Register',
@@ -72,5 +77,6 @@ VALUES
      'HOLD this data. It does not settle whether Crown may USE it to contact anyone — '
      'that is APP 7 plus any register-specific restriction, and needs its own basis, '
      'consent position and suppression list. Gate 0 work.',
-     true)
+     true,
+     'UNKNOWN', NULL, NULL, NULL)
 ON CONFLICT (code) DO NOTHING;
