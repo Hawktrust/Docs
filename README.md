@@ -109,6 +109,32 @@ and therefore cannot be a `FACT`.
 See `ingest/README.md` for the full account, and
 `docs/EGRESS-ALLOWLIST-REQUEST.md` for the exact hosts to permit.
 
+## Alerts and the Investment Committee brief
+
+`/alerts` runs the detection pass; `/brief/<id>` is the one-page output.
+Migration 0012 adds `watchlist`, `alert` and the `stale_evidence` view.
+
+Five detectors: new evidence in a watched geography, a market move, a Public
+Acquisition Overlay appearing on watched land, evidence past its shelf life, and
+a source in use without a complete register entry.
+
+- **Nothing is said twice.** Every alert computes a dedupe key from what it is
+  about, and the database refuses a second one — "we already told you that" is
+  the difference between a product people read and one they filter to a folder.
+- **Confidence is derived, and weak alerts are withheld rather than sent** — and
+  the withholding is recorded, so nobody has to wonder whether the system missed
+  something or chose not to speak.
+- **Evidence goes stale at different speeds.** A relayed claim expires in 30 days
+  because it was never verified; a gazetted fact lasts a year. That is what makes
+  `last_verified_at` more than a column.
+
+The brief assembles from records that already exist and invents nothing. It
+shows the **evidence snapshot as it was when the recommendation was made**, not
+as it is now, because the question a brief has to survive is *what did we know
+when we recommended this?* It translates every overlay into the risk it carries
+rather than handing the reader a code to look up. And it will not print a price
+ceiling without the assumptions that produced it.
+
 ## Market signals — who is moving, and where
 
 `crown/signals.py` ranks geographies by weighted, recency-decayed signal.

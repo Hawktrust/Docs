@@ -20,8 +20,8 @@ import psycopg
 from flask import (Flask, abort, flash, g, redirect, render_template, request,
                    session, url_for)
 
-from . import (approval, attribution, audit, auth, db, land, matching,
-               opportunity, outbound, reports)
+from . import (alerts, approval, attribution, audit, auth, brief, db, land,
+               matching, opportunity, outbound, reports, signals)
 
 SYNTHETIC_LABEL = "DEMO / SYNTHETIC DATA"
 ACTOR_AGENT = "crown.web"
@@ -320,6 +320,63 @@ def create_app(dsn: str | None = None) -> Flask:
         radius = min(int(request.args.get("radius", 2000)), 20000)
         return render_template("nearby.html", parcel_id=parcel_id, radius=radius,
                                rows=land.nearby(g.conn, parcel_id, radius))
+
+    @app.get("/signals")
+    @login_required
+    def market_signals():
+        """Where money is moving, ranked, with every score decomposable."""
+        lga = request.args.get("lga", "").strip() or None
+        ranked = signals.hotspots(g.conn, lga=lga,
+                                 include_demo=request.args.get("demo") == "1")
+        return render_template("signals.html", ranked=ranked, lga=lga,
+                               weights=signals.active_weights(g.conn),
+                               government=signals.government_intent(g.conn, lga=lga))
+
+    @app.get("/alerts")
+    @login_required
+    def alert_list():
+        return render_template(
+            "alerts.html",
+            rows=alerts.pending(g.conn, g.identity.user_id),
+            suppressed=g.conn.execute(
+                """SELECT kind::text, detected_event, suppressed_reason, created_at
+                   FROM alert WHERE suppressed_reason IS NOT NULL
+                   ORDER BY created_at DESC LIMIT 25""").fetchall(),
+            watching=g.conn.execute(
+                """SELECT kind::text, label, target FROM watchlist
+                   WHERE user_id = %s AND is_active ORDER BY kind, label""",
+                (g.identity.user_id,)).fetchall())
+
+    @app.post("/alerts/run")
+    @role_required("ADMIN", "ANALYST")
+    def alert_run():
+        report = alerts.run(g.conn)
+        flash(f"Alert pass: {report.summary()}")
+        return redirect(url_for("alert_list"))
+
+    @app.post("/watchlist")
+    @login_required
+    def watchlist_add():
+        kind = request.form.get("kind", "LGA")
+        target = request.form.get("target", "").strip()
+        if not target:
+            flash("a watch needs something to watch")
+            return redirect(url_for("alert_list"))
+        g.conn.execute(
+            """INSERT INTO watchlist (user_id, kind, target, label)
+               VALUES (%s,%s,%s,%s) ON CONFLICT DO NOTHING""",
+            (g.identity.user_id, kind, target,
+             request.form.get("label", "").strip() or target))
+        return redirect(url_for("alert_list"))
+
+    @app.get("/brief/<uuid:recommendation_id>")
+    @login_required
+    def investment_brief(recommendation_id):
+        try:
+            return render_template("brief.html",
+                                   b=brief.build(g.conn, recommendation_id))
+        except LookupError:
+            abort(404)
 
     @app.get("/mandates")
     @login_required

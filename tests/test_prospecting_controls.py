@@ -19,8 +19,18 @@ def approved(db, *, principal="CLIENT", label="Client A", reference="TEST-PC-1",
              retrieval_method="DIRECT_FETCH"):
     evidence_id = add_evidence(db, reference=reference, suburb=suburb,
                                evidence_class=evidence_class, origin="REAL")
-    db.execute("UPDATE evidence_record SET retrieval_method = %s WHERE id = %s",
-               (retrieval_method, evidence_id))
+    if retrieval_method == "OPERATOR_CAPTURE":
+        # 0006: a capture names who took it and keeps what they took, and may
+        # be STRONG but never AUTHORITATIVE.
+        db.execute(
+            """UPDATE evidence_record
+               SET retrieval_method = %s, reliability = 'STRONG',
+                   captured_by = %s, capture_sha256 = repeat('a', 64)
+               WHERE id = %s""",
+            (retrieval_method, user_id(db, "hawk@crown.local"), evidence_id))
+    else:
+        db.execute("UPDATE evidence_record SET retrieval_method = %s WHERE id = %s",
+                   (retrieval_method, evidence_id))
     owner = user_id(db, "analyst@crown.local")
     oid = opportunity.refresh(db, owner)[0].opportunity_id
     db.execute("UPDATE opportunity SET principal = %s, principal_label = %s WHERE id = %s",

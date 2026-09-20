@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block body %}
+<h1>Market signals</h1>
+<form method="get" style="margin-bottom:10px">
+  <label>Council <input name="lga" value="{{ lga or '' }}" size="16"></label>
+  <button type="submit">Filter</button>
+</form>
+
+<p class="note">Ranked by weighted, recency-decayed signal. Action outranks
+opinion: a disclosed acquisition is weighted {{ weights.get('ASX_ANNOUNCEMENT') }},
+a hotspot mention {{ weights.get('PUBLIC_COMMENTARY') }}. Signals decay to nothing
+over two years. Weights are configuration and every change is audited.</p>
+
+{% for h in ranked %}
+<table style="margin-bottom:14px">
+  <tr>
+    <th style="width:30%">{{ h.locality or '—' }}, {{ h.lga }}</th>
+    <td><strong>{{ '%.3f'|format(h.score) }}</strong>
+        <span class="note">from {{ h.signal_count }} signal(s)</span>
+        {% if h.unnamed_count %}
+        <span class="note">· {{ h.unnamed_count }} counted but not named</span>
+        {% endif %}
+    </td>
+  </tr>
+  {% for c in h.contributions|sort(attribute='score', reverse=true) %}
+  <tr>
+    <td class="note">{{ '%.3f'|format(c.score) }} &nbsp; {{ c.signal_kind }}</td>
+    <td>
+      {% if c.actor_name %}<strong>{{ c.actor_name }}</strong>{% else %}
+      <span class="indeterminate">{{ c.actor_kind.replace('_',' ')|lower }}, not named</span>
+      {% endif %}
+      — {{ c.detail }}
+      <div class="note">{{ c.observed_at }} · weight {{ c.weight }} ×
+        recency {{ c.recency }} · <a href="{{ c.source_url }}">source</a></div>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+{% else %}
+<div class="flash"><strong>No signals recorded.</strong> The sources — ASX
+announcements, council permit registers, Panels Victoria, the infrastructure
+pipeline — are in the register with automated access <code>UNKNOWN</code>,
+so nothing fetches them until somebody reads their terms.</div>
+{% endfor %}
+
+<h2>Government acquisition intent</h2>
+<p class="note">A Public Acquisition Overlay marks land an authority proposes to
+acquire. No separate source — it is in the overlay list on every parcel.</p>
+<table>
+  <tr><th>Parcel</th><th>Suburb</th><th>Acres</th><th>Zone</th><th>Overlays</th></tr>
+  {% for pid, spi, plga, loc, acres, zone, overlays, psp, as_at in government %}
+  <tr><td>{{ spi }}</td><td>{{ loc or '—' }}</td><td>{{ acres }}</td>
+      <td>{{ zone or '—' }}</td><td class="note">{{ overlays|join(', ') }}</td></tr>
+  {% else %}
+  <tr><td colspan="5">No parcel under a PAO, or no parcels loaded.</td></tr>
+  {% endfor %}
+</table>
+
+<p class="note">Elected officials' declared interests count toward a score and are
+never shown with a name. Registers of interests are published so the public can
+scrutinise the people in them, which is not what this is for.</p>
+{% endblock %}
