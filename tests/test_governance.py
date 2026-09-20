@@ -132,7 +132,18 @@ def test_a_second_named_human_can(db):
 
 def test_ingesting_without_a_signed_register_entry_is_reported(db):
     """The register says register_confirmed_by is NULL until a named adviser
-    signs. The one ingestible source has been ingestible with it empty."""
+    signs.
+
+    VIC_PLANNING_AMENDMENTS was signed in migration 0014 once its terms had
+    actually been read, so the condition is constructed here rather than taken
+    from the seed — the control is what is under test, not the current state.
+    """
+    assert reports.data_rights_exceptions(db) == []
+
+    db.execute("""UPDATE data_source SET register_confirmed_by = NULL,
+                         register_confirmed_at = NULL
+                  WHERE code = 'VIC_PLANNING_AMENDMENTS'""")
+
     exceptions = reports.data_rights_exceptions(db)
     codes = {row[0] for row in exceptions}
     assert "VIC_PLANNING_AMENDMENTS" in codes
@@ -167,7 +178,9 @@ def test_the_overview_counts_only_real_records(db):
     assert o.demo_evidence == 1
     assert o.real_mandates == 1          # the twenty seeded ones are synthetic
     assert o.synthetic_mandates == SEEDED_MANDATE_COUNT
-    assert o.data_rights_exceptions == 1
+    # every ingestible source now has a complete entry: 0014 read the terms and
+    # signed the one that was open
+    assert o.data_rights_exceptions == 0
 
 
 def test_the_overview_says_plainly_when_there_is_no_real_evidence(client, db):

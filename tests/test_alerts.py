@@ -19,16 +19,45 @@ def watch(db, user_email="analyst@crown.local", kind="LGA", target="Wyndham"):
 
 def test_the_same_thing_is_never_said_twice(db):
     """'We already told you that' is the difference between a product people
-    read and one they filter to a folder."""
+    read and one they filter to a folder.
+
+    The promise is about what lands in the table, not about which of the two
+    mechanisms held it back: a detector may skip a row it has already reported,
+    or the unique key may refuse the insert. Both are correct; counting rows is
+    the assertion that does not care which one fired.
+    """
     watch(db)
     add_evidence(db, reference="TEST-AL-1", origin="REAL")
 
     first = alerts.run(db)
+    after_first = db.execute("SELECT count(*) FROM alert").fetchone()[0]
     second = alerts.run(db)
+    after_second = db.execute("SELECT count(*) FROM alert").fetchone()[0]
 
     assert len(first.created) >= 1
+    assert after_first == len(first.created) + len(first.suppressed)
     assert second.created == []
-    assert len(second.duplicates) >= 1
+    assert second.suppressed == []
+    assert after_second == after_first
+
+
+def test_a_repeat_is_counted_rather_than_written(db):
+    """The backstop under the detectors: the same key twice writes once, and
+    the second attempt is reported as already known rather than lost."""
+    report = alerts.Raised()
+    said = dict(kind="NEW_EVIDENCE", detected_event="an amendment moved stage",
+                source_url="https://example.invalid/a", confidence="CONFIRMED",
+                investment_impact="i", recommended_action="a",
+                key_parts=("C123wynd", 1), report=report)
+
+    first = alerts.raise_alert(db, **said)
+    second = alerts.raise_alert(db, **said)
+
+    assert first is not None
+    assert second is None
+    assert report.created == [first]
+    assert report.duplicates == [alerts.dedupe_key("NEW_EVIDENCE", "C123wynd", 1)]
+    assert db.execute("SELECT count(*) FROM alert").fetchone()[0] == 1
 
 
 def test_a_duplicate_key_is_refused(db):
@@ -170,7 +199,14 @@ def test_a_relayed_record_goes_stale_far_sooner_than_a_gazetted_one(db):
 
 
 def test_a_data_rights_exception_raises_an_alert(db):
-    """The register gap surfaces where someone will see it."""
+    """The register gap surfaces where someone will see it.
+
+    The seeded register is complete since 0014, so the gap is opened here: the
+    detector is what is under test.
+    """
+    db.execute("""UPDATE data_source SET register_confirmed_by = NULL
+                  WHERE code = 'VIC_PLANNING_AMENDMENTS'""")
+
     alerts.run(db)
     row = db.execute(
         """SELECT detected_event, recommended_action FROM alert

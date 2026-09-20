@@ -97,6 +97,25 @@ A developer who lodges a permit, appears at a panel and makes a PSP submission
 has told you what they are doing, in public, without a title search. **That is a
 better product than the one specified**, and it is Lane B.
 
+> **The terms behind this list, read 2026-09-20.** The list above stands. Two
+> things built on it do not, and migration 0014 records both.
+>
+> **Item 3 has a limit.** Panels Victoria is DTP material under CC BY 4.0, so the
+> hearing and party listings — who submitted, on what amendment, which is the
+> signal named here — are usable. The submission documents are not: they are
+> written by the parties, and DTP's own terms say third-party copyright may
+> apply to material on the site.
+>
+> **The exchange is not a source.** `README.md` and the seed note in migration
+> 0011 said listed developers disclose material acquisitions to the ASX, which
+> reads as an instruction to fetch them from there. ASX prohibits copying,
+> reproducing, republishing, downloading, transmitting or distributing its
+> content without prior written consent, and permits only personal,
+> non-commercial use. The announcement is still the signal; the exchange's copy
+> of it is not where to get it. A listed company publishes the same release in
+> its own investor centre under its own terms and lodges it with ASIC — go
+> there, per company. `docs/DATA-SOURCE-SURVEY.md` has the full table.
+
 Adjoining-parcel activity is then a spatial question over the same open data —
 Vicmap Property gives you the neighbours.
 

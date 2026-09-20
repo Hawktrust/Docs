@@ -63,8 +63,8 @@ def test_signing_is_audited(db, database):
 
     row = db.execute(
         """SELECT new_state FROM audit_event
-           WHERE action = 'SOURCE_REGISTER_CONFIRMED'""").fetchone()
-    assert row[0]["code"] == "VPA_PSP"
+           WHERE action = 'SOURCE_REGISTER_CONFIRMED'
+             AND new_state ->> 'code' = 'VPA_PSP'""").fetchone()
     assert row[0]["confirmed_by"] == "A. Named Adviser"
 
 
@@ -97,16 +97,17 @@ def test_signing_twice_is_refused(db, database):
 
 
 def test_an_unsigned_ingestible_source_shows_as_an_exception(db, database):
-    """The one source already in use is unsigned, and the report says so."""
+    """Signing a source does not add an exception; unsigning one does."""
     from crown import reports
-    codes_with_exceptions = {row[0] for row in reports.data_rights_exceptions(db)}
-    assert "VIC_PLANNING_AMENDMENTS" in codes_with_exceptions
-
     owner_dsn, _ = database
+
     confirm_source.main(["VICMAP_PROPERTY", "--adviser", "A. Named Adviser",
                          "--dsn", owner_dsn])
-    # newly signed sources do not add exceptions
-    assert "VICMAP_PROPERTY" not in {
+    assert reports.data_rights_exceptions(db) == []
+
+    db.execute("""UPDATE data_source SET register_confirmed_by = NULL
+                  WHERE code = 'VICMAP_PROPERTY'""")
+    assert "VICMAP_PROPERTY" in {
         row[0] for row in reports.data_rights_exceptions(db)}
 
 
@@ -180,7 +181,8 @@ def test_the_basis_is_recorded_in_the_audit_trail(db, database):
 
     state = db.execute(
         """SELECT new_state FROM audit_event
-           WHERE action = 'SOURCE_REGISTER_CONFIRMED'""").fetchone()[0]
+           WHERE action = 'SOURCE_REGISTER_CONFIRMED'
+             AND new_state ->> 'code' = 'LANDATA_TITLES'""").fetchone()[0]
     assert state["agreement"] == "LUV-2026-0417"
     assert state["privacy_basis"] == "APP 7(3)"
 

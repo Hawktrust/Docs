@@ -82,12 +82,54 @@ without it either way.
 A Lane A source additionally needs `--agreement` naming the signed agreement on
 file. A link to a product page is not an agreement, and the tool says so.
 
+## The terms, read — 2026-09-20
+
+Five sources sat at `automated_access = 'UNKNOWN'`, which blocked the crawler and
+was the honest default. Migration 0014 records what their terms actually say. Two
+answers contradict advice given earlier in this repository, which is the point of
+reading them rather than assuming.
+
+| Source | Position | What the terms say |
+|---|---|---|
+| **Planning scheme amendments** (DTP) | **PERMITTED** | All DTP website material is CC BY 4.0, excepting images, photographs and branding. The seeded attribution wording — "Contains information from the State Government of Victoria" — is not what CC BY 4.0 requires; 0014 replaces it with the full licence notice. |
+| **Panels Victoria** | **PERMITTED, in part** | Same DTP terms, but a submission is authored by the party who made it and DTP's terms say third-party copyright may apply. Take the listing of who submitted on what amendment — which is the signal Crown wants — not the submission documents. |
+| **Infrastructure pipeline** (Cth) | **PERMITTED, per item** | CC BY 3.0 AU attaches to material carrying a CC mark, not to the whole site. Unmarked material is ordinary Commonwealth copyright. |
+| **ASX announcements** | **PROHIBITED** | Content must not be copied, reproduced, republished, downloaded, transmitted or distributed without prior written consent, and permitted use is personal and non-commercial. |
+| **Registers of interests** (Parliament of Victoria) | **PROHIBITED** | The site's Creative Commons licence covers Library research publications only. Everything else, the tabled returns included, is copyright and may not be reproduced except under the Copyright Act 1968. |
+| **Council planning registers** | **stays UNKNOWN** | Not one source. Seventy-nine councils, each publishing under its own terms, so no single position can be true for all of them. |
+
+Two corrections follow.
+
+**ASX is withdrawn as a source.** `README.md` and the seed note in migration 0011
+both said listed developers disclose material acquisitions to the ASX, offered as
+the earliest confirmed record of a corporate land purchase. That is still true of
+the *announcement*; it is not true of *the exchange's copy of it*. The same
+announcement is published by the listed company in its own investor centre under
+its own terms, and lodged with ASIC. Go there, per company. The
+`ASX_ANNOUNCEMENT` signal kind stays — a signal recorded by an operator reading a
+company's own release is lawful and is the same event — but nothing points a
+fetcher at asx.com.au.
+
+**Registers of interests are a copyright question before they are a privacy
+one.** The earlier framing was privacy: a public transparency register, a
+secondary purpose, aggregate-only use. All of that stands, and it is reached too
+late. The crawler may not fetch these documents at all, whatever basis Crown
+might have had for using them. The elected-official controls in migrations 0011
+and 0013 remain in force for anything that arrives by another lawful route.
+
+**Councils should be seven entries, not one.** Register Wyndham, Melton, Hume,
+Whittlesea, Casey, Greater Geelong and Greater Shepparton separately, read seven
+sets of terms, and prefer the RSS or email alert where a council offers one —
+that is the publisher handing over the channel.
+
 ## Recommendation
 
 1. **Take the Lane B stack now.** Vicmap Property plus Vicmap Planning plus VPA
    PSP data is a real product surface and needs no negotiation. Add them to the
-   register with `is_ingestible = true` once a named adviser signs the entries —
-   the register still shows one exception open for the source already in use.
+   register with `is_ingestible = true` once a named adviser signs the entries.
+   The one entry that had been ingestible with nobody's name on it —
+   `VIC_PLANNING_AMENDMENTS` — was signed in migration 0014, once its terms had
+   actually been read, and the register now shows no open exception.
 2. **Keep owner identification behind Gate 0**, which is what Ticket 01 already
    says. Do not let a parcel-level feature creep in through a query interface
    before the licence and the privacy basis exist.
@@ -105,4 +147,8 @@ file. A link to a product page is not an agreement, and the tool says so.
 - [Using VicPlan](https://www.planning.vic.gov.au/planning-schemes/using-vicplan)
 - [Where to find information about land titles](https://www.land.vic.gov.au/land-registration/for-individuals/where-to-find-information-about-land-titles)
 - [LANDATA title search](https://www.landata.online/title-search/)
+- [DTP website terms and conditions](https://www.vic.gov.au/dtp-website-terms-and-conditions)
+- [ASX terms of use](https://www.asx.com.au/legals/terms-of-use)
+- [Parliament of Victoria copyright](https://www.parliament.vic.gov.au/copyright)
+- [Infrastructure portfolio copyright](https://www.infrastructure.gov.au/copyright)
 - [OAIC — APP 7 direct marketing](https://www.oaic.gov.au/privacy/australian-privacy-principles/australian-privacy-principles-guidelines/chapter-7-app-7-direct-marketing) · [OAIC — direct marketing guidance](https://www.oaic.gov.au/privacy/privacy-guidance-for-organisations-and-government-agencies/organisations/direct-marketing)

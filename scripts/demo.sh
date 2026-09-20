@@ -25,6 +25,7 @@ for f in migrations/0001_ticket01_thin_loop.sql \
          migrations/0011_market_signals.sql \
          migrations/0012_watchlists_and_alerts.sql \
          migrations/0013_close_the_base_tables.sql \
+         migrations/0014_terms_read.sql \
          seeds/001_users_and_config.sql \
          seeds/002_buyer_mandates.sql \
          seeds/003_candidate_sources.sql \

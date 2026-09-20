@@ -161,9 +161,11 @@ Migration 0011 adds `market_actor`, `actor_signal` and `signal_weight_config`.
 
 Three questions with three different answers:
 
-**Big firms.** Listed developers disclose material acquisitions to the ASX and
+**Big firms.** Listed developers disclose material acquisitions to the market and
 publish landbank tables by region; they lodge permits, appear at panels and make
-PSP submissions. All public, all free, all earlier than a title transfer.
+PSP submissions. All public, all free, all earlier than a title transfer. The
+disclosure is fetched from the company's own investor centre, not from the
+exchange — migration 0014 read the ASX terms and they prohibit it.
 
 **Government.** Already in the data. A Public Acquisition Overlay is a planning
 control marking land an authority proposes to acquire, and it sits in the
@@ -193,6 +195,13 @@ true for an `ELECTED_OFFICIAL`, such a signal contributes to a geography's score
 but returns no name, and `actor_signal_publishable` excludes them from anything
 built for output. Their weight is also among the lowest, because a declared
 interest is weak evidence of anything.
+
+That reasoning is sound and it is not the first question. Migration 0014 read the
+Parliament of Victoria terms: the site's Creative Commons licence covers Library
+research publications only, and the tabled returns are ordinary copyright. The
+source is `PROHIBITED` — Crown may not fetch these at all, whatever basis it
+might have had for using them. The controls above stand for anything that arrives
+by another lawful route.
 
 ## Land search
 
@@ -376,9 +385,11 @@ A second pass asked two different questions: *can you prove what happened?* and
    headcount, that trigger is the one thing to drop — but drop it deliberately.*
 5. **"What are we ingesting without permission?"** The register carries
    `register_confirmed_by`, described as NULL until a named adviser signs. The
-   one ingestible source has been ingestible from the start with it empty.
-   `data_rights_exception` now reports it, and the compliance page shows it.
-   **It is not empty today.**
+   one ingestible source had been ingestible from the first migration with it
+   empty. `data_rights_exception` now reports it, and the compliance page shows
+   it. *Closed on 2026-09-20:* migration 0014 read the DTP terms, corrected the
+   attribution wording the seed had wrong, and signed the entry. The report is
+   empty today, and the tests construct the gap rather than relying on it.
 6. **Demo data was laundering into real figures.** Five demo evidence records
    produced four opportunities recorded as `REAL` — the `origin` column exists
    to prevent exactly this and the rule engine never set it. An opportunity is
