@@ -70,6 +70,8 @@ jobs:
                -f migrations/0009_automated_access.sql
           psql -v ON_ERROR_STOP=1 -d "postgresql://postgres:postgres@127.0.0.1:5432/crown_migration_check" \
                -f migrations/0010_land_layer.sql
+          psql -v ON_ERROR_STOP=1 -d "postgresql://postgres:postgres@127.0.0.1:5432/crown_migration_check" \
+               -f migrations/0011_market_signals.sql
 
       - name: Test suite
         run: python -m pytest -q

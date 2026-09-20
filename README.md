@@ -109,6 +109,46 @@ and therefore cannot be a `FACT`.
 See `ingest/README.md` for the full account, and
 `docs/EGRESS-ALLOWLIST-REQUEST.md` for the exact hosts to permit.
 
+## Market signals — who is moving, and where
+
+`crown/signals.py` ranks geographies by weighted, recency-decayed signal.
+Migration 0011 adds `market_actor`, `actor_signal` and `signal_weight_config`.
+
+Three questions with three different answers:
+
+**Big firms.** Listed developers disclose material acquisitions to the ASX and
+publish landbank tables by region; they lodge permits, appear at panels and make
+PSP submissions. All public, all free, all earlier than a title transfer.
+
+**Government.** Already in the data. A Public Acquisition Overlay is a planning
+control marking land an authority proposes to acquire, and it sits in the
+overlay list the land layer already holds — `signals.government_intent()` is a
+query, not a new source.
+
+**Buyer agents.** Their buying is client-confidential and will stay that way.
+Their recommendations are public, and are opinion rather than action — weighted
+lowest of everything, because a suburb reaching a hotspot list is the end of a
+move, not the start.
+
+Weights live in `signal_weight_config`, changeable without a deploy, and every
+change is audited by trigger — the same discipline as the match weights.
+Every score decomposes into the signals that produced it, each with its source
+URL: a ranking nobody can interrogate is a ranking nobody should act on.
+
+### Elected officials count, and are never named
+
+Registers of interests are published so the public can scrutinise the people in
+them, which is not the purpose Crown would be pursuing. Noticing that a region
+attracts investment is a fair read of a public register. Naming an individual
+politician in a prospecting brief is a misuse of a transparency mechanism and
+reputationally indefensible.
+
+The schema enforces the difference: `market_actor.publishable_by_name` cannot be
+true for an `ELECTED_OFFICIAL`, such a signal contributes to a geography's score
+but returns no name, and `actor_signal_publishable` excludes them from anything
+built for output. Their weight is also among the lowest, because a declared
+interest is weak evidence of anything.
+
 ## Land search
 
 `/land` answers the prospecting query — council, suburb, acreage, zone,
