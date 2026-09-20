@@ -36,8 +36,9 @@ def main(argv=None) -> int:
                              "verification instead of ingesting")
     parser.add_argument("--verify", action="store_true",
                         help="attempt direct retrieval of every queued lead")
-    parser.add_argument("--capture",
-                        help="a bundle exported by tools/collector.html")
+    parser.add_argument("--capture", nargs="+", metavar="BUNDLE",
+                        help="one or more bundles exported by the capture tools; "
+                             "all three LGAs can go in one command")
     parser.add_argument("--as", dest="operator",
                         help="the email of the person who took the capture")
     args = parser.parse_args(argv)
@@ -62,15 +63,25 @@ def main(argv=None) -> int:
             if operator is None:
                 print(f"no active user {args.operator}", file=sys.stderr)
                 return 2
-            try:
-                capture_report = capture_module.ingest_capture(
-                    conn, source, capture_module.load(args.capture), operator[0])
-            except capture_module.BadCapture as exc:
-                print(f"capture refused: {exc}", file=sys.stderr)
-                return 6
-            conn.commit()
-            print(capture_report.summary())
-            return 0
+            refused = 0
+            for path in args.capture:
+                try:
+                    capture_report = capture_module.ingest_capture(
+                        conn, source, capture_module.load(path), operator[0])
+                except capture_module.BadCapture as exc:
+                    # One bad bundle does not discard the good ones, but it is
+                    # never quietly skipped either.
+                    print(f"{path} refused: {exc}", file=sys.stderr)
+                    conn.rollback()
+                    refused += 1
+                    continue
+                conn.commit()
+                print(capture_report.summary())
+                print()
+            if refused:
+                print(f"{refused} of {len(args.capture)} bundle(s) refused",
+                      file=sys.stderr)
+            return 6 if refused else 0
 
         if args.leads:
             from . import leads as leads_module

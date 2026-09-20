@@ -21,7 +21,7 @@ reach the source.
 | `ingest/` | `SIGNAL -> EVIDENCE`: retrieval, provenance validation, review queue |
 | `crown/` | the rest of the loop, plus the web app |
 | `tests/` | the acceptance criteria, as tests |
-| `tools/collector.html` | capture a real page from your own browser |
+| `tools/` | capture a real page from your own browser |
 | `scripts/demo.sh` | build a throwaway demo database and run the app |
 
 ## Running it
@@ -115,15 +115,18 @@ going to change on our say-so. A person with a browser is not so constrained,
 and that is a real channel rather than a workaround: it is the publisher's own
 page, opened by a named human, with the bytes kept.
 
-`tools/collector.html` is one self-contained file. Open it in any browser —
-no server, no install, and it makes **no network requests at all**, which you
-can confirm in the network tab or by running it with the machine offline.
+Two tools, both self-contained, both making **no network requests at all** —
+which you can confirm in the network tab, or by running them offline.
+`tools/bookmarklet.html` installs a one-click capture that reads the page
+you are on; `tools/collector.html` takes a pasted page instead, for when a
+bookmarklet is inconvenient.
 
-1. Open the amendment page, view source, paste it in with the URL.
-2. The collector reads what it can and marks every field as a *suggestion*.
-   It will not export until you have checked each one.
-3. Tick the confirmation and export a bundle.
-4. `python -m ingest.cli --capture crown-capture-....json --as you@crown.local`
+1. Open `tools/bookmarklet.html` and drag **Crown capture** to your bookmarks bar.
+2. On each amendment page, click it. A panel reads what it can and marks every
+   field as a *suggestion*; it will not export until you have checked each one.
+3. Tick the confirmation and save.
+4. `python -m ingest.cli --lga Wyndham --capture crown-capture-*.json --as you@crown.local`
+   — one command takes all three.
 
 What makes the result evidence rather than hearsay:
 
