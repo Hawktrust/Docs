@@ -72,6 +72,16 @@ None of that makes owner outreach impossible. It makes it a thing with a
 compliance design, a lawful basis and a suppression list — not a query result.
 That design belongs in Gate 0, alongside the licence.
 
+Migration 0007 stops that distinction being prose. `data_source` now carries
+`carries_personal_information` and `privacy_basis`, and a source that identifies
+living individuals cannot be made ingestible until the basis is written down —
+which APP is relied on, the consent position, and where the suppression list
+lives. `scripts/confirm_source.py` asks for it, and the database refuses the row
+without it either way.
+
+A Lane A source additionally needs `--agreement` naming the signed agreement on
+file. A link to a product page is not an agreement, and the tool says so.
+
 ## Recommendation
 
 1. **Take the Lane B stack now.** Vicmap Property plus Vicmap Planning plus VPA

@@ -29,15 +29,26 @@ MIGRATIONS = [
     os.path.join(ROOT, "migrations", "0004_integrity_fixes.sql"),
     os.path.join(ROOT, "migrations", "0005_audit_and_controls.sql"),
     os.path.join(ROOT, "migrations", "0006_real_authentication.sql"),
+    os.path.join(ROOT, "migrations", "0007_personal_information.sql"),
 ]
 LEADS_FILE = os.path.join(ROOT, "seeds", "relay_leads.json")
 SEEDS = [
     os.path.join(ROOT, "seeds", "001_users_and_config.sql"),
     os.path.join(ROOT, "seeds", "002_buyer_mandates.sql"),
+    os.path.join(ROOT, "seeds", "003_candidate_sources.sql"),
 ]
 ADMIN_DSN = os.environ.get("CROWN_ADMIN_DSN",
                            "postgresql://postgres@127.0.0.1:5432/postgres")
 APP_PASSWORD = "test-only-password"
+# The seeded mandates, all synthetic. One place to update when the seed changes;
+# test_the_seed_file_matches_this_count keeps it from drifting silently.
+SEEDED_MANDATE_COUNT = 23
+
+
+def seeded_leads():
+    """The shipped relay leads, read from the file rather than counted by hand."""
+    import json
+    return json.loads(open(LEADS_FILE).read())["leads"]
 
 
 def _run_sql(dsn, path):

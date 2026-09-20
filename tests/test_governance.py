@@ -7,7 +7,8 @@ import psycopg
 import pytest
 
 from crown import approval, matching, opportunity, outbound, reports
-from tests.conftest import add_evidence, csrf, sign_in, user_id
+from tests.conftest import (SEEDED_MANDATE_COUNT, add_evidence, csrf, sign_in,
+                            user_id)
 
 
 def a_match(db):
@@ -165,7 +166,7 @@ def test_the_overview_counts_only_real_records(db):
     assert o.real_evidence == 0          # the fixture above is demo
     assert o.demo_evidence == 1
     assert o.real_mandates == 1          # the twenty seeded ones are synthetic
-    assert o.synthetic_mandates == 20
+    assert o.synthetic_mandates == SEEDED_MANDATE_COUNT
     assert o.data_rights_exceptions == 1
 
 

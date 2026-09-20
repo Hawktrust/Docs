@@ -17,7 +17,7 @@ from crown import audit
 from ingest import leads as leads_module
 from ingest import registry, verify
 from ingest.fetch import RetrievalBlocked
-from tests.conftest import LEADS_FILE, FakeRetrieval
+from tests.conftest import LEADS_FILE, FakeRetrieval, seeded_leads
 
 
 def source(db):
@@ -98,16 +98,17 @@ def test_the_shipped_leads_file_is_real_and_honest_about_itself():
     for lead in payload["leads"]:
         assert lead["canonical_url"].startswith(
             "https://planning-schemes.app.planning.vic.gov.au/")
-        assert lead["lga"] in ("Wyndham", "Melton", "Hume")
+        assert lead["lga"] in ("Wyndham", "Melton", "Hume", "Whittlesea")
 
 
 def test_leads_go_to_the_review_queue_and_never_into_the_graph(db):
     src = source(db)
     created = leads_module.record(db, src, leads_module.load(LEADS_FILE))
 
-    assert len(created) == 7
+    assert len(created) == len(seeded_leads())
     assert db.execute("SELECT count(*) FROM evidence_record").fetchone()[0] == 0
-    assert db.execute("SELECT count(*) FROM evidence_review_queue").fetchone()[0] == 7
+    assert db.execute(
+        "SELECT count(*) FROM evidence_review_queue").fetchone()[0] == len(seeded_leads())
 
     reason, missing, payload = db.execute(
         """SELECT failure_reason, missing_fields, attempted_payload
@@ -134,14 +135,16 @@ def test_requeueing_the_same_leads_does_not_duplicate_them(db):
     leads_module.record(db, src, leads_module.load(LEADS_FILE))
     again = leads_module.record(db, src, leads_module.load(LEADS_FILE))
     assert again == []
-    assert db.execute("SELECT count(*) FROM evidence_review_queue").fetchone()[0] == 7
+    assert db.execute(
+        "SELECT count(*) FROM evidence_review_queue").fetchone()[0] == len(seeded_leads())
 
 
 def test_every_queued_lead_is_audited(db):
     src = source(db)
     leads_module.record(db, src, leads_module.load(LEADS_FILE))
     assert db.execute(
-        "SELECT count(*) FROM audit_event WHERE action = 'LEAD_QUEUED'").fetchone()[0] == 7
+        "SELECT count(*) FROM audit_event WHERE action = 'LEAD_QUEUED'"
+    ).fetchone()[0] == len(seeded_leads())
 
 
 # ---------------------------------------------------------------- verification

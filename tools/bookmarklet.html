@@ -37,13 +37,14 @@ amendment page to read. If your browser will not accept the drag, open the conso
 amendment page instead and paste the contents of <code>tools/capture-bookmarklet.js</code>.</p>
 
 <h2>2. Capture one page per LGA</h2>
-<p>These are the three that acceptance criterion 1 needs — one real, current amendment
-from each LGA:</p>
+<p>One real, current amendment per LGA. Whittlesea joined the scope on 2026-09-20,
+so there are now four:</p>
 <table>
-  <tr><th>LGA</th><th>Amendment</th><th>Page</th></tr>
-  <tr><td><strong>Hume</strong></td><td><code>C272hume</code></td><td><a href="https://planning-schemes.app.planning.vic.gov.au/Hume/amendments/C272hume" target="_blank" rel="noopener">https://planning-schemes.app.planning.vic.gov.au/Hume/amendments/C272hume</a></td></tr>
-  <tr><td><strong>Melton</strong></td><td><code>C232melt</code></td><td><a href="https://planning-schemes.app.planning.vic.gov.au/Melton/amendments/C232melt" target="_blank" rel="noopener">https://planning-schemes.app.planning.vic.gov.au/Melton/amendments/C232melt</a></td></tr>
-  <tr><td><strong>Wyndham</strong></td><td><code>C266wynd</code></td><td><a href="https://planning-schemes.app.planning.vic.gov.au/Wyndham/amendments/C266wynd" target="_blank" rel="noopener">https://planning-schemes.app.planning.vic.gov.au/Wyndham/amendments/C266wynd</a></td></tr>
+  <tr><th>LGA</th><th>Amendment</th><th>Confidence</th><th>Page</th></tr>
+  <tr><td><strong>Wyndham</strong></td><td><code>C266wynd</code></td><td>CORROBORATED</td><td><a href="https://planning-schemes.app.planning.vic.gov.au/Wyndham/amendments/C266wynd" target="_blank" rel="noopener">page</a></td></tr>
+  <tr><td><strong>Melton</strong></td><td><code>C232melt</code></td><td>CONTRADICTED</td><td><a href="https://planning-schemes.app.planning.vic.gov.au/Melton/amendments/C232melt" target="_blank" rel="noopener">page</a></td></tr>
+  <tr><td><strong>Hume</strong></td><td><code>C267hume</code></td><td>URL_ONLY</td><td><a href="https://planning-schemes.app.planning.vic.gov.au/Hume/amendments/C267hume" target="_blank" rel="noopener">page</a></td></tr>
+  <tr><td><strong>Whittlesea</strong></td><td><code>C287wsea</code></td><td>SINGLE_SOURCE</td><td><a href="https://planning-schemes.app.planning.vic.gov.au/Whittlesea/amendments/C287wsea" target="_blank" rel="noopener">page</a></td></tr>
 </table>
 
 <div class="box">
@@ -58,16 +59,19 @@ what you can see, tick the confirmation, and save. You get one file per page.</p
 
 <p class="note">Other leads already queued, if you want them in the same pass:</p>
 <ul class="note">
-  <li><code>C267wynd</code> — <a href="https://planning-schemes.app.planning.vic.gov.au/Wyndham/amendments/C267wynd" target="_blank" rel="noopener">https://planning-schemes.app.planning.vic.gov.au/Wyndham/amendments/C267wynd</a></li>
-  <li><code>C269wynd</code> — <a href="https://planning-schemes.app.planning.vic.gov.au/Wyndham/amendments/C269wynd" target="_blank" rel="noopener">https://planning-schemes.app.planning.vic.gov.au/Wyndham/amendments/C269wynd</a></li>
-  <li><code>C267hume</code> — <a href="https://planning-schemes.app.planning.vic.gov.au/Hume/amendments/C267hume" target="_blank" rel="noopener">https://planning-schemes.app.planning.vic.gov.au/Hume/amendments/C267hume</a></li>
-  <li><code>C261hume</code> — <a href="https://planning-schemes.app.planning.vic.gov.au/Hume/amendments/C261hume" target="_blank" rel="noopener">https://planning-schemes.app.planning.vic.gov.au/Hume/amendments/C261hume</a></li>
+  <li><code>C267wynd</code> (Wyndham, SINGLE_SOURCE) — <a href="https://planning-schemes.app.planning.vic.gov.au/Wyndham/amendments/C267wynd" target="_blank" rel="noopener">page</a></li>
+  <li><code>C269wynd</code> (Wyndham, SINGLE_SOURCE) — <a href="https://planning-schemes.app.planning.vic.gov.au/Wyndham/amendments/C269wynd" target="_blank" rel="noopener">page</a></li>
+  <li><code>C272hume</code> (Hume, CONTRADICTED) — <a href="https://planning-schemes.app.planning.vic.gov.au/Hume/amendments/C272hume" target="_blank" rel="noopener">page</a></li>
+  <li><code>C261hume</code> (Hume, URL_ONLY) — <a href="https://planning-schemes.app.planning.vic.gov.au/Hume/amendments/C261hume" target="_blank" rel="noopener">page</a></li>
+  <li><code>C269wsea</code> (Whittlesea, URL_ONLY) — <a href="https://planning-schemes.app.planning.vic.gov.au/Whittlesea/amendments/C269wsea" target="_blank" rel="noopener">page</a></li>
+  <li><code>C249wsea</code> (Whittlesea, SINGLE_SOURCE) — <a href="https://planning-schemes.app.planning.vic.gov.au/Whittlesea/amendments/C249wsea" target="_blank" rel="noopener">page</a></li>
+  <li><code>C255wsea</code> (Whittlesea, URL_ONLY) — <a href="https://planning-schemes.app.planning.vic.gov.au/Whittlesea/amendments/C255wsea" target="_blank" rel="noopener">page</a></li>
 </ul>
 
 <h2>3. Send them back</h2>
 <p>Attach the saved <code>crown-capture-*.json</code> files to the conversation, or run:</p>
-<pre>python -m ingest.cli --lga Wyndham --capture crown-capture-*.json --as hawktrust1@gmail.com</pre>
-<p class="note">One command takes all three. Each capture closes the queued lead for its
+<pre>python -m ingest.cli --lga Wyndham --capture crown-capture-*.json --as you@crown.local</pre>
+<p class="note">One command takes all four. Each capture closes the queued lead for its
 amendment, and each becomes evidence graded <code>OPERATOR_CAPTURE</code> — strong enough
 that a gazetted amendment counts as a <code>FACT</code>, never <code>AUTHORITATIVE</code>,
 which stays reserved for a fetch the system makes itself.</p>

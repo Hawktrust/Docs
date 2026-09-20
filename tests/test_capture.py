@@ -160,15 +160,17 @@ def test_a_capture_closes_the_lead_that_was_waiting_for_it(db):
 
     src = source(db)
     leads_module.record(db, src, leads_module.load(LEADS_FILE))
+    from tests.conftest import seeded_leads
+    total = len(seeded_leads())
     assert db.execute(
         "SELECT count(*) FROM evidence_review_queue WHERE resolved_at IS NULL"
-    ).fetchone()[0] == 7
+    ).fetchone()[0] == total
 
     report = capture.ingest_capture(db, src, bundle(), user_id(db, "hawk@crown.local"))
     assert report.leads_resolved == ["C266wynd"]
     assert db.execute(
         "SELECT count(*) FROM evidence_review_queue WHERE resolved_at IS NULL"
-    ).fetchone()[0] == 6
+    ).fetchone()[0] == total - 1
 
 
 def test_the_whole_capture_is_audited(db):

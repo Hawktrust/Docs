@@ -17,7 +17,7 @@ reach the source.
 | Path | What it is |
 |---|---|
 | `migrations/` | the schema, RLS policies, retrieval provenance, integrity fixes |
-| `seeds/` | named users, the weight config, twenty synthetic mandates, the relay leads |
+| `seeds/` | named users, the weight config, synthetic mandates, relay leads, candidate sources |
 | `ingest/` | `SIGNAL -> EVIDENCE`: retrieval, provenance validation, review queue |
 | `crown/` | the rest of the loop, plus the web app |
 | `tests/` | the acceptance criteria, as tests |
@@ -86,8 +86,9 @@ have not been demonstrated on a real amendment.
 
 ## The one criterion that fails
 
-Acceptance criterion 1 requires a real, current amendment from Wyndham, Melton
-and Hume in the database with complete provenance. **The graph is empty.**
+Acceptance criterion 1 requires a real, current amendment from each LGA in scope
+— Wyndham, Melton, Hume and, since 2026-09-20, Whittlesea — in the database with
+complete provenance. **The graph is empty.**
 
 Egress is a strict allowlist: `planning.vic.gov.au`, the planning schemes app,
 `data.vic.gov.au` and the council sites are all refused, `WebFetch` is refused
@@ -108,6 +109,33 @@ and therefore cannot be a `FACT`.
 See `ingest/README.md` for the full account, and
 `docs/EGRESS-ALLOWLIST-REQUEST.md` for the exact hosts to permit.
 
+## The data rights register
+
+Seven sources, one ingestible. Being in the register is documentation, not
+permission: a source is switched on only when a named adviser signs its entry.
+
+```
+python scripts/confirm_source.py --list X --adviser x     # show the register
+python scripts/confirm_source.py VICMAP_PROPERTY --adviser "Your Name"
+```
+
+The open spatial stack — Vicmap Property, Vicmap Planning, VPA precinct
+structure plans — is adopted and needs one signature each. Between them they
+answer every freehold parcel in an LGA over a given area, with its zone, its
+overlays and its PSP status, under Creative Commons Attribution.
+
+Two entries need more than a signature, and the database enforces it:
+
+- **Lane A** (`LANDATA_TITLES`) needs `--agreement` naming the signed agreement
+  on file. A link to a product page is not an agreement.
+- **A source that identifies living individuals** needs `--privacy-basis`:
+  which APP is relied on for the intended use, the consent position, and where
+  the suppression list lives. A licence answers whether Crown may *hold* the
+  data. It does not answer whether Crown may *use* it to contact anyone.
+
+`docs/DATA-SOURCE-SURVEY.md` has the full survey and why owner names are not in
+any open source.
+
 ## Getting real amendments in while the source is unreachable
 
 The build environment cannot reach any Victorian planning host, and that is not
@@ -126,7 +154,7 @@ bookmarklet is inconvenient.
    field as a *suggestion*; it will not export until you have checked each one.
 3. Tick the confirmation and save.
 4. `python -m ingest.cli --lga Wyndham --capture crown-capture-*.json --as you@crown.local`
-   — one command takes all three.
+   — one command takes all four.
 
 What makes the result evidence rather than hearsay:
 

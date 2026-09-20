@@ -1,16 +1,21 @@
--- PROPOSED, NOT APPLIED. See docs/DATA-SOURCE-SURVEY.md.
+-- Candidate sources beyond Ticket 01's single signal. See docs/DATA-SOURCE-SURVEY.md.
 --
--- Adding a source to the register is a scoping decision, not a code change, so
--- this file is deliberately outside the seed set that migrations and tests run.
--- Apply it when someone has decided to widen beyond Ticket 01's single source.
+-- Adopted into the register on 2026-09-20. Being in the register is not
+-- permission to ingest: every row below lands is_ingestible = false with
+-- register_confirmed_by NULL, because the register's own rule is that a named
+-- adviser confirms an entry first.
 --
--- Note that every row below lands with is_ingestible = false. The register's own
--- rule is that a named adviser confirms an entry before anything is ingested
--- from it, and none of these has been confirmed. Set is_ingestible = true and
--- fill register_confirmed_by in the same statement, deliberately, per source.
+-- To sign one, and turn it on:
+--
+--     python scripts/confirm_source.py VICMAP_PROPERTY --adviser "Your Name"
+--
+-- That records who signed, when, and writes an audit row. Until then these
+-- sources are documented and unusable, which is the correct state for a source
+-- nobody has taken responsibility for.
 
 INSERT INTO data_source (code, display_name, provider, lane, licence_reference,
-                         attribution_text, is_ingestible, notes)
+                         attribution_text, is_ingestible, notes,
+                         carries_personal_information)
 VALUES
     ('VICMAP_PROPERTY',
      'Vicmap Property (cadastre)',
@@ -20,7 +25,8 @@ VALUES
      'Contains information from the State Government of Victoria, licensed under Creative Commons Attribution.',
      false,
      'Parcel and property polygons, SPI, parcel area, Crown vs freehold, easements. '
-     'Contains NO owner information — the cadastre and the Titles Register are separate systems.'),
+     'Contains NO owner information — the cadastre and the Titles Register are separate systems.',
+     false),
 
     ('VICMAP_PLANNING',
      'Vicmap Planning (zones and overlays)',
@@ -29,7 +35,8 @@ VALUES
      'https://www.land.vic.gov.au/maps-and-spatial/spatial-data/how-to-access-spatial-data/licensing',
      'Contains information from the State Government of Victoria, licensed under Creative Commons Attribution.',
      false,
-     'Zones and overlays for all 79 LGAs, Urban Growth Boundary and Growth Area. Updated weekly.'),
+     'Zones and overlays for all 79 LGAs, Urban Growth Boundary and Growth Area. Updated weekly.',
+     false),
 
     ('VPA_PSP',
      'Victorian Planning Authority precinct structure plans',
@@ -38,7 +45,8 @@ VALUES
      'https://vpa.vic.gov.au/strategy-guidelines/open-data/',
      'Contains information from the Victorian Planning Authority.',
      false,
-     'Greenfield PSP boundaries and approved PSP land use.'),
+     'Greenfield PSP boundaries and approved PSP land use.',
+     false),
 
     ('VG_PROPERTY_SALES',
      'Valuer General property sales',
@@ -48,7 +56,8 @@ VALUES
      NULL,
      false,
      'Sale prices and dates. Lane C until the licence is read: some Valuer General '
-     'products carry restrictions on marketing use. Confirm before any use.'),
+     'products carry restrictions on marketing use. Confirm before any use.',
+     true),
 
     ('LANDATA_TITLES',
      'Landata / Victorian Titles Register',
@@ -62,5 +71,6 @@ VALUES
      'separate commercial arrangement. Holding a licence settles whether Crown may '
      'HOLD this data. It does not settle whether Crown may USE it to contact anyone — '
      'that is APP 7 plus any register-specific restriction, and needs its own basis, '
-     'consent position and suppression list. Gate 0 work.')
+     'consent position and suppression list. Gate 0 work.',
+     true)
 ON CONFLICT (code) DO NOTHING;

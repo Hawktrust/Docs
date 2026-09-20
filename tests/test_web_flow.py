@@ -1,6 +1,7 @@
 """The loop as a person walks it: opportunity -> ranking -> queue -> decision."""
 from crown import matching, opportunity
-from tests.conftest import add_evidence, csrf, sign_in, user_id
+from tests.conftest import (SEEDED_MANDATE_COUNT, add_evidence, csrf, sign_in,
+                            user_id)
 
 
 def an_opportunity(db):
@@ -29,7 +30,8 @@ def test_recomputing_stores_the_ranking_and_fills_the_queue(client, db):
 
     response = client.post(f"/opportunities/{oid}/rematch", data=csrf(client))
     assert response.status_code == 302
-    assert db.execute("SELECT count(*) FROM match_result").fetchone()[0] == 20
+    assert db.execute(
+        "SELECT count(*) FROM match_result").fetchone()[0] == SEEDED_MANDATE_COUNT
 
     queue = client.get("/queue").get_data(as_text=True)
     assert "Queue is empty" not in queue
