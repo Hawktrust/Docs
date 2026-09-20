@@ -109,6 +109,25 @@ and therefore cannot be a `FACT`.
 See `ingest/README.md` for the full account, and
 `docs/EGRESS-ALLOWLIST-REQUEST.md` for the exact hosts to permit.
 
+## Review findings after the alerts build
+
+Three, kept as regressions in `tests/test_review_0013.py`.
+
+1. **"Elected officials are never named" held in a view and not on the base
+   table.** An analyst could read the name straight off `market_actor` — the same
+   failure `buyer_mandate_real` had in 0004. Migration 0013 makes a
+   non-publishable actor invisible to `ANALYST` and `AGENT`, who between them
+   write every brief, export and outreach draft. `COMPLIANCE` can still see them,
+   because somebody has to be able to audit what the system is counting.
+2. **Five tables added since 0002 had no policy**, because each migration added
+   one and none went back to check. `parcel` was guarded from 0010 and its
+   zoning and dwelling children were not, so a role denied the parcel could read
+   its zoning anyway.
+3. **The daily shortlist fell back to the whole ranking when nothing was new**,
+   turning it into yesterday's list with today's date on it — the exact alert
+   fatigue deduplication exists to prevent. A quiet day now returns a quiet
+   shortlist.
+
 ## Alerts and the Investment Committee brief
 
 `/alerts` runs the detection pass; `/brief/<id>` is the one-page output.

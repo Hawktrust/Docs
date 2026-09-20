@@ -104,18 +104,39 @@ def raise_alert(conn, *, kind: str, detected_event: str, source_url: str,
 
 # ------------------------------------------------------------------ detectors
 
-def _watchers(conn, lga, locality):
-    """Who asked to hear about this place."""
-    return conn.execute(
-        """SELECT id, user_id FROM watchlist
-           WHERE is_active
-             AND ((kind = 'LGA' AND target ILIKE %s)
-               OR (kind = 'SUBURB' AND target ILIKE %s))""",
-        (lga or "", locality or ""),
+def _watchers(conn, lga, locality, _cache=None):
+    """Who asked to hear about this place.
+
+    A place with no name matches nothing: an empty target would otherwise match
+    every record whose locality is unknown. Results are memoised for the life of
+    one detection pass, because a detector otherwise asks this once per row.
+    """
+    cache = _cache if _cache is not None else {}
+    key = ((lga or "").lower(), (locality or "").lower())
+    if key in cache:
+        return cache[key]
+
+    clauses, params = [], []
+    if lga:
+        clauses.append("(kind = 'LGA' AND target ILIKE %s)")
+        params.append(lga)
+    if locality:
+        clauses.append("(kind = 'SUBURB' AND target ILIKE %s)")
+        params.append(locality)
+    if not clauses:
+        cache[key] = []
+        return []
+
+    rows = conn.execute(
+        f"""SELECT id, user_id FROM watchlist
+            WHERE is_active AND ({' OR '.join(clauses)})""",
+        params,
     ).fetchall()
+    cache[key] = rows
+    return rows
 
 
-def new_evidence(conn, report: Raised, correlation_id=None) -> Raised:
+def new_evidence(conn, report: Raised, correlation_id=None, cache=None) -> Raised:
     """Amendments touching a watched geography."""
     rows = conn.execute(
         """SELECT e.id, e.lga, e.geography -> 'suburbs' ->> 0, e.title,
@@ -129,7 +150,7 @@ def new_evidence(conn, report: Raised, correlation_id=None) -> Raised:
 
     for (eid, lga, locality, title, url, klass, method, status, reference) in rows:
         confidence = confidence_of_evidence(klass, method)
-        for watchlist_id, user_id in _watchers(conn, lga, locality):
+        for watchlist_id, user_id in _watchers(conn, lga, locality, cache):
             raise_alert(
                 conn, kind="NEW_EVIDENCE", watchlist_id=watchlist_id, user_id=user_id,
                 lga=lga, locality=locality, evidence_id=eid,
@@ -145,7 +166,7 @@ def new_evidence(conn, report: Raised, correlation_id=None) -> Raised:
 
 
 def market_moves(conn, report: Raised, minimum_weight: float = 0.6,
-                 correlation_id=None) -> Raised:
+                 correlation_id=None, cache=None) -> Raised:
     """A developer, fund or government body moving in a watched geography."""
     rows = conn.execute(
         """SELECT s.id, s.lga, s.locality, s.signal_kind::text, s.detail,
@@ -164,7 +185,7 @@ def market_moves(conn, report: Raised, minimum_weight: float = 0.6,
         # An unnamed actor is still reportable as an event; only the name is held
         # back. See crown/signals.py.
         who = name or f"an unnamed {actor_kind.replace('_', ' ').lower()}"
-        for watchlist_id, user_id in _watchers(conn, lga, locality):
+        for watchlist_id, user_id in _watchers(conn, lga, locality, cache):
             raise_alert(
                 conn, kind="MARKET_SIGNAL", watchlist_id=watchlist_id, user_id=user_id,
                 lga=lga, locality=locality, signal_id=sid,
@@ -181,7 +202,8 @@ def market_moves(conn, report: Raised, minimum_weight: float = 0.6,
     return report
 
 
-def government_acquisition(conn, report: Raised, correlation_id=None) -> Raised:
+def government_acquisition(conn, report: Raised, correlation_id=None,
+                           cache=None) -> Raised:
     """A Public Acquisition Overlay on land in a watched geography."""
     rows = conn.execute(
         """SELECT p.id, p.spi, p.lga, p.locality,
@@ -192,7 +214,7 @@ def government_acquisition(conn, report: Raised, correlation_id=None) -> Raised:
     ).fetchall()
 
     for (pid, spi, lga, locality, acres, zone, overlays) in rows:
-        for watchlist_id, user_id in _watchers(conn, lga, locality):
+        for watchlist_id, user_id in _watchers(conn, lga, locality, cache):
             raise_alert(
                 conn, kind="GOVERNMENT_ACQUISITION", watchlist_id=watchlist_id,
                 user_id=user_id, lga=lga, locality=locality, parcel_id=pid,
@@ -210,7 +232,7 @@ def government_acquisition(conn, report: Raised, correlation_id=None) -> Raised:
     return report
 
 
-def stale_evidence(conn, report: Raised, correlation_id=None) -> Raised:
+def stale_evidence(conn, report: Raised, correlation_id=None, cache=None) -> Raised:
     """Records past their shelf life, so nothing rests on an unchecked fact."""
     rows = conn.execute(
         """SELECT id, source_reference, lga, title, source_url, retrieval_method,
@@ -233,7 +255,8 @@ def stale_evidence(conn, report: Raised, correlation_id=None) -> Raised:
     return report
 
 
-def data_rights_exceptions(conn, report: Raised, correlation_id=None) -> Raised:
+def data_rights_exceptions(conn, report: Raised, correlation_id=None,
+                           cache=None) -> Raised:
     """A source in use without a complete register entry."""
     for code, _, _, _, reason, _ in conn.execute(
         """SELECT code, display_name, provider, lane::text, exception_reason, notes
@@ -258,8 +281,9 @@ def run(conn, correlation_id=None) -> Raised:
     """Every detector, one pass. Caller commits."""
     correlation_id = correlation_id or audit.new_correlation_id()
     report = Raised()
+    cache: dict = {}        # one watcher lookup per place, per pass
     for detector in DETECTORS:
-        detector(conn, report, correlation_id=correlation_id)
+        detector(conn, report, correlation_id=correlation_id, cache=cache)
     audit.write(conn, correlation_id, "ALERT_RUN_COMPLETED", "alert", "run",
                 new_state={"raised": len(report.created),
                            "suppressed": len(report.suppressed),
@@ -297,8 +321,18 @@ def mark_delivered(conn, alert_ids, correlation_id=None) -> int:
 
 
 def daily_shortlist(conn, as_of: date | None = None, limit: int = 20):
-    """The highest-scoring geographies with something new to say today."""
+    """Geographies that both rank well and have something new to say today.
+
+    Returns an empty list when nothing is new. An earlier version fell back to
+    the whole ranking when nothing matched, which quietly turned a daily
+    shortlist into yesterday's list with today's date on it — the exact alert
+    fatigue the deduplication exists to prevent. A quiet day is a real answer.
+    """
     from . import signals
-    ranked = signals.hotspots(conn, as_of=as_of, limit=limit)
+
     fresh = {(row[2], row[3]) for row in pending(conn)}
-    return [h for h in ranked if (h.lga, h.locality) in fresh] or ranked[:limit]
+    if not fresh:
+        return []
+    ranked = signals.hotspots(conn, as_of=as_of, limit=limit * 4)
+    return [h for h in ranked
+            if (h.lga, h.locality) in fresh or (h.lga, None) in fresh][:limit]
