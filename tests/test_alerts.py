@@ -45,13 +45,16 @@ def test_a_repeat_is_counted_rather_than_written(db):
     """The backstop under the detectors: the same key twice writes once, and
     the second attempt is reported as already known rather than lost."""
     report = alerts.Raised()
-    said = dict(kind="NEW_EVIDENCE", detected_event="an amendment moved stage",
-                source_url="https://example.invalid/a", confidence="CONFIRMED",
-                investment_impact="i", recommended_action="a",
-                key_parts=("C123wynd", 1), report=report)
 
-    first = alerts.raise_alert(db, **said)
-    second = alerts.raise_alert(db, **said)
+    def say_it():
+        return alerts.raise_alert(
+            db, kind="NEW_EVIDENCE", detected_event="an amendment moved stage",
+            source_url="https://example.invalid/a", confidence="CONFIRMED",
+            investment_impact="i", recommended_action="a",
+            key_parts=("C123wynd", 1), report=report)
+
+    first = say_it()
+    second = say_it()
 
     assert first is not None
     assert second is None
