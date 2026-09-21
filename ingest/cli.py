@@ -11,7 +11,9 @@ import json
 import sys
 from datetime import datetime, timezone
 
-from . import db, registry
+from crown import db
+
+from . import registry
 from .adapters import vic_planning
 from .fetch import Retrieval, RetrievalBlocked, fetch
 from .pipeline import ingest
@@ -29,15 +31,83 @@ def main(argv=None) -> int:
                         help="a saved payload in the adapter's interchange shape; "
                              "omit to fetch the registered source live")
     parser.add_argument("--dsn", help="override CROWN_DSN")
+    parser.add_argument("--leads",
+                        help="a relay leads file; queues the leads for direct "
+                             "verification instead of ingesting")
+    parser.add_argument("--verify", action="store_true",
+                        help="attempt direct retrieval of every queued lead")
+    parser.add_argument("--capture", nargs="+", metavar="BUNDLE",
+                        help="one or more bundles exported by the capture tools; "
+                             "all three LGAs can go in one command")
+    parser.add_argument("--as", dest="operator",
+                        help="the email of the person who took the capture")
     args = parser.parse_args(argv)
 
     with db.connect(args.dsn) as conn:
         # The register decides whether this source may be touched at all.
         try:
-            source = registry.resolve(conn, SOURCE_CODE)
-        except (registry.SourceNotRegistered, registry.SourceNotIngestible) as exc:
+            # A capture is a person with a browser, so it does not need the
+            # publisher's terms to permit a crawler. Everything else does.
+            source = registry.resolve(conn, SOURCE_CODE,
+                                      automated=not bool(args.capture))
+        except (registry.SourceNotRegistered, registry.SourceNotIngestible,
+                registry.AutomatedAccessNotPermitted) as exc:
             print(f"refused by the data rights register: {exc}", file=sys.stderr)
             return 2
+
+        if args.capture:
+            from . import capture as capture_module
+            if not args.operator:
+                print("--capture needs --as you@crown.local: a capture is "
+                      "attributable or it is not evidence", file=sys.stderr)
+                return 2
+            operator = conn.execute(
+                "SELECT id FROM app_user WHERE email = %s AND is_active",
+                (args.operator,)).fetchone()
+            if operator is None:
+                print(f"no active user {args.operator}", file=sys.stderr)
+                return 2
+            refused = 0
+            for path in args.capture:
+                try:
+                    capture_report = capture_module.ingest_capture(
+                        conn, source, capture_module.load(path), operator[0])
+                except capture_module.BadCapture as exc:
+                    # One bad bundle does not discard the good ones, but it is
+                    # never quietly skipped either.
+                    print(f"{path} refused: {exc}", file=sys.stderr)
+                    conn.rollback()
+                    refused += 1
+                    continue
+                conn.commit()
+                print(capture_report.summary())
+                print()
+            if refused:
+                print(f"{refused} of {len(args.capture)} bundle(s) refused",
+                      file=sys.stderr)
+            return 6 if refused else 0
+
+        if args.leads:
+            from . import leads as leads_module
+            queued = leads_module.record(conn, source, leads_module.load(args.leads))
+            conn.commit()
+            print(f"queued {len(queued)} lead(s) for direct verification; "
+                  f"none entered the graph")
+            return 0
+
+        if args.verify:
+            from . import verify as verify_module
+            ok = failed = 0
+            for queue_id, _, lead in verify_module.pending(conn, source.id):
+                try:
+                    verify_module.verify(conn, queue_id, source)
+                    ok += 1
+                except verify_module.VerificationFailed as exc:
+                    failed += 1
+                    print(f"  {lead['amendment_number']}: {exc}", file=sys.stderr)
+            conn.commit()
+            print(f"verified {ok}, still queued {failed}")
+            return 0 if failed == 0 else 5
 
         if args.from_file:
             with open(args.from_file) as fh:

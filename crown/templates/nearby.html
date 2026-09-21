@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block body %}
+<h1>Nearby parcels</h1>
+<p class="note">Within {{ radius }}m by centroid distance. This is a proxy for
+adjacency, not adjacency: a parcel across the road counts, and a very large
+parcel's centroid can sit far from its boundary. True touching needs PostGIS.</p>
+<table>
+  <tr><th>Parcel</th><th>Suburb</th><th>Acres</th><th>Metres</th>
+      <th>Zone</th><th>Overlays</th><th>PSP</th></tr>
+  {% for pid, spi, locality, acres, metres, zone, overlays, psp in rows %}
+  <tr><td>{{ spi }}</td><td>{{ locality or '—' }}</td><td>{{ acres }}</td>
+      <td>{{ metres }}</td><td>{{ zone or '—' }}</td>
+      <td class="note">{{ overlays|join(', ') if overlays else '—' }}</td>
+      <td>{{ psp or '—' }}</td></tr>
+  {% else %}
+  <tr><td colspan="7">Nothing within {{ radius }}m, or this parcel has no centroid.</td></tr>
+  {% endfor %}
+</table>
+{% endblock %}

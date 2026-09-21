@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block body %}
+<div style="background:#fff;border:1px solid #ccc;padding:22px 26px;max-width:860px">
+
+<div style="border-bottom:2px solid #14213d;padding-bottom:8px;margin-bottom:14px">
+  <h1 style="margin:0">{{ b.opportunity.geography }}, {{ b.opportunity.lga }}</h1>
+  <div class="note">Investment Committee brief · prepared by {{ b.opportunity.author }}
+    · for {{ b.principal }}</div>
+</div>
+
+<table style="margin-bottom:16px">
+  <tr><th style="width:22%">Decision</th><td><strong>{{ b.decision }}</strong></td>
+      <th style="width:16%">Strategy</th><td>{{ b.strategy }}</td></tr>
+  <tr><th>Timing</th><td>{{ b.timing.replace('_',' ')|lower }}</td>
+      <th>Confidence</th><td><strong>{{ b.confidence }}</strong></td></tr>
+  <tr><th>Stage</th><td colspan="3">{{ b.opportunity.stage }}
+      <span class="note">— {{ b.opportunity.stage_rule }}</span></td></tr>
+</table>
+
+<h2>{{ b.investment_case.heading }}</h2>
+<p>{{ b.investment_case.body }}</p>
+<ul>{% for p in b.investment_case.points %}<li>{{ p }}</li>{% endfor %}</ul>
+
+<h2>{{ b.downside_case.heading }}</h2>
+<p>{{ b.downside_case.body }}</p>
+<ul>{% for p in b.downside_case.points %}<li>{{ p }}</li>{% else %}
+  <li class="note">Nothing recorded.</li>{% endfor %}</ul>
+
+<h2>{{ b.price_ceiling.heading }}</h2>
+<p{% if not b.has_economics %} class="note"{% endif %}>{{ b.price_ceiling.body }}</p>
+{% if b.has_economics %}
+<ul>{% for p in b.price_ceiling.points %}<li>{{ p }}</li>{% endfor %}</ul>
+{% endif %}
+
+{% if b.opportunity.parcels %}
+<h2>Land</h2>
+<table>
+  <tr><th>Parcel</th><th>Acres</th><th>Zone</th><th>Overlays</th><th>PSP</th></tr>
+  {% for p in b.opportunity.parcels %}
+  <tr><td>{{ p.spi }}</td><td>{{ p.acres }}</td><td>{{ p.zone or '—' }}</td>
+      <td class="note">{{ p.overlays|join(', ') or '—' }}</td>
+      <td>{{ p.psp_status or '—' }}</td></tr>
+  {% endfor %}
+</table>
+{% endif %}
+
+<h2>Evidence</h2>
+<p class="note">As it stood when this was recommended. The snapshot does not
+change when the underlying records do — the question a brief must survive is
+what we knew when we recommended it.</p>
+<table>
+  <tr><th>Reference</th><th>Class</th><th>Reliability</th><th>How retrieved</th>
+      <th>Observed</th><th>Source</th></tr>
+  {% for e in b.evidence %}
+  <tr><td>{{ e.reference }}</td><td>{{ e['class'] }}</td><td>{{ e.reliability }}</td>
+      <td>{{ e.retrieval_method.replace('_',' ')|lower }}</td>
+      <td>{{ e.observed_at[:10] }}</td>
+      <td><a href="{{ e.source_url }}">link</a></td></tr>
+  {% else %}
+  <tr><td colspan="6">No evidence was linked when this was recommended.</td></tr>
+  {% endfor %}
+</table>
+
+{% if b.signals %}
+<h2>Market activity in this geography</h2>
+<table>
+  <tr><th>When</th><th>Who</th><th>What</th><th>Source</th></tr>
+  {% for s in b.signals %}
+  <tr><td>{{ s.observed_at }}</td><td>{{ s.actor }}</td><td>{{ s.detail }}</td>
+      <td><a href="{{ s.url }}">link</a></td></tr>
+  {% endfor %}
+</table>
+{% endif %}
+
+<h2>Next action</h2>
+<p>{{ b.next_action }}</p>
+
+<div style="border-top:1px solid #ccc;margin-top:18px;padding-top:10px" class="note">
+  Approved by {{ b.approval.by }} on {{ b.approval.at[:10] }} —
+  “{{ b.approval.reason }}”. Approval {{ b.approval.id[:8] }}.
+  Nothing in this brief leaves without it.
+</div>
+</div>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block body %}
+<h1>Opportunities</h1>
+<p class="rule">Stage rule: {{ rule }}</p>
+<table>
+  <tr><th>LGA</th><th>Geography</th><th>Stage</th><th>Why this stage</th>
+      <th>Owner</th><th>Next action</th><th>Evidence</th></tr>
+  {% for id, lga, label, stage, stage_rule, owner, next_action, evidence_count in rows %}
+  <tr>
+    <td>{{ lga }}</td>
+    <td><a href="/opportunities/{{ id }}">{{ label }}</a></td>
+    <td class="stage">{{ stage }}</td>
+    <td class="rule">{{ stage_rule }}</td>
+    <td>{{ owner }}</td>
+    <td>{{ next_action or '—' }}</td>
+    <td>{{ evidence_count }}</td>
+  </tr>
+  {% else %}
+  <tr><td colspan="7">No opportunities. Ingest evidence first.</td></tr>
+  {% endfor %}
+</table>
+{% endblock %}

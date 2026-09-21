@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block body %}
+<h1>Alerts</h1>
+
+<form method="post" action="/alerts/run" style="display:inline">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <button type="submit">Run a detection pass</button>
+</form>
+<span class="note">Duplicates are refused by the database; anything speculative is
+recorded and withheld.</span>
+
+<h2>Watching</h2>
+<form method="post" action="/watchlist">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <select name="kind">
+    <option value="LGA">council</option>
+    <option value="SUBURB">suburb</option>
+  </select>
+  <input name="target" placeholder="Whittlesea" size="18">
+  <input name="label" placeholder="label (optional)" size="18">
+  <button type="submit">Watch</button>
+</form>
+<p class="note">
+  {% for kind, label, target in watching %}<code>{{ kind }}</code> {{ label }} · {% else %}
+  Nothing watched yet — alerts are raised against watched places.{% endfor %}
+</p>
+
+<h2>Pending</h2>
+<table>
+  <tr><th>Place</th><th>What happened</th><th>Confidence</th>
+      <th>Impact</th><th>Next action</th></tr>
+  {% for id, kind, lga, locality, event, url, confidence, impact, action,
+          acres, zone, overlays, created in rows %}
+  <tr>
+    <td>{{ locality or lga or '—' }}<div class="note">{{ kind }}</div>
+        {% if acres %}<div class="note">{{ acres }} ac · {{ zone or '' }}</div>{% endif %}</td>
+    <td>{{ event }}<div class="note"><a href="{{ url }}">{{ url|truncate(60) }}</a></div></td>
+    <td>{{ confidence }}</td>
+    <td class="note">{{ impact }}</td>
+    <td class="note">{{ action }}</td>
+  </tr>
+  {% else %}
+  <tr><td colspan="5">Nothing pending. Run a pass, or watch a place first.</td></tr>
+  {% endfor %}
+</table>
+
+<h2>Withheld</h2>
+<p class="note">Recorded and not sent, so nobody has to wonder whether the system
+missed something or chose not to speak.</p>
+<table>
+  <tr><th>Kind</th><th>What it was</th><th>Why withheld</th></tr>
+  {% for kind, event, reason, created in suppressed %}
+  <tr><td>{{ kind }}</td><td>{{ event }}</td><td class="note">{{ reason }}</td></tr>
+  {% else %}
+  <tr><td colspan="3">Nothing withheld.</td></tr>
+  {% endfor %}
+</table>
+{% endblock %}

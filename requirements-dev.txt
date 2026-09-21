@@ -1,0 +1,6 @@
+-r requirements.txt
+# The two automated reviews the ticket asks for, plus the test runner.
+pytest==9.1.1
+mypy==2.3.1
+pip-audit==2.10.1
+types-requests

@@ -35,19 +35,28 @@ from the author's intent, they are the places to check:
 
 Everything else is verbatim.
 
-## Open items for the application build
+## 0002_rls_policies.sql
 
-These are properties of the schema as specified, not migration failures. They matter
-for the acceptance criteria and need a decision before Ticket 01 can pass:
+Completes the row-level security 0001 left as an "example policy shape", and
+closes the hole that made those policies decorative.
 
-1. **RLS without policies.** `buyer_mandate`, `match_result` and `outbound_artifact`
-   have row-level security enabled but no policies, so a non-owner application role
-   sees zero rows and cannot write to them. `opportunity` and `approval` have one
-   policy each (SELECT and INSERT respectively) — other verbs on those tables are
-   likewise closed. Policies for the remaining tables and verbs still need writing.
-2. **RLS does not constrain the table owner.** A role that owns these tables bypasses
-   RLS entirely unless the tables are set to `FORCE ROW LEVEL SECURITY`. AC9 depends
-   on the application connecting as a role that does *not* own the schema.
-3. **Shared append-only trigger message.** `audit_append_only()` raises
-   "audit_event is append-only…" for `attribution` writes too, because both tables
-   share the function. Enforcement is correct; only the message is misleading.
+Three things it does:
+
+1. **Writes the missing policies.** `buyer_mandate`, `match_result` and
+   `outbound_artifact` had RLS enabled and no policies at all, which denies
+   everything to a non-owner role — the application could not read or write
+   them. `opportunity` and `approval` had one policy each, leaving their other
+   verbs closed.
+2. **Adds `FORCE ROW LEVEL SECURITY`.** RLS does not apply to a table's owner.
+   Without FORCE, an application connecting as the schema owner bypasses every
+   policy and AC9 cannot hold, however carefully the policies are written.
+3. **Creates the `crown_app` role** the application connects as, and revokes
+   UPDATE, DELETE and TRUNCATE from it on the append-only tables — the trigger
+   is the enforcement, this is defence in depth.
+
+## Still open
+
+**Shared append-only trigger message.** `audit_append_only()` raises
+"audit_event is append-only…" for `attribution` writes too, because both tables
+share the function. Enforcement is correct; only the message is misleading.
+Left as-is rather than diverging from the schema as supplied.

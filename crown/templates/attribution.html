@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block body %}
+<h1>Attribution</h1>
+<table>
+  <tr><th>Opportunity</th><td>{{ a[2] }} ({{ a[1] }})</td></tr>
+  <tr><th>Buyer</th><td>{{ a[3] }}</td></tr>
+  <tr><th>Originating signal</th><td>{{ a[4] }} — {{ a[7] }}</td></tr>
+  <tr><th>Source URL</th><td><a href="{{ a[5] }}">{{ a[5] }}</a></td></tr>
+  <tr><th>Retrieved at</th><td>{{ a[6] }}</td></tr>
+  <tr><th>Registered source</th><td><code>{{ a[8] }}</code></td></tr>
+</table>
+<p class="note">This record is immutable: the database refuses UPDATE and DELETE on it.</p>
+{% endblock %}

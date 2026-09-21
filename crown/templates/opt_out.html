@@ -1,0 +1,59 @@
+<!doctype html>
+{#
+  Deliberately standalone rather than extending base.html.
+
+  Whoever opens this is not a Crown user and should not be shown Crown's
+  navigation, their own name, or anything about what Crown knows. The page has
+  one job and nothing else on it.
+
+  It also never echoes the identifier back. The person holding the link can
+  already read it; repeating it on screen only turns somebody glancing over a
+  shoulder into a disclosure.
+#}
+<title>Stop receiving messages</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<style>
+  body { font: 16px/1.6 system-ui, sans-serif; margin: 0; color: #1a1a1a;
+         background: #fafafa; }
+  main { max-width: 34rem; margin: 0 auto; padding: 3rem 1rem; }
+  h1 { font-size: 1.4rem; margin: 0 0 1rem; }
+  p { margin: 0 0 1rem; }
+  button { font: inherit; font-weight: 600; padding: .7rem 1.4rem; border: 0;
+           border-radius: 4px; background: #14213d; color: #fff; cursor: pointer; }
+  button:hover { background: #24365f; }
+  .note { color: #555; font-size: .875rem; }
+  .done { border-left: 4px solid #1b7f3b; padding-left: 1rem; }
+  .bad  { border-left: 4px solid #b00020; padding-left: 1rem; }
+</style>
+<main>
+
+{% if state == "confirm" %}
+  <h1>Stop receiving messages</h1>
+  <p>Confirm below and this address will be removed from anything further.</p>
+  <form method="post">
+    <button type="submit">Stop contacting me</button>
+  </form>
+  <p class="note">You do not need an account and nothing else is required of
+    you. We keep a record that you asked, so that the request is not undone by
+    accident later.</p>
+
+{% elif state == "done" %}
+  <h1 class="done">Done</h1>
+  <div class="done">
+    <p>You have been removed. Nothing further will be sent.</p>
+    <p class="note">If a message reaches you after today, it was already in
+      progress — reply to it and it will be stopped.</p>
+  </div>
+
+{% else %}
+  <h1 class="bad">This link did not work</h1>
+  <div class="bad">
+    <p>{{ message }}</p>
+    <p class="note">Links can be broken by an email program splitting them
+      across lines. Try opening it again from the original message, or reply to
+      that message asking to be removed — a reply works just as well.</p>
+  </div>
+{% endif %}
+
+</main>

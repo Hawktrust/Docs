@@ -18,6 +18,8 @@ from datetime import datetime, timezone
 
 from psycopg.types.json import Jsonb
 
+from crown import audit
+
 from . import provenance
 from .adapters import vic_planning
 
@@ -55,16 +57,10 @@ def content_hash(item: dict) -> str:
 
 def _audit(conn, correlation_id, action, object_table, object_id,
            new_state=None, evidence_id=None):
-    conn.execute(
-        """
-        INSERT INTO audit_event (actor_agent, action, object_table, object_id,
-                                 new_state, evidence_id, correlation_id)
-        VALUES (%s, %s, %s, %s, %s, %s, %s)
-        """,
-        (ACTOR_AGENT, action, object_table, str(object_id),
-         Jsonb(new_state) if new_state is not None else None,
-         evidence_id, correlation_id),
-    )
+    """Ingestion writes through the one shared audit writer (crown.audit)."""
+    audit.write(conn, correlation_id, action, object_table, object_id,
+                new_state=new_state, evidence_id=evidence_id,
+                actor_agent=ACTOR_AGENT)
 
 
 def ingest(conn, source, retrieval, payload: list[dict], lga: str) -> RunReport:
