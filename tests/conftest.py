@@ -38,6 +38,7 @@ MIGRATIONS = [
     os.path.join(ROOT, "migrations", "0013_close_the_base_tables.sql"),
     os.path.join(ROOT, "migrations", "0014_terms_read.sql"),
     os.path.join(ROOT, "migrations", "0015_councils_and_signature.sql"),
+    os.path.join(ROOT, "migrations", "0016_going_live.sql"),
 ]
 LEADS_FILE = os.path.join(ROOT, "seeds", "relay_leads.json")
 SEEDS = [
@@ -161,6 +162,24 @@ def add_evidence(conn, *, reference, lga="Wyndham", evidence_class="FACT",
          now, evidence_class, 1.0 if evidence_class == "FACT" else 0.9, lga,
          f"Test fixture — {reference}", status, Jsonb({"suburbs": [suburb]}), origin),
     ).fetchone()[0]
+
+
+def approved_match(conn, decision="APPROVED"):
+    """One approval, ready to hang an outbound artefact off."""
+    from crown import approval, matching, opportunity
+
+    add_evidence(conn, reference="TEST-C030wynd")
+    owner = user_id(conn, "analyst@crown.local")
+    oid = opportunity.refresh(conn, owner)[0].opportunity_id
+    matching.rank(conn, oid)
+    match_id = conn.execute(
+        "SELECT id FROM match_result WHERE NOT is_excluded "
+        "ORDER BY total_score DESC LIMIT 1").fetchone()[0]
+    approver = user_id(conn, "compliance@crown.local")
+    approval_id = approval.decide(conn, match_id, decision, "checked the pack",
+                                  approver, "COMPLIANCE")
+    conn.commit()
+    return approval_id, approver
 
 
 @pytest.fixture()

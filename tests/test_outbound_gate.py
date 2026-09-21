@@ -4,22 +4,12 @@ import psycopg
 import pytest
 
 from crown import approval, matching, opportunity, outbound
-from tests.conftest import add_evidence, csrf, sign_in, user_id
+from tests.conftest import approved_match, csrf, sign_in, user_id
+from tests.test_optout import an_identity
 
-
-def approved_match(db, decision="APPROVED"):
-    add_evidence(db, reference="TEST-C030wynd")
-    owner = user_id(db, "analyst@crown.local")
-    oid = opportunity.refresh(db, owner)[0].opportunity_id
-    matching.rank(db, oid)
-    match_id = db.execute(
-        "SELECT id FROM match_result WHERE NOT is_excluded ORDER BY total_score DESC LIMIT 1"
-    ).fetchone()[0]
-    approver = user_id(db, "compliance@crown.local")
-    approval_id = approval.decide(db, match_id, decision, "checked the pack",
-                                  approver, "COMPLIANCE")
-    db.commit()
-    return approval_id, approver
+# An OUTREACH_DRAFT is a message to a person, so since 0016 it needs somebody to
+# be addressed to. Every draft below carries one.
+TO = {"PERSON": "A. Landholder"}
 
 
 def test_no_approval_id_is_refused_before_the_database_is_asked(db):
@@ -45,14 +35,15 @@ def test_a_rejected_approval_produces_nothing(db):
     """An approval id alone is not enough: it has to say APPROVED."""
     approval_id, creator = approved_match(db, decision="REJECTED")
     with pytest.raises(outbound.ApprovalRequired, match="REJECTED"):
-        outbound.create(db, approval_id, "OUTREACH_DRAFT", {}, creator)
+        outbound.create(db, approval_id, "OUTREACH_DRAFT", {}, creator, contact=TO)
     assert db.execute("SELECT count(*) FROM outbound_artifact").fetchone()[0] == 0
 
 
 def test_an_approved_match_does_produce_an_artifact(db):
+    an_identity(db)
     approval_id, creator = approved_match(db)
     artifact_id = outbound.create(db, approval_id, "OUTREACH_DRAFT",
-                                  {"body": "draft"}, creator)
+                                  {"body": "draft"}, creator, contact=TO)
     row = db.execute(
         "SELECT approval_id, artifact_type FROM outbound_artifact WHERE id = %s",
         (artifact_id,)).fetchone()

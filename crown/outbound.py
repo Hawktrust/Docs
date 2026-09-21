@@ -14,9 +14,28 @@ ACTOR_AGENT = "crown.outbound"
 ARTIFACT_TYPES = ("EXPORT", "OUTREACH_DRAFT", "BUYER_BRIEF",
                   "RECOMMENDATION", "IC_BRIEF", "ALERT")
 
+# Artefact types that are a message written to a person who did not ask for it.
+# These carry the Spam Act's requirements: an accurate sender, and a working way
+# to stop. Everything else is internal or goes to a buyer under a mandate they
+# signed — when Crown starts emailing those, add them here rather than
+# exempting them somewhere else.
+ADDRESSED_TO_A_PERSON = ("OUTREACH_DRAFT",)
+
 
 class ApprovalRequired(Exception):
     """No usable approval id, so nothing leaves."""
+
+
+class NoWayOut(Exception):
+    """A message to a person with no named sender or no means of opting out.
+
+    Refused before it is written rather than caught in review, because a draft
+    that exists is a draft somebody can send.
+    """
+
+
+class NoSenderIdentity(Exception):
+    """Crown has no active outbound identity, so nothing can say who sent it."""
 
 
 class ConflictNotDisclosed(Exception):
@@ -139,6 +158,15 @@ def _conflicting_principals(conn, approval_id):
     ).fetchall()
 
 
+def active_identity(conn):
+    """Who Crown sends as today. One row, or nothing has been decided."""
+    return conn.execute(
+        """SELECT id, legal_entity_name, abn, postal_address, contact_email,
+                  contact_phone
+           FROM outbound_identity WHERE is_active"""
+    ).fetchone()
+
+
 def create(conn, approval_id, artifact_type: str, content: dict, created_by,
            *, contact=None, correlation_id=None) -> str:
     if approval_id is None or str(approval_id).strip() == "":
@@ -172,11 +200,34 @@ def create(conn, approval_id, artifact_type: str, content: dict, created_by,
             + "; ".join(f"{row[1]} ({row[2]})" for row in conflicts)
             + ". Record a conflict_disclosure first.")
 
+    # A message to a person needs a person to be addressed to, a sender who can
+    # be identified, and therefore a way out. The database CHECK refuses the row
+    # either way; these say which of the three is missing, because "constraint
+    # violated" is not an instruction.
+    scope = identifier = None
+    sender_identity_id = None
+    if artifact_type in ADDRESSED_TO_A_PERSON:
+        if not contact:
+            raise NoWayOut(
+                f"a {artifact_type} is a message to a person: name who it is "
+                "addressed to, so they can be given a way to stop it")
+        scope, identifier = _single_contact(contact)
+        sender = active_identity(conn)
+        if sender is None:
+            raise NoSenderIdentity(
+                "no active outbound_identity: the Spam Act requires a message "
+                "to identify who authorised it and how to reach them. Record "
+                "one before writing anything addressed to a person.")
+        sender_identity_id = sender[0]
+
     correlation_id = correlation_id or audit.new_correlation_id()
     artifact_id = conn.execute(
-        """INSERT INTO outbound_artifact (approval_id, artifact_type, content, created_by)
-           VALUES (%s,%s,%s,%s) RETURNING id""",
-        (approval_id, artifact_type, Jsonb(content), created_by),
+        """INSERT INTO outbound_artifact (approval_id, artifact_type, content,
+                   created_by, contact_scope, contact_identifier,
+                   sender_identity_id)
+           VALUES (%s,%s,%s,%s,%s,%s,%s) RETURNING id""",
+        (approval_id, artifact_type, Jsonb(content), created_by,
+         scope, identifier, sender_identity_id),
     ).fetchone()[0]
 
     audit.write(conn, correlation_id, "OUTBOUND_CREATED", "outbound_artifact",
@@ -184,3 +235,35 @@ def create(conn, approval_id, artifact_type: str, content: dict, created_by,
                 approval_id=approval_id, actor_user_id=created_by,
                 actor_agent=ACTOR_AGENT)
     return artifact_id
+
+
+def _single_contact(contact):
+    """The one recipient an addressed message is for.
+
+    `contact` is the same mapping the suppression check takes — everything known
+    about the target. A message, unlike a suppression check, goes to exactly one
+    of them, so the most specific known identity is chosen rather than guessed
+    at send time. A person is more specific than the organisation they work for,
+    which is more specific than the address, which is more specific than a
+    parcel identifier nobody reads.
+    """
+    for scope in ("PERSON", "ORGANISATION", "ADDRESS", "PARCEL"):
+        value = contact.get(scope) if hasattr(contact, "get") else None
+        if value and str(value).strip():
+            return scope, str(value).strip()
+    raise NoWayOut(
+        "the contact names nobody: a message needs a person, an organisation, "
+        "an address or a parcel to be addressed to")
+
+
+def opt_out_link(secret: str, base_url: str, artifact_id, scope: str,
+                 identifier: str) -> str:
+    """The URL that goes in the message.
+
+    Recomputed rather than stored, so re-sending a message produces the same
+    link and no table of live capabilities accumulates anywhere to be leaked.
+    """
+    from . import optout
+    token = optout.issue(secret, artifact_id=artifact_id, scope=scope,
+                         identifier=identifier)
+    return f"{base_url.rstrip('/')}/opt-out/{token}"

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Readiness — Crown AI{% endblock %}
+{% block body %}
+<h1>May Crown be turned on?</h1>
+
+{% if report.ready %}
+  <p class="ready">{{ report.summary() }}</p>
+{% else %}
+  <p class="notready">{{ report.summary() }}</p>
+{% endif %}
+
+<p class="note">Every condition Crown holds itself to before it contacts a real
+person. <strong>Blocking</strong> checks must all pass. <strong>Advisory</strong>
+checks never hold a launch — that is what advisory means — but going live
+without reading them is a choice rather than an oversight.</p>
+
+<table>
+  <tr><th>Check</th><th>Severity</th><th>State</th><th>What closes it</th></tr>
+  {% for c in report.checks %}
+  <tr{% if c.passes %} class="excluded"{% endif %}>
+    <td><code>{{ c.code }}</code><div class="note">{{ c.detail }}</div></td>
+    <td>{{ c.severity }}</td>
+    <td>{% if c.passes %}pass{% elif c.blocking %}<span class="synthetic">BLOCKING</span>{% else %}
+        <span class="indeterminate">advisory</span>{% endif %}</td>
+    <td>{% if c.passes %}<span class="note">—</span>{% else %}{{ c.closes_it }}{% endif %}</td>
+  </tr>
+  {% endfor %}
+</table>
+
+<p class="note">The same answer is available to a deploy pipeline:
+<code>python scripts/readiness.py</code> prints this list and exits non-zero
+while anything blocking fails. The checks themselves are the
+<code>launch_readiness</code> view in migration 0016, written out in full so
+they can be read without running them.</p>
+
+<style>
+  .ready    { font-weight: 600; color: #1b7f3b; }
+  .notready { font-weight: 600; color: #b00020; }
+</style>
+{% endblock %}

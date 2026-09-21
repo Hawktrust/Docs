@@ -61,7 +61,7 @@ afterwards. CI runs the same three checks.
 
 | # | Criterion | Status | Where |
 |---|---|---|---|
-| 1 | Real amendment from each of 3 LGAs, full provenance | **FAIL** | no amendment ingested yet; unblocked by `tools/collector.html` without waiting on the network policy |
+| 1 | Real amendment from each of 3 LGAs, full provenance | **FAIL** | the only one outstanding. No amendment ingested; every Victorian host answers 403. Unblocked by `tools/collector.html` without waiting on the network policy |
 | 2 | Re-running ingestion produces zero duplicates | PASS | `tests/test_ingest.py` |
 | 3 | Missing provenance rejected to review queue | PASS | `tests/test_ingest.py` |
 | 4 | Opportunity linked to evidence, named human owner | PASS | `tests/test_opportunity.py` |
@@ -72,13 +72,15 @@ afterwards. CI runs the same three checks.
 | 9 | Forged role header rejected | PASS | `tests/test_authorisation.py` |
 | 10 | Audit table append-only | PASS | `tests/test_audit_append_only.py` |
 | 11 | Attribution traces to source URL and retrieval date | PASS | `tests/test_attribution_trace.py` |
-| 12 | Test suite green in CI | **NOT ATTEMPTED** | workflow defined; no run has executed |
+| 12 | Test suite green in CI | PASS | [run 35562115025](https://github.com/Hawktrust/Docs/actions/runs/35562115025) on PR #3, green |
 
-AC12 is **not** claimed. The workflow is defined and every one of its steps
-passes locally, but the pull request shows zero check runs — GitHub Actions has
-never executed it, so there is no green CI to point at. Enabling Actions on the
-repository is the missing step. Branch protection on `main` is then needed
-separately for "a failing check blocks the merge".
+AC12 passed on 2026-09-21. It had been stuck for a structural reason rather
+than a code one: `ci.yml` triggers on `pull_request` and on pushes to `main`, so
+pushing to a feature branch never fired it, and the earlier pull request had
+been closed unmerged. Opening PR #3 ran it, and it went green first attempt —
+test suite, type check and dependency audit. Branch protection on `main` is
+still needed separately for "a failing check blocks the merge", which is a
+repository setting rather than something the workflow file can assert.
 
 AC4 and AC11 pass against fixture evidence, because AC1 is blocked and there is
 no real evidence to link an opportunity to. The mechanisms are demonstrated; they
@@ -202,6 +204,60 @@ research publications only, and the tabled returns are ordinary copyright. The
 source is `PROHIBITED` — Crown may not fetch these at all, whatever basis it
 might have had for using them. The controls above stand for anything that arrives
 by another lawful route.
+
+## Going live
+
+Two questions get confused with each other. *Does it work?* is what the test
+suite answers. *May we turn it on?* is a different question, and migration 0016
+makes it one somebody can actually ask.
+
+```
+python scripts/readiness.py     # exits non-zero while anything blocking fails
+```
+
+`launch_readiness` is a view, written out as a UNION rather than hidden in a
+procedure, so every condition Crown holds itself to can be read without running
+anything. BLOCKING checks must all pass; ADVISORY ones never hold a launch,
+which is what advisory means. `/readiness` shows the same list to ADMIN and
+COMPLIANCE, and each failing row says what would close it — "0 evidence records
+with origin REAL" is a fact, "ingest one real amendment, by allowlist or by
+operator capture" is the next action, and a report without it sends the reader
+to find somebody who knows.
+
+`docs/GO-LIVE.md` is the rest: the part no query can check. A green gate means
+nothing in the data contradicts a launch. It does not mean launch.
+
+### The recipient can stop it themselves
+
+`contact_suppression` has honoured requests since 0008, and its
+`source_of_request` column has listed `OPT_OUT_LINK` the whole time. There was
+no opt-out link, and `recorded_by` was NOT NULL against `app_user` — so the only
+way a person could stop being contacted was to reach somebody at Crown and ask
+them to type it in.
+
+APP 7.3 requires a *simple* means of opting out. Section 18 of the Spam Act 2003
+requires a *functional* unsubscribe facility that works for at least 30 days.
+Both words mean the recipient does it themselves.
+
+`crown/optout.py` is the only unauthenticated route in the system that changes
+anything, and it is shaped around that:
+
+- the link carries a **signed capability, not a database key** — an HMAC over
+  (artefact, scope, identifier). It cannot be forged without the application
+  secret, re-sending a message reproduces the same link, and no table of live
+  capabilities accumulates anywhere to be leaked.
+- **GET confirms, POST acts.** Mail scanners follow links without a human ever
+  seeing them; a GET that suppressed would record opt-outs nobody asked for.
+- the anonymous caller can **add a suppression and do nothing else** — not read
+  one back, not release one, not reach another table. The insert has no
+  `RETURNING`, because an INSERT that returns rows is subject to the table's
+  SELECT policies, and opting out must not become a way to read who else has.
+- the audit row **points at the message, not the person**. Somebody asking to be
+  left alone should not have their name copied into a second table to record it.
+
+Section 17 of the same Act wants the message to say who authorised it.
+`outbound_identity` holds one active sender, versioned rather than edited, and
+an `OUTREACH_DRAFT` cannot be created without one.
 
 ## Land search
 

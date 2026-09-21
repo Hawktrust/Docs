@@ -21,7 +21,8 @@ from flask import (Flask, abort, flash, g, redirect, render_template, request,
                    session, url_for)
 
 from . import (alerts, approval, attribution, audit, auth, brief, db, land,
-               matching, opportunity, outbound, reports, signals)
+               matching, opportunity, optout, outbound, readiness, reports,
+               signals)
 
 SYNTHETIC_LABEL = "DEMO / SYNTHETIC DATA"
 ACTOR_AGENT = "crown.web"
@@ -185,6 +186,53 @@ def create_app(dsn: str | None = None) -> Flask:
             queue=reports.unresolved_review_queue(g.conn),
             weights=reports.scoring_weight_history(g.conn),
             trail=reports.audit_trail(g.conn, limit=100))
+
+    @app.get("/readiness")
+    @role_required("ADMIN", "COMPLIANCE")
+    def readiness_page():
+        """May Crown be turned on? One answer, not several half-answers."""
+        return render_template("readiness.html",
+                               report=readiness.check(g.conn))
+
+    # ------------------------------------------------------------- the way out
+    #
+    # The only unauthenticated route in the application that changes anything,
+    # and it exists because APP 7.3 and section 18 of the Spam Act both require
+    # the recipient to be able to stop a message themselves. An opt-out behind
+    # a sign-in is neither simple nor functional.
+    #
+    # GET shows a confirmation and changes nothing. Mail scanners and link
+    # previewers fetch URLs without a human ever seeing them, and a GET that
+    # suppressed would quietly record opt-outs nobody asked for — safe in
+    # direction, wrong in fact, and it would corrupt the one record that proves
+    # the mechanism works. The POST is what acts.
+    #
+    # CSRF is not checked here and must not be: there is no session to forge
+    # against, and the worst a forged request achieves is that somebody stops
+    # being contacted. _check_csrf already returns early when nobody is signed
+    # in, which is exactly this case.
+
+    @app.get("/opt-out/<token>")
+    def opt_out_confirm(token):
+        try:
+            optout.read(app.config["SECRET_KEY"], token)
+        except optout.BadToken as exc:
+            return render_template("opt_out.html", state="bad",
+                                   message=str(exc)), 400
+        # The page deliberately does not name the person or repeat the
+        # identifier back. Anyone holding the link can already read it; echoing
+        # it turns a shoulder-surf into a disclosure for no benefit.
+        return render_template("opt_out.html", state="confirm", token=token)
+
+    @app.post("/opt-out/<token>")
+    def opt_out_record(token):
+        try:
+            optout.redeem(g.conn, app.config["SECRET_KEY"], token,
+                          requested_at=datetime.now(timezone.utc))
+        except optout.BadToken as exc:
+            return render_template("opt_out.html", state="bad",
+                                   message=str(exc)), 400
+        return render_template("opt_out.html", state="done")
 
     @app.route("/login", methods=["GET", "POST"])
     def login():

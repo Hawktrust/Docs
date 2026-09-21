@@ -88,7 +88,10 @@ def test_suppressing_a_person_is_not_defeated_by_addressing_the_company(db):
 
 
 def test_an_unsuppressed_target_still_goes_out(db):
+    from tests.test_optout import an_identity
+
     _, approval_id = approved(db)
+    an_identity(db)                       # 0016: a message names who sent it
     creator = user_id(db, "compliance@crown.local")
     artifact_id = outbound.create(db, approval_id, "OUTREACH_DRAFT", {"body": "hi"},
                                   creator, contact={"PERSON": "Nobody Suppressed"})
