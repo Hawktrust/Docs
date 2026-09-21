@@ -47,6 +47,14 @@ def create_app(dsn: str | None = None) -> Flask:
     app.config["SECRET_KEY"] = secret
     app.config["DSN"] = dsn or os.environ.get("CROWN_DSN")
 
+    # Opt-out links have to keep working for thirty days after a message; the
+    # session cookie wants rotating far more often than that. Signing both with
+    # one secret made a routine rotation into a Spam Act breach, so they are
+    # separate, and the old secrets stay accepted for verification while links
+    # posted under them are still alive. See crown/optout.py.
+    signing, previous = optout.secrets_from_environment()
+    app.config["OPT_OUT_SECRETS"] = [signing] + previous
+
     app.config.update(
         # The cookie carries the identity every authorisation decision is made
         # from, so it does not go to script, does not ride cross-site requests,
@@ -187,6 +195,21 @@ def create_app(dsn: str | None = None) -> Flask:
             weights=reports.scoring_weight_history(g.conn),
             trail=reports.audit_trail(g.conn, limit=100))
 
+    @app.get("/health")
+    def health():
+        """Is the process up and can it reach the database?
+
+        Unauthenticated, because whatever checks it — a load balancer, a
+        monitor, a deploy script — has no session. It therefore says nothing a
+        stranger should not know: no version, no hostname, no counts, no
+        configuration. Up or not up.
+        """
+        try:
+            g.conn.execute("SELECT 1").fetchone()
+        except psycopg.Error:
+            return {"status": "unhealthy"}, 503
+        return {"status": "ok"}, 200
+
     @app.get("/readiness")
     @role_required("ADMIN", "COMPLIANCE")
     def readiness_page():
@@ -215,7 +238,7 @@ def create_app(dsn: str | None = None) -> Flask:
     @app.get("/opt-out/<token>")
     def opt_out_confirm(token):
         try:
-            optout.read(app.config["SECRET_KEY"], token)
+            optout.read(app.config["OPT_OUT_SECRETS"], token)
         except optout.BadToken as exc:
             return render_template("opt_out.html", state="bad",
                                    message=str(exc)), 400
@@ -227,7 +250,7 @@ def create_app(dsn: str | None = None) -> Flask:
     @app.post("/opt-out/<token>")
     def opt_out_record(token):
         try:
-            optout.redeem(g.conn, app.config["SECRET_KEY"], token,
+            optout.redeem(g.conn, app.config["OPT_OUT_SECRETS"], token,
                           requested_at=datetime.now(timezone.utc))
         except optout.BadToken as exc:
             return render_template("opt_out.html", state="bad",

@@ -55,16 +55,33 @@ authorised it and how to contact them, and stay accurate for 30 days.
 contact email — and it is versioned rather than edited, so an artefact keeps the
 identity it was sent under. An `OUTREACH_DRAFT` cannot be created without one.
 
+### The opt-out link survives a secret rotation
+
+`CROWN_SECRET` signed session cookies *and* opt-out tokens, so rotating it —
+routine, and something you want to do often — would silently have broken every
+live unsubscribe link and breached the 30-day requirement in s18. They are
+separate now:
+
+| Variable | Signs | Rotate |
+|---|---|---|
+| `CROWN_SECRET` | session cookies | as often as you like |
+| `CROWN_OPTOUT_SECRET` | opt-out links | keeping the old value below for 30+ days |
+| `CROWN_OPTOUT_SECRET_PREVIOUS` | nothing — verification only | drop entries once 30 days have passed |
+
+It falls back to `CROWN_SECRET` when unset so nothing breaks on upgrade, and the
+readiness gate reports that fallback as blocking rather than letting it pass.
+
 ### Nothing addressed to a person exists without a way out
 
 The `outreach_identifies_sender_and_recipient` CHECK refuses the row. The
 application refuses it earlier, with a message that says which of the three
 things is missing, because "constraint violated" is not an instruction.
 
-Only `OUTREACH_DRAFT` is covered today. **A `BUYER_BRIEF` sent by email is also
-a commercial electronic message**, and when Crown starts emailing those rather
-than handing them over, add the type to `ADDRESSED_TO_A_PERSON` in
-`crown/outbound.py` and to the CHECK — rather than exempting it somewhere.
+Covers `OUTREACH_DRAFT` and, since 0018, `BUYER_BRIEF`. A mandate supplies the
+consent a cold approach lacks, but consent is one of three requirements — ss17
+and 18 want sender identification and a way to stop regardless. A brief handed
+over in a meeting needs neither, and the schema cannot tell that apart from one
+that was emailed, so it requires them of both.
 
 ---
 
@@ -97,7 +114,9 @@ Crown collects from public registers rather than from the person, which does not
 remove the obligation — it makes it awkward, which is not the same thing. The
 usual answer is a notice on the first contact plus a standing privacy page.
 
-Neither exists.
+**Drafted, not in use:** `docs/compliance/COLLECTION-NOTICE.draft.md`, in both
+forms — the short one for a first message, and the standing one for the privacy
+page.
 
 ### A privacy policy
 
@@ -105,7 +124,10 @@ Neither exists.
 charge, covering what is collected, how it is held, how to access and correct
 it, and how to complain. It must be published before collection begins.
 
-Does not exist.
+**Drafted, not in force:** `docs/compliance/PRIVACY-POLICY.draft.md`. Written
+from what the system actually does rather than from a template, with every
+decision Crown must make marked `[DECIDE]`. It needs those filled and a
+lawyer's review before it is published.
 
 ### A data breach response plan
 
@@ -113,7 +135,12 @@ The **Notifiable Data Breaches** scheme requires assessing a suspected breach
 within 30 days and notifying the OAIC and affected individuals where serious
 harm is likely. A plan written during an incident is not a plan.
 
-Does not exist.
+**Drafted, never exercised:** `docs/compliance/BREACH-RESPONSE.draft.md`. It
+needs names against three roles and one thirty-minute tabletop. It also names
+the judgement worth making calmly in advance: most of what Crown holds about
+people came from public registers, but the *combination* it assembles is not,
+and deciding during an incident how to treat that means deciding it under
+pressure to find the smaller number.
 
 ### Telephone contact, if that is ever the channel
 
@@ -132,12 +159,12 @@ that runs and a system somebody can run.
 | | State | What it needs |
 |---|---|---|
 | **Deployment** | none | A WSGI server (the Flask dev server is not one), `CROWN_SECRET` and `CROWN_DSN` from a secret store, TLS terminated in front. `CROWN_INSECURE_COOKIES` must be unset in production — it exists for the test client and turns off `Secure` on the session cookie. |
-| **Scheduler** | none | `alerts.run()` and the staleness check need to be invoked by something. Nothing does. A daily cron entry is enough to start; the deduplication already makes re-runs safe. |
+| **Scheduler** | **built** | `scripts/run_alerts.py`, safe to re-run and quiet on a quiet day. Still needs a cron entry: `15 7 * * * cd /srv/crown && CROWN_DSN=... python scripts/run_alerts.py --quiet` |
 | **Backups** | none | Every table that matters is append-only or audited, which protects against tampering and not against loss. Point-in-time recovery, tested by restoring — an untested backup is a belief. |
 | **Migrations** | forward only | Sixteen numbered migrations, no down-steps, applied by hand. Fine so far. The first migration applied to a database holding real records is the one where that stops being fine. |
-| **Observability** | none | No structured logging, no error reporting, no health endpoint. The audit trail records decisions, not failures — a crashed alert run leaves no trace anywhere. |
+| **Observability** | partial | `/health` answers without a session and says only up or not up. Still no structured logging and no error reporting; the audit trail records decisions, not failures, so a crashed alert run leaves only the stderr line `run_alerts.py` prints. |
 | **Retention** | none | Nothing expires. Evidence has a shelf life and says when it is stale; personal information has no retention rule at all, and APP 11.2 requires destroying or de-identifying it when it is no longer needed. |
-| **Secret rotation** | none | `CROWN_SECRET` signs session cookies *and* opt-out tokens. Rotating it invalidates every live opt-out link, which would breach the 30-day functionality requirement in s18. Either keep a previous-secret list for token verification, or give opt-out tokens their own secret with its own rotation schedule. **This is the one operational item with a legal edge.** |
+| **Secret rotation** | **built** | `CROWN_OPTOUT_SECRET` signs opt-out links, `CROWN_OPTOUT_SECRET_PREVIOUS` keeps retired secrets verifying, and the readiness gate blocks a launch while the fallback to `CROWN_SECRET` is still in use. |
 
 ---
 
@@ -145,13 +172,15 @@ that runs and a system somebody can run.
 
 1. **Ingest one real record.** Everything else is theory until AC1 passes, and
    it is five minutes with `tools/collector.html`.
-2. **Decide the privacy basis and write the policy and collection notice.**
+2. **Record the outbound identity.** One row: legal entity, ABN, postal address,
+   contact email. ADMIN or COMPLIANCE only, and frozen once written.
+3. **Fill the `[DECIDE]` marks in the three drafts and have them reviewed.**
    These gate the first message, not the first deployment, and they take longer
-   to get right than to write.
-3. **Give opt-out tokens their own secret.** Small change, and doing it after
-   the first message is sent is doing it too late.
-4. **Deployment, backups, scheduler.** Ordinary work, none of it surprising.
-5. **Re-read `launch_readiness`.** It will not go green on its own.
+   to get right than to write. The privacy basis is the one that matters most.
+4. **Deployment and backups.** Ordinary work, none of it surprising. Set
+   `CROWN_OPTOUT_SECRET` while you are setting the others.
+5. **Decide retention.** Nothing expires today, and APP 11.2 requires it.
+6. **Re-read `launch_readiness`.** It will not go green on its own.
 
 ---
 

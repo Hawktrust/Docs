@@ -15,6 +15,7 @@ records with origin REAL" is a fact; "ingest one real amendment, by allowlist or
 by operator capture" is the next action, and a readiness report that omits it
 makes the reader go and find somebody who knows.
 """
+import os
 from dataclasses import dataclass
 
 BLOCKING = "BLOCKING"
@@ -69,14 +70,60 @@ class Report:
         return "\n".join([self.summary(), ""] + [c.line() for c in self.checks])
 
 
-def check(conn) -> Report:
-    """Read every launch condition. Blocking failures first, so the thing that
-    stops a launch is not below the thing that does not."""
+def deployment_checks(environ=None) -> tuple:
+    """The conditions the view cannot see.
+
+    `launch_readiness` reads the database, so it can only check what the
+    database knows. These two live in the deployment, and both are the kind of
+    thing that is obvious in hindsight and invisible until then.
+    """
+    environ = os.environ if environ is None else environ
+    checks = []
+
+    # Opt-out links must work for thirty days (Spam Act s18). Session cookies
+    # want rotating far more often. While one secret signs both, rotating it
+    # breaks every live unsubscribe link — a routine operational task becomes a
+    # breach, and nothing would report it.
+    checks.append(Check(
+        code="OPT_OUT_SECRET_IS_ITS_OWN",
+        severity=BLOCKING,
+        passes=bool(environ.get("CROWN_OPTOUT_SECRET")),
+        detail=("CROWN_OPTOUT_SECRET is set"
+                if environ.get("CROWN_OPTOUT_SECRET")
+                else "opt-out links are signed with CROWN_SECRET"),
+        closes_it=("set CROWN_OPTOUT_SECRET to its own value; rotating the "
+                   "cookie secret would otherwise break every live unsubscribe "
+                   "link and breach the 30-day requirement in s18"),
+    ))
+
+    # CROWN_INSECURE_COOKIES exists so the test client, which is not https, can
+    # hold a session. In production it strips Secure from the cookie that
+    # carries every authorisation decision.
+    insecure = environ.get("CROWN_INSECURE_COOKIES") == "1"
+    checks.append(Check(
+        code="SESSION_COOKIES_ARE_SECURE",
+        severity=BLOCKING,
+        passes=not insecure,
+        detail=("CROWN_INSECURE_COOKIES is set to 1" if insecure
+                else "the session cookie carries Secure"),
+        closes_it=("unset CROWN_INSECURE_COOKIES; it exists for the test "
+                   "client and strips Secure from the cookie that carries "
+                   "every authorisation decision"),
+    ))
+    return tuple(checks)
+
+
+def check(conn, environ=None) -> Report:
+    """Read every launch condition — the database's and the deployment's.
+
+    Blocking failures first, so the thing that stops a launch is not below the
+    thing that does not.
+    """
     rows = conn.execute(
         """SELECT check_code, severity, passes, detail, closes_it
            FROM launch_readiness"""
     ).fetchall()
 
-    checks = tuple(Check(*row) for row in rows)
+    checks = tuple(Check(*row) for row in rows) + deployment_checks(environ)
     return Report(checks=tuple(sorted(
         checks, key=lambda c: (c.passes, not c.blocking, c.code))))

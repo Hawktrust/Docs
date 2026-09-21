@@ -19,7 +19,13 @@ ARTIFACT_TYPES = ("EXPORT", "OUTREACH_DRAFT", "BUYER_BRIEF",
 # to stop. Everything else is internal or goes to a buyer under a mandate they
 # signed — when Crown starts emailing those, add them here rather than
 # exempting them somewhere else.
-ADDRESSED_TO_A_PERSON = ("OUTREACH_DRAFT",)
+# A BUYER_BRIEF goes to a buyer under a mandate they signed, which supplies the
+# consent an OUTREACH_DRAFT lacks — but consent is only one of the Spam Act's
+# three requirements. A brief sent by email is still a commercial electronic
+# message, and sections 17 and 18 want it to identify its sender and carry a way
+# to stop. Handing one over in a meeting needs neither; the schema cannot tell
+# the difference, so it requires them of both.
+ADDRESSED_TO_A_PERSON = ("OUTREACH_DRAFT", "BUYER_BRIEF")
 
 
 class ApprovalRequired(Exception):

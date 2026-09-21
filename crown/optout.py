@@ -35,6 +35,9 @@ import json
 from dataclasses import dataclass
 from hashlib import sha256
 
+import os
+from typing import Sequence
+
 from . import audit, suppression
 
 ACTOR_AGENT = "crown.optout"
@@ -42,6 +45,38 @@ ACTOR_AGENT = "crown.optout"
 # Distinguishes these signatures from any other use of the same secret, so a
 # token minted here can never be replayed as a session cookie or the reverse.
 PURPOSE = b"crown-opt-out-v1"
+
+
+def secrets_from_environment() -> tuple[str, list[str]]:
+    """The signing secret, and every secret still accepted for verification.
+
+    Opt-out links must keep working for at least thirty days after a message
+    (Spam Act s18). Session cookies want rotating far more often than that, and
+    for a while both were signed with CROWN_SECRET — so rotating it would have
+    silently broken every live unsubscribe link and turned a routine operational
+    task into a breach.
+
+    They are separate now. CROWN_OPTOUT_SECRET signs new tokens.
+    CROWN_OPTOUT_SECRET_PREVIOUS is a comma-separated list of retired secrets
+    that still verify, which is what makes rotation survivable: rotate, keep the
+    old one here for at least thirty days, then drop it.
+
+    It falls back to CROWN_SECRET when unset so that nothing breaks on upgrade,
+    and the readiness gate reports that fallback rather than letting it pass
+    unnoticed.
+    """
+    signing = os.environ.get("CROWN_OPTOUT_SECRET") or os.environ.get("CROWN_SECRET", "")
+    previous = [s.strip() for s in
+                os.environ.get("CROWN_OPTOUT_SECRET_PREVIOUS", "").split(",")
+                if s.strip()]
+    return signing, previous
+
+
+def _accepted(secret) -> list[str]:
+    """One secret or several; signing secret first."""
+    if isinstance(secret, str):
+        return [secret]
+    return [s for s in secret if s]
 
 
 class BadToken(Exception):
@@ -81,8 +116,13 @@ def issue(secret: str, *, artifact_id, scope: str, identifier: str) -> str:
     return f"{_b64(payload)}.{_b64(_signature(secret, payload))}"
 
 
-def read(secret: str, token: str) -> OptOut:
-    """Verify a token and say who it is for. Raises rather than guessing."""
+def read(secret: "str | Sequence[str]", token: str) -> OptOut:
+    """Verify a token and say who it is for. Raises rather than guessing.
+
+    `secret` may be one secret or several. Several is how rotation works: a
+    link posted a month ago was signed with a secret that is no longer the
+    signing one, and it still has to work.
+    """
     try:
         encoded, signature = str(token).split(".", 1)
         payload = _unb64(encoded)
@@ -90,7 +130,11 @@ def read(secret: str, token: str) -> OptOut:
     except (ValueError, TypeError, binascii.Error) as exc:
         raise BadToken("this opt-out link is not readable") from exc
 
-    if not hmac.compare_digest(presented, _signature(secret, payload)):
+    # Every candidate is checked, and each comparison is constant-time. There is
+    # no early exit on a match, so the number of secrets tried does not leak
+    # through timing which one verified.
+    if not any(hmac.compare_digest(presented, _signature(candidate, payload))
+               for candidate in _accepted(secret)):
         raise BadToken("this opt-out link has been altered or is not ours")
 
     try:
@@ -101,7 +145,7 @@ def read(secret: str, token: str) -> OptOut:
         raise BadToken("this opt-out link is not readable") from exc
 
 
-def redeem(conn, secret: str, token: str, *, requested_at,
+def redeem(conn, secret: "str | Sequence[str]", token: str, *, requested_at,
            correlation_id=None) -> OptOut:
     """Record the suppression. Safe to call twice; the second is a no-op.
 
