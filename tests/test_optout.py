@@ -288,3 +288,65 @@ def test_the_link_is_rebuilt_rather_than_stored(db):
            WHERE table_name = 'outbound_artifact'
              AND column_name LIKE '%token%'""").fetchone()[0]
     assert stored == 0, "the token is derived, not kept"
+
+
+# ------------------------------------------------- who may set the sender (0017)
+
+def test_the_sender_identity_is_row_secured(db):
+    """0016 added the table with no policy at all — the third time a new table
+    has arrived unguarded in this project. 0017 closes it, and
+    test_review_0013.py is what caught it."""
+    secured, forced = db.execute(
+        """SELECT relrowsecurity, relforcerowsecurity FROM pg_class
+           WHERE relname = 'outbound_identity'""").fetchone()
+    assert secured and forced
+
+
+def test_only_compliance_decides_who_crown_sends_as(app_db, db):
+    """Reading the sender is ordinary — anybody drafting a message needs it.
+    Deciding it is the claim the Spam Act holds Crown to."""
+    from crown import db as crowndb
+
+    author = user_id(db, "hawk@crown.local")
+    db.commit()
+
+    crowndb.set_identity(app_db, str(author), "AGENT")
+    with pytest.raises(psycopg.errors.InsufficientPrivilege):
+        app_db.execute(
+            """INSERT INTO outbound_identity
+                   (legal_entity_name, postal_address, contact_email, created_by)
+               VALUES ('Not Crown', '1 Somewhere', 'x@y.local', %s)""", (author,))
+    app_db.rollback()
+
+    crowndb.set_identity(app_db, str(author), "COMPLIANCE")
+    app_db.execute(
+        """INSERT INTO outbound_identity
+               (legal_entity_name, postal_address, contact_email, created_by)
+           VALUES ('Crown Capital & Development Pty Ltd', '1 Example Street',
+                   'contact@crown.local', %s)""", (author,))
+    app_db.commit()
+
+
+def test_an_identity_is_superseded_never_edited(db):
+    """An artefact records which identity it went out under. If the address on
+    that row can be changed afterwards, every message already sent starts
+    misrepresenting its sender, silently and retrospectively."""
+    identity_id = an_identity(db)
+
+    with pytest.raises(psycopg.errors.RaiseException,
+                       match="superseded, not edited"):
+        db.execute(
+            "UPDATE outbound_identity SET postal_address = '2 Elsewhere' "
+            "WHERE id = %s", (identity_id,))
+    db.rollback()
+
+
+def test_deactivating_one_is_allowed_because_that_is_the_versioning(db):
+    identity_id = an_identity(db)
+    db.execute(
+        """UPDATE outbound_identity
+           SET is_active = false, superseded_at = now() WHERE id = %s""",
+        (identity_id,))
+
+    assert db.execute(
+        "SELECT count(*) FROM outbound_identity WHERE is_active").fetchone()[0] == 0
