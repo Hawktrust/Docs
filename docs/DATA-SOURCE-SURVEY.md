@@ -117,10 +117,65 @@ late. The crawler may not fetch these documents at all, whatever basis Crown
 might have had for using them. The elected-official controls in migrations 0011
 and 0013 remain in force for anything that arrives by another lawful route.
 
-**Councils should be seven entries, not one.** Register Wyndham, Melton, Hume,
-Whittlesea, Casey, Greater Geelong and Greater Shepparton separately, read seven
-sets of terms, and prefer the RSS or email alert where a council offers one —
-that is the publisher handing over the channel.
+**Councils should be seven entries, not one.** Done in migration 0015 — and
+reading those seven sets of terms produced the sharpest finding of the exercise,
+below.
+
+## The councils, read — 2026-09-21
+
+Splitting the row turned up one thing worse than the plan assumed and one better.
+
+**Worse: a council website is not open data.** Every council whose own terms page
+could be found reserves all rights in its content. Greater Geelong's is explicit
+— content may be used *solely for personal or internal business purposes*, may
+not be made available to third parties, and no part may be reproduced or used
+*for any commercial purpose whatsoever*. Crown is a commercial user producing
+artefacts for third-party buyers, so that is a prohibition on its face. Treat it
+as the likely shape of the other six until each is read. Pointing a crawler at
+seven council sites was never the Lane B win the plan treated it as.
+
+**Better: the state already aggregates the same data.** Every Victorian
+responsible authority reports standardised planning permit application data to
+the **Planning Permit Activity Reporting System** monthly, against a published
+data dictionary, and DTP publishes reports from it. DTP's terms are CC BY 4.0 —
+already read, already cleared. One publisher, statewide coverage, no scraping.
+What it does not give is register-level detail: the published reports are
+activity statistics, so whether an extract naming applicants and addresses is
+obtainable is a question to put to DTP. It is one question with one answer,
+rather than seventy-nine.
+
+**And one council did the work already.** City of Casey publishes its planning
+permit application register as open data with a documented API — category,
+number, description, suburb, postcode, ward, status, decision stage and dates —
+and DataVic's default licence under the DataVic Access Policy is CC BY 4.0.
+Recorded as `PUBLISHER_FEED`: an API is the publisher handing over the channel,
+which answers the scraping question by removing it.
+
+| Row | Position |
+|---|---|
+| `VIC_PPARS` | PERMITTED — DTP, CC BY 4.0, covers all seven LGAs |
+| `COUNCIL_CASEY` | PUBLISHER_FEED — open-data API on DataVic |
+| `COUNCIL_GREATER_GEELONG` | PROHIBITED — no commercial purpose, nothing to third parties |
+| `COUNCIL_WYNDHAM`, `COUNCIL_MELTON`, `COUNCIL_HUME` | UNKNOWN — relay returned a third-party engagement platform's terms, not the council's |
+| `COUNCIL_WHITTLESEA` | UNKNOWN — no terms page located; resolve this one first, it is the land search's LGA |
+| `COUNCIL_GREATER_SHEPPARTON` | UNKNOWN — disclaimer retrieved, copyright page not |
+
+None of the nine is ingestible. Splitting a source does not open it.
+
+**How all of this was read, and why that is written on every row.** By search
+relay. Every host named above answers 403 at the egress gateway, re-tested
+2026-09-21, so nothing here was read directly — and the relay failed visibly
+while doing it: for three of the seven councils it returned the terms of a
+third-party community-engagement platform (The Loop, Melton Conversations,
+Participate Hume) rather than the council's own site. Those three are left
+UNKNOWN rather than given a position taken from the wrong document.
+
+Migration 0015 also backfills that disclosure onto the positions 0009 and 0014
+recorded, which said *who* looked but not *how*. Every row in the register that
+holds a position now names the relay, and a test enforces it. A register where
+some rows disclose their basis and others stay silent is worse than one where
+none do, because the silence reads as a stronger reading rather than an older
+one.
 
 ## Recommendation
 

@@ -28,7 +28,7 @@ VALUES
      'Parcel and property polygons, SPI, parcel area, Crown vs freehold, easements. '
      'Contains NO owner information — the cadastre and the Titles Register are separate systems.',
      false,
-     'PERMITTED', 'https://www.land.vic.gov.au/maps-and-spatial/spatial-data/how-to-access-spatial-data/licensing', 'Crown AI review 2026-09-20', now()),
+     'PERMITTED', 'https://www.land.vic.gov.au/maps-and-spatial/spatial-data/how-to-access-spatial-data/licensing', 'Crown AI review 2026-09-20 (search relay; not verified by direct fetch — egress blocked)', now()),
 
     ('VICMAP_PLANNING',
      'Vicmap Planning (zones and overlays)',
@@ -39,7 +39,7 @@ VALUES
      false,
      'Zones and overlays for all 79 LGAs, Urban Growth Boundary and Growth Area. Updated weekly.',
      false,
-     'PERMITTED', 'https://www.land.vic.gov.au/maps-and-spatial/spatial-data/how-to-access-spatial-data/licensing', 'Crown AI review 2026-09-20', now()),
+     'PERMITTED', 'https://www.land.vic.gov.au/maps-and-spatial/spatial-data/how-to-access-spatial-data/licensing', 'Crown AI review 2026-09-20 (search relay; not verified by direct fetch — egress blocked)', now()),
 
     ('VPA_PSP',
      'Victorian Planning Authority precinct structure plans',
@@ -50,7 +50,7 @@ VALUES
      false,
      'Greenfield PSP boundaries and approved PSP land use.',
      false,
-     'PERMITTED', 'https://vpa.vic.gov.au/strategy-guidelines/open-data/', 'Crown AI review 2026-09-20', now()),
+     'PERMITTED', 'https://vpa.vic.gov.au/strategy-guidelines/open-data/', 'Crown AI review 2026-09-20 (search relay; not verified by direct fetch — egress blocked)', now()),
 
     ('VG_PROPERTY_SALES',
      'Valuer General property sales',

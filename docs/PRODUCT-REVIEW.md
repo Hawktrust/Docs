@@ -83,7 +83,13 @@ The earlier signals are public, free, and nobody listed them:
 
 1. **Planning permit applications** — council registers are public. A developer
    lodging on a site is intent, months before or around settlement, and names the
-   applicant.
+   applicant. *Read 2026-09-21 — take these from the state, not from councils.*
+   Public to read is not licensed to reuse: Greater Geelong's terms allow
+   personal or internal business use only and forbid any commercial purpose, and
+   the other councils reserve their content the same way. The state's Planning
+   Permit Activity Reporting System collects this from every responsible
+   authority monthly under DTP's CC BY 4.0 terms. One publisher instead of
+   seventy-nine, and no scraping. Migration 0015 has all nine rows.
 2. **Council meeting agendas and minutes** — published, name applicants and
    objectors, and record officer recommendations before decisions.
 3. **Panels Victoria hearings and submissions** — name the parties to an

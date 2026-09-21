@@ -37,6 +37,7 @@ MIGRATIONS = [
     os.path.join(ROOT, "migrations", "0012_watchlists_and_alerts.sql"),
     os.path.join(ROOT, "migrations", "0013_close_the_base_tables.sql"),
     os.path.join(ROOT, "migrations", "0014_terms_read.sql"),
+    os.path.join(ROOT, "migrations", "0015_councils_and_signature.sql"),
 ]
 LEADS_FILE = os.path.join(ROOT, "seeds", "relay_leads.json")
 SEEDS = [
