@@ -7,6 +7,7 @@ import psycopg
 import pytest
 
 from crown import approval, matching, opportunity, outbound, reports
+from tests.test_optout import an_identity
 from tests.conftest import (SEEDED_MANDATE_COUNT, add_evidence, csrf, sign_in,
                             user_id)
 
@@ -211,7 +212,9 @@ def test_an_outbound_artifact_carries_the_chain_that_justifies_it(db):
                                   approver, "COMPLIANCE")
 
     content = outbound.build_content(db, approval_id, note="for the buyer")
-    outbound.create(db, approval_id, "BUYER_BRIEF", content, approver)
+    an_identity(db)                       # 0018: a brief names who sent it
+    outbound.create(db, approval_id, "BUYER_BRIEF", content, approver,
+                    contact={"ORGANISATION": "A Buyer Pty Ltd"})
 
     stored = db.execute(
         "SELECT content FROM outbound_artifact").fetchone()[0]
