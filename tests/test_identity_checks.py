@@ -199,7 +199,7 @@ def test_the_active_identity_carries_the_current_address(db):
     email = db.execute(
         "SELECT contact_email FROM outbound_identity WHERE is_active"
     ).fetchone()[0]
-    assert email == "inder@crownrea.com.au"
+    assert email == "info@crownrea.com.au"
 
 
 def test_the_retired_identity_keeps_the_address_it_sent_under(db):
@@ -212,6 +212,7 @@ def test_the_retired_identity_keeps_the_address_it_sent_under(db):
         """SELECT contact_email FROM outbound_identity
            WHERE NOT is_active AND superseded_at IS NOT NULL""").fetchall()
     assert ("inder@crownrealestateagents.com.au",) in rows
+    assert ("inder@crownrea.com.au",) in rows
 
 
 def test_only_one_of_them_is_active(db):
@@ -271,6 +272,67 @@ def test_the_old_address_is_gone_from_the_accounts(db):
 def test_the_new_identity_carries_everything_else_unchanged(db):
     """Only the email changed. An entity name or ABN that drifted during a
     supersede would be a different company sending the messages."""
+    entity, abn, address = db.execute(
+        """SELECT legal_entity_name, abn, postal_address
+           FROM outbound_identity WHERE is_active""").fetchone()
+    assert entity == "Crown Real Estate Agents Pty Ltd"
+    assert abn == "86 690 344 597"
+    assert address == "208/2 Infinity Drive, Truganina VIC 3029"
+
+
+# ------------------------------- the published inbox is not the login
+
+def test_the_login_and_the_published_address_are_different(db):
+    """0019 set both from the one address Crown gave; they were never the same
+    kind of thing. The login identifies a human and never leaves the system.
+    The published address goes on every message to a stranger and has to keep
+    working when that human is on leave."""
+    login, = db.execute(
+        "SELECT email FROM app_user WHERE role = 'ADMIN'").fetchone()
+    published, = db.execute(
+        "SELECT contact_email FROM outbound_identity WHERE is_active").fetchone()
+
+    assert login == "inder@crownrea.com.au"
+    assert published == "info@crownrea.com.au"
+    assert login != published
+
+
+def test_the_login_is_not_an_outbound_identity_at_all(db):
+    """A personal address that reached an active outbound identity would be on
+    every cold approach Crown sends. It may appear in the retired rows, which
+    are history, but never in the one that messages carry."""
+    active, = db.execute(
+        "SELECT contact_email FROM outbound_identity WHERE is_active").fetchone()
+    logins = {r[0] for r in db.execute("SELECT email FROM app_user").fetchall()}
+    assert active not in logins
+
+
+def test_superseding_twice_leaves_one_active_and_keeps_both_retired(db):
+    """0021 and 0022 both superseded. The chain is the record of what each
+    message could have said, so neither retired row may be collapsed away."""
+    rows = db.execute(
+        """SELECT contact_email, is_active FROM outbound_identity
+           ORDER BY created_at""").fetchall()
+    assert [r[0] for r in rows] == ["inder@crownrealestateagents.com.au",
+                                    "inder@crownrea.com.au",
+                                    "info@crownrea.com.au"]
+    assert [r[1] for r in rows] == [False, False, True]
+
+
+def test_the_split_is_in_the_audit_trail(db):
+    """Somebody asking why the address on a message is not the address of the
+    person who authorised it should find the answer without asking a person."""
+    state = db.execute(
+        """SELECT new_state FROM audit_event
+           WHERE actor_agent = 'migrations.0022'
+             AND action = 'OUTBOUND_IDENTITY_SUPERSEDED'""").fetchone()[0]
+    assert state["contact_email"] == "info@crownrea.com.au"
+    assert state["previously"] == "inder@crownrea.com.au"
+    assert "login" in state["basis"]
+
+
+def test_the_entity_survived_a_second_supersede(db):
+    """Two supersedes are two chances for the company to quietly change."""
     entity, abn, address = db.execute(
         """SELECT legal_entity_name, abn, postal_address
            FROM outbound_identity WHERE is_active""").fetchone()

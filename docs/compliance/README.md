@@ -13,7 +13,7 @@ settle, because they are choices about how Crown intends to operate.
 
 There were thirty-one. Migration 0019 recorded who Crown is, and 0021 changed
 the contact address — Crown Real Estate Agents Pty Ltd, ABN 86 690 344 597,
-208/2 Infinity Drive, Truganina VIC 3029, inder@crownrea.com.au. Six marks were
+208/2 Infinity Drive, Truganina VIC 3029, info@crownrea.com.au. Six marks were
 only waiting on that, and are now filled from it: who Crown is, in the policy
 and in the notice, and where a person writes to stop, to correct, or to
 complain.

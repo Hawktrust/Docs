@@ -202,27 +202,43 @@ that runs and a system somebody can run.
 
 1. **Ingest one real record.** Everything else is theory until AC1 passes, and
    it is five minutes with `tools/collector.html`.
-2. ~~**Record the outbound identity.**~~ **Done** — migration 0019 wrote it
-   and 0021 superseded it when the contact address changed. The active row is
-   Crown Real Estate Agents Pty Ltd, ABN 86 690 344 597, 208/2 Infinity Drive,
-   Truganina VIC 3029, inder@crownrea.com.au. The retired row keeps
-   inder@crownrealestateagents.com.au, because that is what the messages sent
-   under it actually said — frozen content is the point, so a correction is a
-   new row and never an edit. **Confirm the ABN on ABN Lookup before the first
-   message** — the checksum proves the number is well formed, not that it
-   belongs to this entity, and a well formed wrong ABN is a false sender
-   identification under s17.
-3. **Set a password on the real account.** `python scripts/set_password.py
-   inder@crownrea.com.au`. 0019 created the account with no password, which
-   is what 0006 intends and what `EVERY_ACCOUNT_HAS_A_PASSWORD` and
-   `SOMEBODY_CAN_ANSWER_A_PERSON` are both still failing on.
+2. ~~**Record the outbound identity.**~~ **Done.** The active row is Crown Real
+   Estate Agents Pty Ltd, ABN 86 690 344 597, 208/2 Infinity Drive, Truganina
+   VIC 3029, **info@crownrea.com.au**. Three rows exist: 0019 wrote the first,
+   0021 moved the address to the new domain, 0022 separated the published
+   contact point from the login. Each retired row keeps the address it sent
+   under, because 0017 freezes content — a correction is a new row and never an
+   edit. **Confirm the ABN on ABN Lookup before the first message** — the
+   checksum proves the number is well formed, not that it belongs to this
+   entity, and a well formed wrong ABN is a false sender identification under
+   s17.
 
-   **Keep the old mailbox receiving.** s17 wants the sender's contact details
-   accurate for 30 days after a message is sent, and s18 gives an unsubscribe
-   facility at least that long. Any message that went out naming
-   inder@crownrealestateagents.com.au is owed a working address for 30 days
-   after it was sent. Nothing has been sent yet, so today this costs nothing —
-   it becomes load-bearing the moment it does.
+   **Two addresses, two jobs.** `info@crownrea.com.au` is published: it goes on
+   every message, in the privacy policy and in the collection notice, and it
+   receives opt-outs, APP 12 and 13 requests and complaints.
+   `inder@crownrea.com.au` is a login and appears nowhere outside the system.
+   Keeping a personal address off every cold approach is the smaller reason;
+   the larger one is that a published contact point has to keep working when
+   the person behind it is on leave.
+3. **Set a password on the login.** `python scripts/set_password.py
+   inder@crownrea.com.au` — the login, not the published inbox. 0019 created
+   the account with no password, which is what 0006 intends and what
+   `EVERY_ACCOUNT_HAS_A_PASSWORD` and `SOMEBODY_CAN_ANSWER_A_PERSON` are both
+   still failing on.
+
+   **Make sure somebody reads info@.** The gate checks the address is shaped
+   like one; nothing can check that a human opens it. A published address
+   nobody reads satisfies s17's letter and defeats APP 1.4 entirely.
+
+   **Keep every retired mailbox receiving.** s17 wants the sender's contact
+   details accurate for 30 days after a message is sent, and s18 gives an
+   unsubscribe facility at least that long. Two addresses have now been retired
+   — inder@crownrealestateagents.com.au and inder@crownrea.com.au — and any
+   message that went out naming one is owed a working address for 30 days after
+   it was sent. Nothing has been sent yet, so today this costs nothing. The
+   rule to carry forward: **retire an address in the schema, keep the mailbox
+   alive for 30 days past the last message that named it.** Those are two
+   different dates and only the first one is in the database.
 4. **Fill the `[DECIDE]` marks in the three drafts and have them reviewed.**
    **Twenty-eight left** — fourteen in the privacy policy, ten in the breach
    plan, four in the collection notice — of thirty-one. Migration 0019 filled

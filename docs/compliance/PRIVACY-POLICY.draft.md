@@ -87,9 +87,8 @@ Every message Crown sends carries a link that removes you, immediately, without
 an account and without contacting anybody. Using it is the fastest route and it
 is recorded so that it is not undone by accident.
 
-You can also reply to any message, or write to
-inder@crownrea.com.au, or to 208/2 Infinity Drive, Truganina VIC
-3029.
+You can also reply to any message, or write to info@crownrea.com.au, or to
+208/2 Infinity Drive, Truganina VIC 3029.
 
 A request to stop is honoured against the person, the organisation, the address
 and the parcel — whichever we were given — so being reached under a different
@@ -98,7 +97,7 @@ detail does not defeat it.
 ## 6. Access and correction
 
 You may ask what personal information Crown holds about you, and ask for it to
-be corrected. APP 12 and APP 13. Write to inder@crownrea.com.au.
+be corrected. APP 12 and APP 13. Write to info@crownrea.com.au.
 
 `[DECIDE]` The response time Crown commits to. 30 days is the usual
 undertaking, and a commitment made here is one a complainant can hold Crown
@@ -131,19 +130,27 @@ deployment, which is not yet decided.
 
 ## 9. Complaints
 
-Complaints go to inder@crownrea.com.au. If you are not satisfied
-with how Crown handles one, you may escalate to the Office of the Australian
-Information Commissioner.
+Complaints go to info@crownrea.com.au. If you are not satisfied with how
+Crown handles one, you may escalate to the Office of the Australian Information
+Commissioner.
+
+One inbox, deliberately, and not the one anybody signs in with. Migration 0022
+separated the published contact point from the login: an address printed on a
+cold approach has to keep working when the person behind it is away, and an
+address that names one human does not. Whether a second inbox is worth opening
+depends on somebody different reading it, which at Crown's size is not yet
+true.
 
 The system requires at least one active ADMIN or COMPLIANCE account precisely
 so that somebody exists to answer; the readiness gate blocks a launch without
-one. That account exists as of migration 0019 and has no password set, so
+one. That account exists and has no password set, so
 `SOMEBODY_CAN_ANSWER_A_PERSON` is still failing — it is not answerable until
 somebody can actually sign in.
 
-`[DECIDE]` Whether complaints should go somewhere other than the sender
-address. One inbox is simpler and, at Crown's size, probably right; two is
-worth it only if somebody different reads the second.
+`[DECIDE]` Who reads info@crownrea.com.au, and how often. The gate can check
+the address is shaped like one. Nothing can check that a person opens it, and
+a published address nobody reads satisfies s17's letter while defeating the
+whole point of APP 1.4.
 
 ## 10. Changes to this policy
 
