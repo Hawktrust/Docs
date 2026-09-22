@@ -29,16 +29,32 @@ def an_identity(db, user_email="hawk@crown.local"):
     return existing[0] if existing else insert_an_identity(db, user_email)
 
 
-def insert_an_identity(db, user_email="hawk@crown.local"):
+# A constructed ABN that passes the ATO checksum, which 0020 now requires of
+# any stored value. It reads as obviously synthetic, which matters: a
+# checksum-valid ABN can belong to a real entity, so this is a fixture and
+# never goes in a document or a message.
+A_SYNTHETIC_ABN = "11 111 111 106"
+
+
+def insert_an_identity(db, user_email="hawk@crown.local", *,
+                       legal_entity_name="A Second Sender Pty Ltd",
+                       abn=A_SYNTHETIC_ABN,
+                       postal_address="1 Example Street, Werribee VIC 3030",
+                       contact_email="contact@crown.local"):
     """Always inserts. Raises if one is already active, which is what the
-    uniqueness test is for."""
+    uniqueness test is for.
+
+    Every field is overridable because 0020 checks the contents of this row
+    rather than only its existence, and a test of a malformed identity needs
+    to be able to build one.
+    """
     return db.execute(
         """INSERT INTO outbound_identity
                (legal_entity_name, abn, postal_address, contact_email, created_by)
-           VALUES ('A Second Sender Pty Ltd', '00 000 000 000',
-                   '1 Example Street, Werribee VIC 3030',
-                   'contact@crown.local', %s)
-           RETURNING id""", (user_id(db, user_email),)).fetchone()[0]
+           VALUES (%s, %s, %s, %s, %s)
+           RETURNING id""",
+        (legal_entity_name, abn, postal_address, contact_email,
+         user_id(db, user_email))).fetchone()[0]
 
 
 def no_active_identity(db):

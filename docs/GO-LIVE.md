@@ -55,6 +55,36 @@ authorised it and how to contact them, and stay accurate for 30 days.
 contact email — and it is versioned rather than edited, so an artefact keeps the
 identity it was sent under. An `OUTREACH_DRAFT` cannot be created without one.
 
+Since migration 0019 that row names Crown Real Estate Agents Pty Ltd, ABN
+86 690 344 597.
+
+### The identity is checked, not just counted
+
+0016's readiness check counted rows: one active identity and it passed. It
+would have passed on `legal_entity_name = 'TBD'` with an ABN of eleven zeroes,
+because counting is not reading. s17 does not ask whether a sender identity
+exists; it asks that the message *accurately* identify the sender and say *how
+to contact them*. Migration 0020 checks the three parts of that a machine can
+decide:
+
+- **the ABN passes the ATO checksum**, enforced by a CHECK constraint rather
+  than only reported, because 0017 freezes this table — a wrong ABN could never
+  be edited out, only superseded, leaving it permanently in the record of what
+  Crown sent as;
+- **the contact email is shaped like an address**, which is weak but separates
+  an address from a note-to-self;
+- **the register signature and the sender identity name the same legal
+  person**, because the data rights register says who stands behind a source
+  and `outbound_identity` says who authorised the message built from it. 0019
+  made those agree by hand and nothing kept them agreeing.
+
+What it deliberately does not check: whether the postal address is real,
+whether the ABN *belongs* to this entity, or whether anybody reads the inbox.
+The checksum proves eleven digits are consistent. **Only ABN Lookup proves the
+number is Crown's, and a well-formed ABN belonging to somebody else is a worse
+s17 breach than none at all** — a false identification rather than an absent
+one.
+
 ### The opt-out link survives a secret rotation
 
 `CROWN_SECRET` signed session cookies *and* opt-out tokens, so rotating it —
@@ -161,7 +191,7 @@ that runs and a system somebody can run.
 | **Deployment** | none | A WSGI server (the Flask dev server is not one), `CROWN_SECRET` and `CROWN_DSN` from a secret store, TLS terminated in front. `CROWN_INSECURE_COOKIES` must be unset in production — it exists for the test client and turns off `Secure` on the session cookie. |
 | **Scheduler** | **built** | `scripts/run_alerts.py`, safe to re-run and quiet on a quiet day. Still needs a cron entry: `15 7 * * * cd /srv/crown && CROWN_DSN=... python scripts/run_alerts.py --quiet` |
 | **Backups** | none | Every table that matters is append-only or audited, which protects against tampering and not against loss. Point-in-time recovery, tested by restoring — an untested backup is a belief. |
-| **Migrations** | forward only | Nineteen numbered migrations, no down-steps, applied by hand. Fine so far. The first migration applied to a database holding real records is the one where that stops being fine. |
+| **Migrations** | forward only | Twenty numbered migrations, no down-steps, applied by hand. Fine so far. The first migration applied to a database holding real records is the one where that stops being fine. |
 | **Observability** | partial | `/health` answers without a session and says only up or not up. Still no structured logging and no error reporting; the audit trail records decisions, not failures, so a crashed alert run leaves only the stderr line `run_alerts.py` prints. |
 | **Retention** | none | Nothing expires. Evidence has a shelf life and says when it is stale; personal information has no retention rule at all, and APP 11.2 requires destroying or de-identifying it when it is no longer needed. |
 | **Secret rotation** | **built** | `CROWN_OPTOUT_SECRET` signs opt-out links, `CROWN_OPTOUT_SECRET_PREVIOUS` keeps retired secrets verifying, and the readiness gate blocks a launch while the fallback to `CROWN_SECRET` is still in use. |
