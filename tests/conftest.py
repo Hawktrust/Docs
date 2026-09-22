@@ -75,21 +75,54 @@ def _run_sql(dsn, path):
         raise RuntimeError(f"{os.path.basename(path)} failed:\n{result.stderr}")
 
 
-@pytest.fixture()
-def database():
-    """Build a database, hand back its two DSNs, drop it afterwards."""
-    name = f"crown_test_{uuid.uuid4().hex[:10]}"
+@pytest.fixture(scope="session")
+def schema_template():
+    """Build the schema once per run, and let Postgres copy it after that.
+
+    Every test still gets its own database — they write, and a shared one would
+    make the suite order-dependent, which is the bug you find last. What
+    changed is how that database is built. It used to be twenty-six psql
+    subprocesses per test, once per migration and seed; across the suite that
+    is several thousand process spawns to produce the same bytes every time.
+
+    Now the migrations run once into a template, and CREATE DATABASE ...
+    TEMPLATE copies it at the file level. Same schema, same seeds, same
+    isolation, a fraction of the wall clock.
+
+    The template is per-run rather than left behind: a stale one would silently
+    serve yesterday's schema to today's tests, which is worse than slow.
+    """
+    name = f"crown_tpl_{uuid.uuid4().hex[:10]}"
     admin = psycopg.connect(ADMIN_DSN, autocommit=True)
     admin.execute(f'CREATE DATABASE "{name}"')
 
     base, _ = ADMIN_DSN.rsplit("/", 1)
-    owner_dsn = f"{base}/{name}"
-    for path in MIGRATIONS + SEEDS:
-        _run_sql(owner_dsn, path)
+    try:
+        for path in MIGRATIONS + SEEDS:
+            _run_sql(base + "/" + name, path)
+        # crown_app is created by migration 0002 at cluster level; give it a
+        # password so the tests can connect over TCP as that role.
+        admin.execute(f"ALTER ROLE crown_app WITH PASSWORD '{APP_PASSWORD}'")
+        yield name
+    finally:
+        admin.execute(f'DROP DATABASE IF EXISTS "{name}" WITH (FORCE)')
+        admin.close()
 
-    # crown_app is created by migration 0002 at cluster level; give it a password
-    # so the tests can connect over TCP as that role.
-    admin.execute(f"ALTER ROLE crown_app WITH PASSWORD '{APP_PASSWORD}'")
+
+@pytest.fixture()
+def database(schema_template):
+    """Build a database, hand back its two DSNs, drop it afterwards."""
+    name = f"crown_test_{uuid.uuid4().hex[:10]}"
+    admin = psycopg.connect(ADMIN_DSN, autocommit=True)
+    # Postgres refuses to copy a template that anything is connected to, and
+    # the error names a different database from the one being created, which
+    # is confusing enough to be worth saying here: if this fails with "source
+    # database is being accessed by other users", something left a connection
+    # open to the template rather than to this database.
+    admin.execute(f'CREATE DATABASE "{name}" TEMPLATE "{schema_template}"')
+
+    base, _ = ADMIN_DSN.rsplit("/", 1)
+    owner_dsn = f"{base}/{name}"
     scheme, rest = base.split("://", 1)
     host = rest.split("@", 1)[1]
     app_dsn = f"{scheme}://crown_app:{APP_PASSWORD}@{host}/{name}"
