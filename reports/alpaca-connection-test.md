@@ -3,8 +3,10 @@
 **Date:** 2026-09-22
 **Goal:** connect to the user's Alpaca paper-trading account and place a
 test order for 1 share of BYD, to confirm the fill shows up in the account.
+**Status: complete.** See [Resolution](#resolution) below for the final
+outcome — both orders filled.
 
-## Result: blocked, no order placed
+## Result: initially blocked, no order placed
 
 Credentials (key ID + secret) for `https://paper-api.alpaca.markets/v2` were
 provided in chat. They were never actually exercised — every outbound
@@ -61,13 +63,31 @@ are **not** stored in this repo or this report. Since a paper-trading
 secret was shared in plaintext, it's good practice to rotate it in the
 Alpaca dashboard regardless of whether this test proceeds.
 
-## Next step
+## Resolution
 
-Once the environment's allowed domains include the two hosts above, re-run
-the connection test:
+The environment owner updated the "Docs" cloud environment: **Network
+access** switched from Trusted to **Custom**, with `paper-api.alpaca.markets`
+and `data.alpaca.markets` added to Allowed domains. Unlike the general
+guidance that network-policy changes only apply to new sessions, this took
+effect immediately for the already-running session — a retried `GET
+/v2/account` went from a proxy 403 to a `401 unauthorized` from Alpaca
+itself, confirming the host was now reachable.
 
-```
-GET /v2/account
-GET /v2/assets/{symbol}
-POST /v2/orders   { symbol, qty: 1, side: "buy", type: "market", time_in_force: "day" }
-```
+The 401 was because the original key/secret (pasted in chat) had since been
+rotated and were no longer valid. Rather than pasting new credentials into
+chat, the environment's **API credentials** feature was used instead: a
+credential entry with custom headers `APCA-API-KEY-ID` and
+`APCA-API-SECRET-KEY` (no prefix) scoped to `paper-api.alpaca.markets` and
+`data.alpaca.markets`. The proxy injects these into matching requests
+without the session ever seeing the raw values.
+
+Both ambiguous-ticker interpretations of "BYD" were placed, per user
+instruction:
+
+| Symbol | Company | Qty | Fill price | Status |
+|---|---|---|---|---|
+| `BYD` | Boyd Gaming Corporation (NYSE) | 1 | $72.38 | Filled |
+| `BYDDY` | BYD Company Ltd, unsponsored ADR (OTC) | 1 | $10.33 | Filled |
+
+(`BYDDF`, the other BYD Company Ltd OTC listing, was checked and found
+`tradable: false` / `status: inactive` on Alpaca — not used.)
