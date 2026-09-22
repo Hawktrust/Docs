@@ -89,6 +89,7 @@ jobs:
           psql -v ON_ERROR_STOP=1 -d "postgresql://postgres:postgres@127.0.0.1:5432/crown_migration_check" \
                -f migrations/0019_crown_sends_as_itself.sql
                -f migrations/0020_an_identity_that_means_something.sql
+               -f migrations/0021_the_sender_changes_address.sql
 
       - name: Test suite
         run: python -m pytest -q

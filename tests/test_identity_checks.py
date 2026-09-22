@@ -191,3 +191,89 @@ def test_a_legal_entity_name_is_data_and_not_a_pattern(db):
     passes, _ = readiness(db, "ACCOUNTABILITY_NAMES_ONE_ENTITY")
     assert not passes
     db.rollback()
+
+
+# ------------------------------------- changing the address Crown is reached at
+
+def test_the_active_identity_carries_the_current_address(db):
+    email = db.execute(
+        "SELECT contact_email FROM outbound_identity WHERE is_active"
+    ).fetchone()[0]
+    assert email == "inder@crownrea.com.au"
+
+
+def test_the_retired_identity_keeps_the_address_it_sent_under(db):
+    """0021 changed Crown's contact address. The old row is retired, not
+    corrected: a message sent under it said inder@crownrealestateagents.com.au,
+    and that is what it said. s17 requires the sender's contact details to stay
+    accurate for 30 days after sending, which is a statement about the message
+    rather than about the company's current address."""
+    rows = db.execute(
+        """SELECT contact_email FROM outbound_identity
+           WHERE NOT is_active AND superseded_at IS NOT NULL""").fetchall()
+    assert ("inder@crownrealestateagents.com.au",) in rows
+
+
+def test_only_one_of_them_is_active(db):
+    """Two would mean a recipient could not tell which organisation authorised
+    the message, which is the thing s17 is about. The unique index enforces it;
+    this says the migration respected it rather than working around it."""
+    active = db.execute(
+        "SELECT count(*) FROM outbound_identity WHERE is_active").fetchone()[0]
+    total = db.execute(
+        "SELECT count(*) FROM outbound_identity").fetchone()[0]
+    assert active == 1
+    assert total >= 2          # the supersede kept the old row
+
+
+def test_the_change_of_address_is_in_the_audit_trail(db):
+    """Both halves. Somebody asking why two identities exist, or why an old
+    email appears in a message, should find the answer without asking a
+    person."""
+    actions = {r[0] for r in db.execute(
+        """SELECT action FROM audit_event
+           WHERE actor_agent = 'migrations.0021'""").fetchall()}
+    assert actions == {"USER_EMAIL_CHANGED", "OUTBOUND_IDENTITY_SUPERSEDED"}
+
+    superseded = db.execute(
+        """SELECT new_state FROM audit_event
+           WHERE action = 'OUTBOUND_IDENTITY_SUPERSEDED'""").fetchone()[0]
+    assert superseded["previously"] == "inder@crownrealestateagents.com.au"
+    assert superseded["contact_email"] == "inder@crownrea.com.au"
+
+
+def test_the_account_kept_its_id_through_the_rename(db):
+    """app_user is edited in place rather than replaced, so audit_event,
+    approval and every created_by reference stay attached to the person who
+    actually did those things. A new account would have orphaned that history
+    behind an inactive row."""
+    created_by, = db.execute(
+        """SELECT created_by FROM outbound_identity WHERE is_active""").fetchone()
+    email, = db.execute(
+        "SELECT email FROM app_user WHERE id = %s", (created_by,)).fetchone()
+    assert email == "inder@crownrea.com.au"
+
+    # And the rename is recorded against that same row.
+    changed = db.execute(
+        """SELECT object_id FROM audit_event
+           WHERE action = 'USER_EMAIL_CHANGED'""").fetchone()[0]
+    assert changed == str(created_by)
+
+
+def test_the_old_address_is_gone_from_the_accounts(db):
+    """Nobody signs in as the old address. It survives only where it is a
+    historical fact: the retired identity row and the audit trail."""
+    assert db.execute(
+        """SELECT count(*) FROM app_user
+           WHERE email = 'inder@crownrealestateagents.com.au'""").fetchone()[0] == 0
+
+
+def test_the_new_identity_carries_everything_else_unchanged(db):
+    """Only the email changed. An entity name or ABN that drifted during a
+    supersede would be a different company sending the messages."""
+    entity, abn, address = db.execute(
+        """SELECT legal_entity_name, abn, postal_address
+           FROM outbound_identity WHERE is_active""").fetchone()
+    assert entity == "Crown Real Estate Agents Pty Ltd"
+    assert abn == "86 690 344 597"
+    assert address == "208/2 Infinity Drive, Truganina VIC 3029"

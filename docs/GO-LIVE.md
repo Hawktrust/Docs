@@ -202,17 +202,27 @@ that runs and a system somebody can run.
 
 1. **Ingest one real record.** Everything else is theory until AC1 passes, and
    it is five minutes with `tools/collector.html`.
-2. ~~**Record the outbound identity.**~~ **Done** — migration 0019 wrote it:
+2. ~~**Record the outbound identity.**~~ **Done** — migration 0019 wrote it
+   and 0021 superseded it when the contact address changed. The active row is
    Crown Real Estate Agents Pty Ltd, ABN 86 690 344 597, 208/2 Infinity Drive,
-   Truganina VIC 3029, inder@crownrealestateagents.com.au. Frozen once written,
-   so a correction is a new row and not an edit. **Confirm the ABN on ABN
-   Lookup before the first message** — the checksum proves the number is well
-   formed, not that it belongs to this entity, and a well formed wrong ABN is a
-   false sender identification under s17.
+   Truganina VIC 3029, inder@crownrea.com.au. The retired row keeps
+   inder@crownrealestateagents.com.au, because that is what the messages sent
+   under it actually said — frozen content is the point, so a correction is a
+   new row and never an edit. **Confirm the ABN on ABN Lookup before the first
+   message** — the checksum proves the number is well formed, not that it
+   belongs to this entity, and a well formed wrong ABN is a false sender
+   identification under s17.
 3. **Set a password on the real account.** `python scripts/set_password.py
-   inder@crownrealestateagents.com.au`. 0019 created it with no password, which
+   inder@crownrea.com.au`. 0019 created the account with no password, which
    is what 0006 intends and what `EVERY_ACCOUNT_HAS_A_PASSWORD` and
    `SOMEBODY_CAN_ANSWER_A_PERSON` are both still failing on.
+
+   **Keep the old mailbox receiving.** s17 wants the sender's contact details
+   accurate for 30 days after a message is sent, and s18 gives an unsubscribe
+   facility at least that long. Any message that went out naming
+   inder@crownrealestateagents.com.au is owed a working address for 30 days
+   after it was sent. Nothing has been sent yet, so today this costs nothing —
+   it becomes load-bearing the moment it does.
 4. **Fill the `[DECIDE]` marks in the three drafts and have them reviewed.**
    **Twenty-eight left** — fourteen in the privacy policy, ten in the breach
    plan, four in the collection notice — of thirty-one. Migration 0019 filled

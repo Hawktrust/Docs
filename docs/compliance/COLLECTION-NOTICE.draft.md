@@ -29,7 +29,7 @@ someone who did not ask to hear from Crown and is mildly annoyed to have.
 > We did not get your details from a broker, a list, or social media.
 >
 > You can stop this immediately: [remove me]. You can also ask what we hold and
-> have it corrected, at inder@crownrealestateagents.com.au or 208/2 Infinity
+> have it corrected, at inder@crownrea.com.au or 208/2 Infinity
 > Drive, Truganina VIC 3029. Our privacy policy is at `[DECIDE: URL]`.
 
 Three things that wording does deliberately:

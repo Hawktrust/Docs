@@ -88,7 +88,7 @@ an account and without contacting anybody. Using it is the fastest route and it
 is recorded so that it is not undone by accident.
 
 You can also reply to any message, or write to
-inder@crownrealestateagents.com.au, or to 208/2 Infinity Drive, Truganina VIC
+inder@crownrea.com.au, or to 208/2 Infinity Drive, Truganina VIC
 3029.
 
 A request to stop is honoured against the person, the organisation, the address
@@ -98,7 +98,7 @@ detail does not defeat it.
 ## 6. Access and correction
 
 You may ask what personal information Crown holds about you, and ask for it to
-be corrected. APP 12 and APP 13. Write to inder@crownrealestateagents.com.au.
+be corrected. APP 12 and APP 13. Write to inder@crownrea.com.au.
 
 `[DECIDE]` The response time Crown commits to. 30 days is the usual
 undertaking, and a commitment made here is one a complainant can hold Crown
@@ -131,7 +131,7 @@ deployment, which is not yet decided.
 
 ## 9. Complaints
 
-Complaints go to inder@crownrealestateagents.com.au. If you are not satisfied
+Complaints go to inder@crownrea.com.au. If you are not satisfied
 with how Crown handles one, you may escalate to the Office of the Australian
 Information Commissioner.
 
