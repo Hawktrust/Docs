@@ -160,14 +160,50 @@ def test_the_crawler_refuses_every_one_of_them(db):
 
 def test_the_register_entry_is_signed_in_the_company_name(db):
     """Asked whose name should carry the attestation, Crown answered: the
-    company's. Who did the reading stays recorded separately."""
+    company's. 0019 made that the registered company rather than the trading
+    name, because a register that says who is accountable has to name somebody
+    a regulator can serve. Who did the reading stays recorded separately."""
     confirmed_by, confirmed_at, read_by = db.execute(
         """SELECT register_confirmed_by, register_confirmed_at, terms_read_by
            FROM data_source WHERE code = 'VIC_PLANNING_AMENDMENTS'""").fetchone()
-    assert confirmed_by == "Crown Capital & Development"
+    assert confirmed_by == ("Crown Real Estate Agents Pty Ltd "
+                            "(ABN 86 690 344 597)")
     assert confirmed_at is not None
     assert read_by.startswith("Crown AI review 2026-09-20")
     assert "search relay" in read_by
+
+
+def test_the_signature_names_the_same_entity_the_messages_do(db):
+    """Two records name who is accountable: the register, for the lawfulness of
+    a source, and outbound_identity, for who authorised a message built from
+    it. Different names in them is a discrepancy that costs nothing to prevent
+    and is unpleasant to explain."""
+    confirmed_by = db.execute(
+        """SELECT register_confirmed_by FROM data_source
+           WHERE code = 'VIC_PLANNING_AMENDMENTS'""").fetchone()[0]
+    entity, abn = db.execute(
+        """SELECT legal_entity_name, abn FROM outbound_identity
+           WHERE is_active""").fetchone()
+
+    assert entity in confirmed_by
+    assert abn.replace(" ", "") in confirmed_by.replace(" ", "")
+
+
+def test_the_rename_did_not_erase_the_name_it_replaced(db):
+    """A register signature that can be quietly reassigned is worth less than
+    one that cannot. Both names are in the audit trail, and the newer row says
+    what the older one said."""
+    rows = db.execute(
+        """SELECT new_state FROM audit_event
+           WHERE action = 'SOURCE_REGISTER_CONFIRMED'
+             AND new_state ->> 'code' = 'VIC_PLANNING_AMENDMENTS'
+           ORDER BY occurred_at""").fetchall()
+    names = [r[0]["confirmed_by"] for r in rows]
+
+    assert "Crown Capital & Development" in names
+    assert ("Crown Real Estate Agents Pty Ltd (ABN 86 690 344 597)"
+            in names)
+    assert rows[-1][0]["previously"] == "Crown Capital & Development"
 
 
 def test_reassigning_the_signature_is_audited(db):
