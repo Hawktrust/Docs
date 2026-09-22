@@ -1,13 +1,20 @@
 # Privacy policy — DRAFT, NOT IN FORCE
 
-**Status: draft. Not reviewed by a lawyer. Not published. Do not rely on it.**
+**Status: complete draft, pending legal review and Crown's ratification. Not
+published. Do not rely on it until both have happened.**
 
 APP 1.3 requires a clearly expressed, up-to-date privacy policy, available free
-of charge, published **before** personal information is collected. This is a
-draft of one, written from what the system actually does rather than from a
-template, so that the review is about the decisions and not about the facts.
+of charge, published **before** personal information is collected. This is one,
+written from what the system actually does rather than from a template.
 
-`[DECIDE]` marks a choice only Crown can make.
+**Every section below is answered.** Where a decision was Crown's to make, a
+position has been proposed rather than left blank, because a policy full of
+blanks cannot be reviewed — a lawyer can only argue with a document that says
+something. Each proposed position is listed in the appendix with the reasoning
+behind it, so nothing has been decided quietly.
+
+Marks remain only where the answer is a fact nobody has yet: a URL that does
+not exist, a person not yet named, a hosting decision not yet taken.
 
 ---
 
@@ -62,30 +69,48 @@ position.
 
 ## 3. Why we collect it
 
-`[DECIDE]` State the purpose plainly and narrowly. The current honest answer is:
-to identify land that may suit a buyer, and to approach the parties connected
-with it. Say so in those words rather than in a broader formulation that would
-cover things Crown is not doing — a purpose written wide today is a purpose to
-be justified later.
+**To identify land that may suit a buyer Crown is acting for, and to approach
+the parties connected with that land.**
 
-## 4. The basis we rely on for direct marketing
+That is the whole purpose. It is written narrowly on purpose. Crown does not
+build profiles of people, does not sell or licence what it holds, and does not
+use it to assess anybody's creditworthiness, tenancy or character. A purpose
+written wide today is a purpose to be justified later.
 
-`[DECIDE]` **This is the most important decision in this document.**
+## 4. The basis we rely on, and how we may contact you
 
-APP 7 governs direct marketing, and publicly available personal information is
-**not exempt**. An organisation needs consent, or must establish that obtaining
-consent is impracticable, and must in either case provide a simple opt-out.
+Two laws apply and they are not the same test. **APP 7** governs whether Crown
+may use your information for direct marketing at all. The **Spam Act 2003**
+separately governs whether Crown may email you. Publicly available personal
+information is not exempt from either.
 
-Crown must decide, per audience, which it relies on:
+Where Crown obtained your details from a public register rather than from you,
+it relies on **APP 7.3**: that obtaining your consent beforehand is
+impracticable, because the only way to ask would be to make the very approach
+consent is needed for. Crown does not claim you consented, because you did not.
 
-| Audience | Basis | Decided by |
+**How that limits the way Crown contacts you:**
+
+| If you are | First contact | By email |
 |---|---|---|
-| Landholders identified through public registers | `[DECIDE]` consent / impracticable | `[DECIDE]` |
-| Buyers under an existing mandate | `[DECIDE]` — likely consent, from the mandate itself | `[DECIDE]` |
-| Professional contacts at firms | `[DECIDE]` | `[DECIDE]` |
+| A landholder Crown found in a public register | **by post** | only after you reply, or otherwise agree |
+| A professional contact at a firm, at your published work address | email or post | yes, where the message relates to your work |
+| A buyer Crown already acts for under a mandate | either | yes — the mandate is your consent |
 
-Record the answer in `data_source.privacy_basis` for each source, which is where
-the system already looks for it.
+Crown does not cold-email landholders. A register publishes an address because
+a statute requires it, not because the person offered it, and Crown does not
+treat a statutory disclosure as an invitation.
+
+**If you ask where Crown got your information, you will be told which register,
+specifically.** Crown records the source of every record it holds, along with
+the terms that source is used under. That is APP 7.6(c), and Crown can answer
+it precisely rather than generally.
+
+The reasoning behind this position, including the Spam Act analysis that
+produces the post-only rule, is set out in `CONSENT-POSITION.md` in full.
+
+`[DECIDE]` Who at Crown ratified this position, and on what date. An
+unattributed position is one nobody defends when it is questioned.
 
 ## 5. How to stop hearing from us
 
@@ -105,9 +130,10 @@ detail does not defeat it.
 You may ask what personal information Crown holds about you, and ask for it to
 be corrected. APP 12 and APP 13. Write to info@crownrea.com.au.
 
-`[DECIDE]` The response time Crown commits to. 30 days is the usual
-undertaking, and a commitment made here is one a complainant can hold Crown
-to — so make it one that can be met when nobody is watching the inbox.
+**Crown answers within 30 days.** In practice most requests are a database
+query and are answered far sooner, but 30 days is what Crown undertakes,
+because a commitment made here is one you can hold Crown to and it should hold
+during a busy month as well as a quiet one.
 
 Crown's audit trail records decisions and cannot be edited or deleted, by
 design. Where information is corrected, the correction is recorded alongside
@@ -121,18 +147,38 @@ Personal information is held in a database with row-level access control, so
 that a user sees only what their role permits. Passwords are stored as scrypt
 hashes and never in readable form.
 
-`[DECIDE]` **Retention is not yet decided and nothing currently expires.** APP
-11.2 requires destroying or de-identifying personal information once it is no
-longer needed for any permitted purpose. Crown needs a retention period per
-category — contact records, suppression records, audit events — and suppression
-records should outlive the contact data they suppress, or honouring a request
-becomes impossible.
+**How long Crown keeps it.** APP 11.2 requires personal information to be
+destroyed or de-identified once it is no longer needed for any permitted
+purpose. Crown's periods:
+
+| What | Kept for | Why |
+|---|---|---|
+| Contact details of someone never contacted | **12 months** from collection | if no approach has been made in a year, the reason for holding it has lapsed |
+| Contact details of someone approached | **7 years** from last contact | the ordinary limitation period for a dispute about that approach |
+| A request not to be contacted | **indefinitely** | deleting it would let the request be undone by accident, which is the one outcome worse than keeping the record |
+| Audit records of decisions | **indefinitely** | they exist to show what was done and why, which a deletion schedule would defeat |
+| User accounts | until closed, then **7 years** | attribution of decisions already taken |
+
+A suppression outliving the contact data it suppresses is deliberate: a list of
+people not to contact is useless if it expires before the data that would let
+Crown contact them.
+
+**This is not yet enforced.** Nothing in the system expires today. The periods
+above are the intended rule, and until a job implements them this table
+describes an intention rather than a behaviour — which is stated plainly here
+because a policy claiming an expiry that does not happen is worse than one that
+admits the gap.
 
 ## 8. Overseas disclosure
 
-`[DECIDE]` Whether any processor, hosting provider or service holding this data
-is outside Australia. APP 8 requires naming the countries. This depends on the
-deployment, which is not yet decided.
+**Crown's intention is that all personal information is held in Australia**,
+and it discloses none of it overseas.
+
+`[DECIDE]` Confirm this once the hosting is chosen. APP 8 requires the policy
+to name the countries if any processor, hosting provider or backup destination
+sits outside Australia, and it makes Crown accountable for what that recipient
+does. This sentence must be checked against the deployment before the policy is
+published, not after.
 
 ## 9. Complaints
 
@@ -153,15 +199,50 @@ one. That account exists and has no password set, so
 `SOMEBODY_CAN_ANSWER_A_PERSON` is still failing — it is not answerable until
 somebody can actually sign in.
 
-`[DECIDE]` Who reads info@crownrea.com.au, and how often. The gate can check
-the address is shaped like one. Nothing can check that a person opens it, and
-a published address nobody reads satisfies s17's letter while defeating the
-whole point of APP 1.4.
+`[DECIDE]` Name who reads info@crownrea.com.au and how often. The proposed
+undertaking is **every business day**, which is what a 30-day response
+commitment needs behind it. The gate can check the address is shaped like one;
+nothing can check that a person opens it, and a published address nobody reads
+satisfies s17's letter while defeating the whole point of APP 1.4.
 
 ## 10. Changes to this policy
 
-`[DECIDE]` How changes are notified, and where the current version lives.
+The current version always lives at `[DECIDE: URL]` — the one thing still
+missing, because the policy needs somewhere to live before it can say where
+that is — and each version carries the date it took effect. Crown keeps the
+superseded versions available at the same place, so a person can see what the
+policy said when they were contacted rather than only what it says now.
+
+Where a change materially affects how Crown uses information it already holds,
+Crown notifies the people affected directly rather than relying on them to
+re-read the page.
+
+---
+
+## Appendix — positions proposed, for Crown to ratify or strike
+
+Everything in this appendix was written on Crown's behalf and has not been
+agreed by Crown. It is collected here rather than left as blanks in the body so
+that a lawyer can review a document that says something, and so that nothing
+was decided quietly.
+
+| § | Position taken | If Crown disagrees |
+|---|---|---|
+| 3 | Purpose stated narrowly: identify land for a buyer, approach the parties connected with it | widen it only with a reason; a wide purpose is one to justify later |
+| 4 | APP 7.3 impracticability for register-sourced landholders, not consent | the alternative is not contacting them at all |
+| 4 | **No cold email to individual landholders; post for first contact** | this is the costly one, and the reasoning is in `CONSENT-POSITION.md` |
+| 4 | Email permitted to professional contacts and mandated buyers | |
+| 6 | 30-day response undertaking | shorten it only if the inbox is watched daily |
+| 7 | 12 months / 7 years / indefinite retention by category | |
+| 8 | All data held in Australia | must be checked against the actual deployment |
+| 9 | info@ read every business day | |
+| 10 | Superseded versions stay published | |
+
+**Still genuinely unknown**, and not for Crown to invent: the policy's URL, who
+ratified the §4 position, who reads info@, and whether the hosting is onshore.
 
 ---
 
 **Last reviewed:** never. **Approved by:** nobody.
+**Positions proposed:** 2026-09-22, by Claude, on Crown's instruction to draft
+rather than to enumerate. Ratification is Crown's and has not happened.

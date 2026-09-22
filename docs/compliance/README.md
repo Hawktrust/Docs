@@ -1,6 +1,6 @@
 # Drafts, not policy
 
-Three documents sit in this folder. **None of them is in force, and none has
+Four documents sit in this folder. **None of them is in force, and none has
 been reviewed by a lawyer.** They exist because "write a privacy policy" is
 easier to act on as a marked-up draft than as a line on a to-do list, and
 because the facts they turn on — what Crown collects, from where, under what
@@ -22,10 +22,20 @@ Filling them raised three new ones, which is the ordinary way of these
 documents — naming a contact address makes "how fast do you answer it" a
 question that was not being asked while the address was blank, and naming a
 postal address raises whether it is the one registered with ASIC.
-**Twenty-seven remain**:
-thirteen in the privacy policy, ten in the breach plan, four in the collection
-notice. Every one is a choice rather than a lookup, and nothing in this
-repository will answer any of them.
+**Eighteen remain**: four in the privacy
+policy, ten in the breach plan, four in the collection notice.
+
+The privacy policy stopped being a form. Every section of it is now answered,
+with the positions taken on Crown's behalf collected in an appendix rather than
+scattered as blanks — a lawyer can only argue with a document that says
+something, and a draft full of gaps postpones the review it is supposed to
+enable. The four marks still in it are facts nobody has yet: a URL, a hosting
+decision, and two names.
+
+A fourth document joins the three. `CONSENT-POSITION.md` works the question the
+policy's section 4 had been deferring, and reaches a conclusion that costs
+Crown something — which is why it is set out as an argument rather than a
+ruling.
 
 Crown has since confirmed that 208/2 Infinity Drive is both the registered
 office and the postal address, which closed the mark asking which one it was,

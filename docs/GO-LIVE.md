@@ -241,9 +241,21 @@ that runs and a system somebody can run.
    rule to carry forward: **retire an address in the schema, keep the mailbox
    alive for 30 days past the last message that named it.** Those are two
    different dates and only the first one is in the database.
-4. **Fill the `[DECIDE]` marks in the three drafts and have them reviewed.**
-   **Twenty-seven left** — thirteen in the privacy policy, ten in the breach
-   plan, four in the collection notice — of thirty-one. Migration 0019 filled
+4. **Ratify the compliance drafts and have them reviewed.**
+   **Eighteen marks left** — four in the privacy policy, ten in the breach
+   plan, four in the collection notice — of thirty-one. The privacy policy is
+   now a complete document rather than a form: every section is answered, and
+   the positions proposed on Crown's behalf are collected in its appendix
+   rather than left as blanks, because a lawyer can only argue with a document
+   that says something. The four still open there are facts nobody has yet —
+   a URL, a hosting decision, and two names.
+
+   **Read `docs/compliance/CONSENT-POSITION.md` first.** It answers what was
+   the largest open question, and its conclusion costs Crown something: on the
+   Spam Act analysis, cold-emailing an individual landholder found in a public
+   register is very likely unlawful whatever APP 7 permits, so first contact
+   with landholders should go by post. That is a commercial cost and it is
+   argued rather than asserted, so that it can be argued back. Migration 0019 filled
    the six that were only waiting on Crown's own identity and raised three new
    ones in doing it. None of the rest can be answered from this repository.
    They gate the first message, not the first deployment, and they take longer
