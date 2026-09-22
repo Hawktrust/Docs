@@ -32,7 +32,8 @@ for f in migrations/0001_ticket01_thin_loop.sql \
          migrations/0018_operational_readiness.sql \
          migrations/0019_crown_sends_as_itself.sql \
          migrations/0020_an_identity_that_means_something.sql \
-         seeds/001_users_and_config.sql \
+         seeds/001_config.sql \
+         seeds/dev_only_users.sql \
          seeds/002_buyer_mandates.sql \
          seeds/003_candidate_sources.sql \
          seeds/dev_only_demo_evidence.sql; do

@@ -46,7 +46,9 @@ MIGRATIONS = [
 ]
 LEADS_FILE = os.path.join(ROOT, "seeds", "relay_leads.json")
 SEEDS = [
-    os.path.join(ROOT, "seeds", "001_users_and_config.sql"),
+    os.path.join(ROOT, "seeds", "001_config.sql"),
+    # The suite needs a user per role; a production database does not.
+    os.path.join(ROOT, "seeds", "dev_only_users.sql"),
     os.path.join(ROOT, "seeds", "002_buyer_mandates.sql"),
     os.path.join(ROOT, "seeds", "003_candidate_sources.sql"),
 ]

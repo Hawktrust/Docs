@@ -3,6 +3,8 @@
 Each test below corresponds to a question the system could not answer before
 migration 0005 and crown/reports.py.
 """
+import pathlib
+
 import psycopg
 import pytest
 
@@ -10,6 +12,9 @@ from crown import approval, matching, opportunity, outbound, reports
 from tests.test_optout import an_identity
 from tests.conftest import (SEEDED_MANDATE_COUNT, add_evidence, csrf, sign_in,
                             user_id)
+
+REPO = pathlib.Path(__file__).resolve().parent.parent
+SEED_DIR = REPO / "seeds"
 
 
 def a_match(db):
@@ -287,3 +292,42 @@ def test_a_match_is_real_only_if_both_sides_are(db):
     assert o.opportunities == 1
     assert o.matches_awaiting_decision == 0
     assert o.demo_matches_awaiting_decision > 0
+
+
+# ------------------------------------- what a production database is told to run
+
+def test_the_production_seed_creates_no_people():
+    """seeds/001 used to hold the match weights AND four accounts on
+    crown.local, a domain Crown does not own, with the roles ADMIN, ANALYST,
+    COMPLIANCE and AGENT. README told anybody standing up a real database to
+    apply that file, so following the instructions produced four privileged
+    accounts nobody intended.
+
+    They had no password and 0006 refuses a login without one, so they could
+    not be signed into. The sharp edge was EVERY_ACCOUNT_HAS_A_PASSWORD, whose
+    advice reads 'set a password or deactivate the account' — somebody working
+    the gate to green would have found four accounts blocking it and the check
+    itself proposing that they be given passwords.
+    """
+    config = (SEED_DIR / "001_config.sql").read_text().lower()
+    assert "insert into app_user" not in config
+
+
+def test_the_accounts_are_in_a_seed_marked_dev_only():
+    """Named so that the one instruction anybody needs — do not apply
+    seeds/dev_only_* to a database somebody relies on — is legible from the
+    filename rather than from a comment inside it."""
+    users = SEED_DIR / "dev_only_users.sql"
+    assert users.exists()
+    body = users.read_text()
+    assert "insert into app_user" in body.lower()
+    assert "DEVELOPMENT ONLY" in body
+
+
+def test_the_readme_does_not_tell_people_to_seed_users_silently():
+    """The instructions are what a person follows. If they list the dev-only
+    seed, they have to say what it is on the same screen."""
+    readme = (REPO / "README.md").read_text()
+    if "seeds/dev_only_users.sql" in readme:
+        before = readme.split("seeds/dev_only_users.sql")[0]
+        assert "Development only" in before[-400:]

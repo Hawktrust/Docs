@@ -32,8 +32,12 @@ psql -v ON_ERROR_STOP=1 -d crown_ai -f migrations/0001_ticket01_thin_loop.sql
 psql -v ON_ERROR_STOP=1 -d crown_ai -f migrations/0002_rls_policies.sql
 psql -v ON_ERROR_STOP=1 -d crown_ai -f migrations/0003_retrieval_method.sql
 psql -v ON_ERROR_STOP=1 -d crown_ai -f migrations/0004_integrity_fixes.sql
-psql -v ON_ERROR_STOP=1 -d crown_ai -f seeds/001_users_and_config.sql
+psql -v ON_ERROR_STOP=1 -d crown_ai -f seeds/001_config.sql
 psql -v ON_ERROR_STOP=1 -d crown_ai -f seeds/002_buyer_mandates.sql
+
+# Development only. Four accounts on a domain Crown does not own, holding
+# privileged roles. seeds/dev_only_* stays off a database anybody relies on.
+psql -v ON_ERROR_STOP=1 -d crown_ai -f seeds/dev_only_users.sql
 
 python -m ingest.cli --lga Wyndham          # blocked; see below
 CROWN_DSN=postgresql://crown_app@/crown_ai CROWN_SECRET=... \
