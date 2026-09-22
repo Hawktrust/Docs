@@ -20,16 +20,17 @@ Two versions follow because they do different jobs.
 This goes in every first approach, near the opt-out link. It must be readable by
 someone who did not ask to hear from Crown and is mildly annoyed to have.
 
-> **Why you are hearing from us.** `[DECIDE: legal entity]` identified your
-> property through Victorian public planning and property registers — the same
-> records anyone can search. We hold your name and the property address, and we
-> use them to contact owners about land that may suit a buyer we work with.
+> **Why you are hearing from us.** Crown Real Estate Agents Pty Ltd (ABN 86 690
+> 344 597) identified your property through Victorian public planning and
+> property registers — the same records anyone can search. We hold your name and
+> the property address, and we use them to contact owners about land that may
+> suit a buyer we work with.
 >
 > We did not get your details from a broker, a list, or social media.
 >
 > You can stop this immediately: [remove me]. You can also ask what we hold and
-> have it corrected, at `[DECIDE: contact]`. Our privacy policy is at
-> `[DECIDE: URL]`.
+> have it corrected, at inder@crownrealestateagents.com.au or 208/2 Infinity
+> Drive, Truganina VIC 3029. Our privacy policy is at `[DECIDE: URL]`.
 
 Three things that wording does deliberately:
 

@@ -161,7 +161,7 @@ that runs and a system somebody can run.
 | **Deployment** | none | A WSGI server (the Flask dev server is not one), `CROWN_SECRET` and `CROWN_DSN` from a secret store, TLS terminated in front. `CROWN_INSECURE_COOKIES` must be unset in production — it exists for the test client and turns off `Secure` on the session cookie. |
 | **Scheduler** | **built** | `scripts/run_alerts.py`, safe to re-run and quiet on a quiet day. Still needs a cron entry: `15 7 * * * cd /srv/crown && CROWN_DSN=... python scripts/run_alerts.py --quiet` |
 | **Backups** | none | Every table that matters is append-only or audited, which protects against tampering and not against loss. Point-in-time recovery, tested by restoring — an untested backup is a belief. |
-| **Migrations** | forward only | Sixteen numbered migrations, no down-steps, applied by hand. Fine so far. The first migration applied to a database holding real records is the one where that stops being fine. |
+| **Migrations** | forward only | Nineteen numbered migrations, no down-steps, applied by hand. Fine so far. The first migration applied to a database holding real records is the one where that stops being fine. |
 | **Observability** | partial | `/health` answers without a session and says only up or not up. Still no structured logging and no error reporting; the audit trail records decisions, not failures, so a crashed alert run leaves only the stderr line `run_alerts.py` prints. |
 | **Retention** | none | Nothing expires. Evidence has a shelf life and says when it is stale; personal information has no retention rule at all, and APP 11.2 requires destroying or de-identifying it when it is no longer needed. |
 | **Secret rotation** | **built** | `CROWN_OPTOUT_SECRET` signs opt-out links, `CROWN_OPTOUT_SECRET_PREVIOUS` keeps retired secrets verifying, and the readiness gate blocks a launch while the fallback to `CROWN_SECRET` is still in use. |
@@ -172,15 +172,29 @@ that runs and a system somebody can run.
 
 1. **Ingest one real record.** Everything else is theory until AC1 passes, and
    it is five minutes with `tools/collector.html`.
-2. **Record the outbound identity.** One row: legal entity, ABN, postal address,
-   contact email. ADMIN or COMPLIANCE only, and frozen once written.
-3. **Fill the `[DECIDE]` marks in the three drafts and have them reviewed.**
-   These gate the first message, not the first deployment, and they take longer
-   to get right than to write. The privacy basis is the one that matters most.
-4. **Deployment and backups.** Ordinary work, none of it surprising. Set
+2. ~~**Record the outbound identity.**~~ **Done** — migration 0019 wrote it:
+   Crown Real Estate Agents Pty Ltd, ABN 86 690 344 597, 208/2 Infinity Drive,
+   Truganina VIC 3029, inder@crownrealestateagents.com.au. Frozen once written,
+   so a correction is a new row and not an edit. **Confirm the ABN on ABN
+   Lookup before the first message** — the checksum proves the number is well
+   formed, not that it belongs to this entity, and a well formed wrong ABN is a
+   false sender identification under s17.
+3. **Set a password on the real account.** `python scripts/set_password.py
+   inder@crownrealestateagents.com.au`. 0019 created it with no password, which
+   is what 0006 intends and what `EVERY_ACCOUNT_HAS_A_PASSWORD` and
+   `SOMEBODY_CAN_ANSWER_A_PERSON` are both still failing on.
+4. **Fill the `[DECIDE]` marks in the three drafts and have them reviewed.**
+   **Twenty-eight left** — fourteen in the privacy policy, ten in the breach
+   plan, four in the collection notice — of thirty-one. Migration 0019 filled
+   the six that were only waiting on Crown's own identity and raised three new
+   ones in doing it. None of the rest can be answered from this repository.
+   They gate the first message, not the first deployment, and they take longer
+   to get right than to write. The privacy basis — policy §4, which APP is
+   relied on per audience — is the one that matters most.
+5. **Deployment and backups.** Ordinary work, none of it surprising. Set
    `CROWN_OPTOUT_SECRET` while you are setting the others.
-5. **Decide retention.** Nothing expires today, and APP 11.2 requires it.
-6. **Re-read `launch_readiness`.** It will not go green on its own.
+6. **Decide retention.** Nothing expires today, and APP 11.2 requires it.
+7. **Re-read `launch_readiness`.** It will not go green on its own.
 
 ---
 

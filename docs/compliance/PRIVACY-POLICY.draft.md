@@ -13,11 +13,19 @@ template, so that the review is about the decisions and not about the facts.
 
 ## 1. Who we are
 
-`[DECIDE]` Legal entity name, ABN, and registered address.
+**Crown Real Estate Agents Pty Ltd**, ABN 86 690 344 597, of 208/2 Infinity
+Drive, Truganina VIC 3029.
 
-This must match the row in `outbound_identity`, which is what every message
-Crown sends will carry. If the two disagree, the message misidentifies its
-sender, which is a separate problem under s17 of the Spam Act 2003.
+Taken from the active row in `outbound_identity` (migration 0019), which is
+what every message Crown sends will carry. That row is the authoritative copy
+and this paragraph follows it: to change the identity, supersede the row first
+and then restate it here. Editing only this paragraph leaves the messages
+saying something the policy contradicts, which under s17 of the Spam Act 2003
+is a misidentified sender rather than a typo.
+
+`[DECIDE]` The registered address above is the postal address Crown gave. If
+the address registered with ASIC differs, say which one this is; a policy has
+to be findable, and "registered office" is a term of art.
 
 ## 2. What we collect, and from where
 
@@ -79,7 +87,9 @@ Every message Crown sends carries a link that removes you, immediately, without
 an account and without contacting anybody. Using it is the fastest route and it
 is recorded so that it is not undone by accident.
 
-You can also reply to any message, or write to `[DECIDE]` contact address.
+You can also reply to any message, or write to
+inder@crownrealestateagents.com.au, or to 208/2 Infinity Drive, Truganina VIC
+3029.
 
 A request to stop is honoured against the person, the organisation, the address
 and the parcel — whichever we were given — so being reached under a different
@@ -88,8 +98,11 @@ detail does not defeat it.
 ## 6. Access and correction
 
 You may ask what personal information Crown holds about you, and ask for it to
-be corrected. APP 12 and APP 13. `[DECIDE]` Name the contact point and the
-response time Crown commits to; 30 days is the usual undertaking.
+be corrected. APP 12 and APP 13. Write to inder@crownrealestateagents.com.au.
+
+`[DECIDE]` The response time Crown commits to. 30 days is the usual
+undertaking, and a commitment made here is one a complainant can hold Crown
+to — so make it one that can be met when nobody is watching the inbox.
 
 Crown's audit trail records decisions and cannot be edited or deleted, by
 design. Where information is corrected, the correction is recorded alongside
@@ -118,10 +131,19 @@ deployment, which is not yet decided.
 
 ## 9. Complaints
 
-`[DECIDE]` Name the contact point, and state that a complainant may escalate to
-the Office of the Australian Information Commissioner if unsatisfied. The system
-requires at least one active ADMIN or COMPLIANCE account precisely so that
-somebody exists to answer; the readiness gate blocks a launch without one.
+Complaints go to inder@crownrealestateagents.com.au. If you are not satisfied
+with how Crown handles one, you may escalate to the Office of the Australian
+Information Commissioner.
+
+The system requires at least one active ADMIN or COMPLIANCE account precisely
+so that somebody exists to answer; the readiness gate blocks a launch without
+one. That account exists as of migration 0019 and has no password set, so
+`SOMEBODY_CAN_ANSWER_A_PERSON` is still failing — it is not answerable until
+somebody can actually sign in.
+
+`[DECIDE]` Whether complaints should go somewhere other than the sender
+address. One inbox is simpler and, at Crown's size, probably right; two is
+worth it only if somebody different reads the second.
 
 ## 10. Changes to this policy
 

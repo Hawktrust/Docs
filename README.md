@@ -257,7 +257,12 @@ anything, and it is shaped around that:
 
 Section 17 of the same Act wants the message to say who authorised it.
 `outbound_identity` holds one active sender, versioned rather than edited, and
-an `OUTREACH_DRAFT` cannot be created without one.
+an `OUTREACH_DRAFT` cannot be created without one. Since migration 0019 that
+row names a legal person — Crown Real Estate Agents Pty Ltd, ABN 86 690 344
+597 — rather than being empty, which is what made the gate unsatisfiable
+rather than merely unsatisfied. The ABN passes the ATO's checksum; that proves
+it is well formed and not that it belongs to this entity, so confirm it on ABN
+Lookup before the first message goes out.
 
 ## Land search
 
