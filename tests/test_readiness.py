@@ -13,7 +13,8 @@ detail line says which.
 from crown import readiness
 from scripts import readiness as cli
 from tests.conftest import add_evidence, sign_in, user_id
-from tests.test_optout import an_identity
+from tests.test_optout import (an_identity, insert_an_identity,
+                               no_active_identity)
 
 
 def codes(report):
@@ -77,12 +78,20 @@ def test_blocking_failures_come_before_advisory_ones(db):
 
 def test_crown_must_know_who_it_sends_as(db):
     """Section 17 of the Spam Act, asked before anything is written rather than
-    discovered after it was sent."""
+    discovered after it was sent.
+
+    0019 records the real sender, so the failing condition is constructed here.
+    What is under test is the check, not whether the seed happens to satisfy
+    it."""
+    assert codes(readiness.check(db))["CROWN_KNOWS_WHO_IT_SENDS_AS"].passes
+
+    no_active_identity(db)
     check = codes(readiness.check(db))["CROWN_KNOWS_WHO_IT_SENDS_AS"]
     assert not check.passes and check.blocking
 
-    an_identity(db)
+    insert_an_identity(db)
     assert codes(readiness.check(db))["CROWN_KNOWS_WHO_IT_SENDS_AS"].passes
+    db.rollback()
 
 
 def test_two_active_senders_is_also_a_failure(db):
@@ -91,9 +100,9 @@ def test_two_active_senders_is_also_a_failure(db):
     import psycopg
     import pytest
 
-    an_identity(db)
+    assert an_identity(db) is not None          # 0019 already recorded one
     with pytest.raises(psycopg.errors.UniqueViolation):
-        an_identity(db)
+        insert_an_identity(db)
     db.rollback()
 
 

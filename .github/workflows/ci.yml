@@ -86,6 +86,8 @@ jobs:
                -f migrations/0017_close_the_sender_identity.sql
           psql -v ON_ERROR_STOP=1 -d "postgresql://postgres:postgres@127.0.0.1:5432/crown_migration_check" \
                -f migrations/0018_operational_readiness.sql
+          psql -v ON_ERROR_STOP=1 -d "postgresql://postgres:postgres@127.0.0.1:5432/crown_migration_check" \
+               -f migrations/0019_crown_sends_as_itself.sql
 
       - name: Test suite
         run: python -m pytest -q

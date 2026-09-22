@@ -18,13 +18,38 @@ SECRET = "test-secret-for-opt-out-tokens"
 
 
 def an_identity(db, user_email="hawk@crown.local"):
+    """Make sure Crown has somebody to send as, and say who.
+
+    Idempotent since 0019 seeds the real one. Only one identity may be active
+    at a time — that is the point of the unique index — so a test that wants
+    one should get the one that exists rather than fight it.
+    """
+    existing = db.execute(
+        "SELECT id FROM outbound_identity WHERE is_active").fetchone()
+    return existing[0] if existing else insert_an_identity(db, user_email)
+
+
+def insert_an_identity(db, user_email="hawk@crown.local"):
+    """Always inserts. Raises if one is already active, which is what the
+    uniqueness test is for."""
     return db.execute(
         """INSERT INTO outbound_identity
                (legal_entity_name, abn, postal_address, contact_email, created_by)
-           VALUES ('Crown Capital & Development Pty Ltd', '00 000 000 000',
+           VALUES ('A Second Sender Pty Ltd', '00 000 000 000',
                    '1 Example Street, Werribee VIC 3030',
                    'contact@crown.local', %s)
            RETURNING id""", (user_id(db, user_email),)).fetchone()[0]
+
+
+def no_active_identity(db):
+    """Take Crown's sender away, for the tests that need its absence.
+
+    0019 records the real one, so 'nobody has said who we send as' is now a
+    condition to construct rather than one to inherit from an empty table.
+    """
+    db.execute("""UPDATE outbound_identity
+                  SET is_active = false, superseded_at = now()
+                  WHERE is_active""")
 
 
 def active_suppressions(db):
@@ -318,11 +343,16 @@ def test_only_compliance_decides_who_crown_sends_as(app_db, db):
                VALUES ('Not Crown', '1 Somewhere', 'x@y.local', %s)""", (author,))
     app_db.rollback()
 
+    # 0019 seeds the real sender, and only one may be active, so make room
+    # before checking that COMPLIANCE is allowed to record one.
     crowndb.set_identity(app_db, str(author), "COMPLIANCE")
+    app_db.execute("""UPDATE outbound_identity
+                      SET is_active = false, superseded_at = now()
+                      WHERE is_active""")
     app_db.execute(
         """INSERT INTO outbound_identity
                (legal_entity_name, postal_address, contact_email, created_by)
-           VALUES ('Crown Capital & Development Pty Ltd', '1 Example Street',
+           VALUES ('A Replacement Sender Pty Ltd', '1 Example Street',
                    'contact@crown.local', %s)""", (author,))
     app_db.commit()
 
