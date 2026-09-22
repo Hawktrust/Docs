@@ -147,7 +147,9 @@ def test_a_buyer_brief_with_both_is_produced(db):
     approval_id, creator = approved_match(db)
 
     artifact_id = outbound.create(db, approval_id, "BUYER_BRIEF", {"body": "hi"},
-                                  creator, contact={"ORGANISATION": "A Buyer Pty Ltd"})
+                                  creator, contact={"ORGANISATION": "A Buyer Pty Ltd"},
+                                  channel="EMAIL",
+                                  recipient_class="MANDATED_BUYER")
     scope, identifier, sender = db.execute(
         """SELECT contact_scope, contact_identifier, sender_identity_id
            FROM outbound_artifact WHERE id = %s""", (artifact_id,)).fetchone()

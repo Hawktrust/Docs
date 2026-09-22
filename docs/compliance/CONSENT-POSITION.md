@@ -154,21 +154,36 @@ between a business that looks like a broker and one that looks like a list.
 
 ---
 
-## Two gaps this analysis exposes in the system
+## Gaps this analysis exposed in the system
 
-Neither is a legal problem today, because nothing has been sent. Both become
-one on the first send.
+**1. Nothing recorded the channel. ~~Open.~~ Closed by migration 0024.**
 
-**1. Nothing records the channel.** `outbound_artifact` knows its type and its
-recipient. It does not know whether it is going by post or by email. If the
-lawful channel differs by audience — and on this analysis it does — then the
-schema cannot enforce what the policy decides, and the control is a paragraph
-in a document rather than a constraint in a database. Everything else in Crown
-works the other way round.
+`outbound_artifact` knew its type and its recipient and not how it was going
+out, so this document's conclusion was a paragraph somebody had to remember.
+It is now a constraint:
 
-**2. Nothing checks the opt-out is prominent.** APP 7.3(c) wants it drawn to
-attention. The schema requires its presence and says nothing about its
-placement.
+- `channel` (`POST` / `EMAIL`) and `recipient_class`
+  (`LANDHOLDER_FROM_REGISTER` / `PROFESSIONAL_CONTACT` / `MANDATED_BUYER`) are
+  required on anything addressed to a person;
+- a trigger refuses `EMAIL` + `LANDHOLDER_FROM_REGISTER` unless an express
+  consent is on record, on INSERT **and** on UPDATE, because a channel changed
+  afterwards is the obvious way around a rule enforced only at insert;
+- `contact_consent` records express consent — what the person actually did, in
+  a sentence, because "they consented" is a conclusion rather than evidence;
+- a mandate is explicitly **not** accepted as a landholder's consent: it is
+  consent from a different person about a different thing;
+- a suppression still outranks a consent, because stopping is always available.
+
+**There is no `PHONE` channel, and its absence is deliberate.** The Do Not Call
+Register Act wants numbers washed before telemarketing and Crown has not built
+that. A value the schema appears to bless and the law does not would be worse
+than having none. Add it in the same migration that adds the wash.
+
+**2. Nothing checks the opt-out is prominent. Still open.** APP 7.3(c) wants it
+drawn to attention. The schema requires its presence and says nothing about its
+placement. Closing this means the system knowing something about the shape of a
+message rather than only its metadata, which is a larger change than 0024 and
+has not been made.
 
 ---
 

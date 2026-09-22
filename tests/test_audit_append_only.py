@@ -99,7 +99,8 @@ def test_every_transition_in_the_loop_writes_an_audit_row(db):
     # buyer it is addressed to.
     an_identity(db)
     outbound.create(db, approval_id, "BUYER_BRIEF", {"body": "x"}, approver,
-                    contact={"ORGANISATION": "A Buyer Pty Ltd"})
+                    contact={"ORGANISATION": "A Buyer Pty Ltd"},
+                    channel="EMAIL", recipient_class="MANDATED_BUYER")
 
     actions = {r[0] for r in db.execute("SELECT action FROM audit_event").fetchall()}
     assert {"OPPORTUNITY_CREATED", "MATCHES_COMPUTED", "MATCH_APPROVED",

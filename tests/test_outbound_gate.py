@@ -43,7 +43,9 @@ def test_an_approved_match_does_produce_an_artifact(db):
     an_identity(db)
     approval_id, creator = approved_match(db)
     artifact_id = outbound.create(db, approval_id, "OUTREACH_DRAFT",
-                                  {"body": "draft"}, creator, contact=TO)
+                                  {"body": "draft"}, creator, contact=TO,
+                                  channel="POST",
+                                  recipient_class="LANDHOLDER_FROM_REGISTER")
     row = db.execute(
         "SELECT approval_id, artifact_type FROM outbound_artifact WHERE id = %s",
         (artifact_id,)).fetchone()

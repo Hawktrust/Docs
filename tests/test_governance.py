@@ -219,7 +219,8 @@ def test_an_outbound_artifact_carries_the_chain_that_justifies_it(db):
     content = outbound.build_content(db, approval_id, note="for the buyer")
     an_identity(db)                       # 0018: a brief names who sent it
     outbound.create(db, approval_id, "BUYER_BRIEF", content, approver,
-                    contact={"ORGANISATION": "A Buyer Pty Ltd"})
+                    contact={"ORGANISATION": "A Buyer Pty Ltd"},
+                    channel="EMAIL", recipient_class="MANDATED_BUYER")
 
     stored = db.execute(
         "SELECT content FROM outbound_artifact").fetchone()[0]

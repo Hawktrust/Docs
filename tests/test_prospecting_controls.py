@@ -94,7 +94,9 @@ def test_an_unsuppressed_target_still_goes_out(db):
     an_identity(db)                       # 0016: a message names who sent it
     creator = user_id(db, "compliance@crown.local")
     artifact_id = outbound.create(db, approval_id, "OUTREACH_DRAFT", {"body": "hi"},
-                                  creator, contact={"PERSON": "Nobody Suppressed"})
+                                  creator, contact={"PERSON": "Nobody Suppressed"},
+                                  channel="POST",
+                                  recipient_class="LANDHOLDER_FROM_REGISTER")
     assert artifact_id is not None
 
 

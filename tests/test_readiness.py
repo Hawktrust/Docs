@@ -123,7 +123,9 @@ def test_an_artifact_built_on_synthetic_records_fails_the_gate(db):
     an_identity(db)
     approval_id, creator = approved_match(db)
     outbound.create(db, approval_id, "OUTREACH_DRAFT", {"body": "hi"}, creator,
-                    contact={"PERSON": "A. Landholder"})
+                    contact={"PERSON": "A. Landholder"},
+                    channel="POST",
+                    recipient_class="LANDHOLDER_FROM_REGISTER")
 
     check = codes(readiness.check(db))["NOTHING_SYNTHETIC_HAS_LEFT"]
     assert not check.passes
