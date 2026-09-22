@@ -8,9 +8,14 @@ a shell history or a process list.
 """
 import argparse
 import getpass
+import os
 import sys
 
-from crown import auth, db
+# Run from anywhere: `python scripts/set_password.py` puts scripts/ on the
+# path, not the repository root, so `crown` would not import.
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from crown import auth, db    # noqa: E402
 
 
 def main(argv=None) -> int:
