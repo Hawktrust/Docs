@@ -10,9 +10,15 @@ licence or attribution wording, because those are what a confirmation is
 confirming.
 """
 import argparse
+import os
 import sys
 
-from crown import audit, db
+# Run from anywhere: `python scripts/x.py` puts scripts/ on the path,
+# not the repository root, so `crown` would not import. The other
+# scripts in this folder do the same.
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from crown import audit, db    # noqa: E402
 
 BLOCKED_LANES = ("BLOCKED", "C_DERIVED_ONLY")
 

@@ -4,6 +4,7 @@ import psycopg
 import pytest
 
 from crown import audit, db as crown_db
+from tests.test_optout import an_identity
 from tests.conftest import user_id
 
 
@@ -94,7 +95,11 @@ def test_every_transition_in_the_loop_writes_an_audit_row(db):
     approver = user_id(db, "compliance@crown.local")
     approval_id = approval.decide(db, match_id, "APPROVED", "ok", approver, "COMPLIANCE")
     attribution.progress(db, approval_id)
-    outbound.create(db, approval_id, "BUYER_BRIEF", {"body": "x"}, approver)
+    # 0018: a brief is a message to a person, so it names its sender and the
+    # buyer it is addressed to.
+    an_identity(db)
+    outbound.create(db, approval_id, "BUYER_BRIEF", {"body": "x"}, approver,
+                    contact={"ORGANISATION": "A Buyer Pty Ltd"})
 
     actions = {r[0] for r in db.execute("SELECT action FROM audit_event").fetchall()}
     assert {"OPPORTUNITY_CREATED", "MATCHES_COMPUTED", "MATCH_APPROVED",

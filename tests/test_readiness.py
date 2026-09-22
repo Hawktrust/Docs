@@ -189,3 +189,47 @@ def test_the_page_shows_the_blockers(client):
     assert b"NOT READY" in page.data
     assert b"REAL_EVIDENCE_EXISTS" in page.data
     assert b"operator capture" in page.data
+
+
+# ------------------------------------- the conditions the database cannot see
+
+def test_the_gate_checks_the_deployment_too(db):
+    """launch_readiness reads the database, so it can only ever check what the
+    database knows. Two conditions live in the deployment."""
+    codes = {c.code for c in readiness.check(db, environ={}).checks}
+    assert "OPT_OUT_SECRET_IS_ITS_OWN" in codes
+    assert "SESSION_COOKIES_ARE_SECURE" in codes
+
+
+def test_one_secret_for_cookies_and_opt_outs_blocks_a_launch(db):
+    """Rotating it would break every live unsubscribe link, which is a breach
+    of s18 rather than an inconvenience."""
+    failing = codes(readiness.check(db, environ={"CROWN_SECRET": "x"}))
+    check = failing["OPT_OUT_SECRET_IS_ITS_OWN"]
+    assert not check.passes and check.blocking
+    assert "30-day" in check.closes_it
+
+    passing = codes(readiness.check(db, environ={"CROWN_OPTOUT_SECRET": "y"}))
+    assert passing["OPT_OUT_SECRET_IS_ITS_OWN"].passes
+
+
+def test_insecure_cookies_block_a_launch(db):
+    """The flag exists for the test client. In production it strips Secure from
+    the cookie that carries every authorisation decision."""
+    failing = codes(readiness.check(db, environ={"CROWN_INSECURE_COOKIES": "1"}))
+    assert not failing["SESSION_COOKIES_ARE_SECURE"].passes
+
+    assert codes(readiness.check(db, environ={}))["SESSION_COOKIES_ARE_SECURE"].passes
+
+
+def test_a_person_must_be_answerable(db):
+    """APP 1.4 wants somebody contactable for access, correction and
+    complaints. An account nobody can sign in to cannot answer anyone."""
+    check = codes(readiness.check(db))["SOMEBODY_CAN_ANSWER_A_PERSON"]
+    assert check.blocking
+    assert not check.passes          # seeded accounts have no password yet
+
+    db.execute("""UPDATE app_user SET password_hash = 'set'
+                  WHERE role = 'COMPLIANCE' AND is_active""")
+    assert codes(readiness.check(db))["SOMEBODY_CAN_ANSWER_A_PERSON"].passes
+    db.rollback()
