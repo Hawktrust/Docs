@@ -242,7 +242,7 @@ that runs and a system somebody can run.
    alive for 30 days past the last message that named it.** Those are two
    different dates and only the first one is in the database.
 4. **Fill the `[DECIDE]` marks in the three drafts and have them reviewed.**
-   **Twenty-eight left** — fourteen in the privacy policy, ten in the breach
+   **Twenty-seven left** — thirteen in the privacy policy, ten in the breach
    plan, four in the collection notice — of thirty-one. Migration 0019 filled
    the six that were only waiting on Crown's own identity and raised three new
    ones in doing it. None of the rest can be answered from this repository.

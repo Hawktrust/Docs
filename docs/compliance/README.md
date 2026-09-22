@@ -22,10 +22,14 @@ Filling them raised three new ones, which is the ordinary way of these
 documents — naming a contact address makes "how fast do you answer it" a
 question that was not being asked while the address was blank, and naming a
 postal address raises whether it is the one registered with ASIC.
-**Twenty-eight remain**:
-fourteen in the privacy policy, ten in the breach plan, four in the collection
+**Twenty-seven remain**:
+thirteen in the privacy policy, ten in the breach plan, four in the collection
 notice. Every one is a choice rather than a lookup, and nothing in this
 repository will answer any of them.
+
+Crown has since confirmed that 208/2 Infinity Drive is both the registered
+office and the postal address, which closed the mark asking which one it was,
+and that the ABN is registered to the company, which migration 0023 records.
 
 Before any of this is published or relied on:
 

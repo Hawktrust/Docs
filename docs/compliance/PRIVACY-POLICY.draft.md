@@ -16,16 +16,22 @@ template, so that the review is about the decisions and not about the facts.
 **Crown Real Estate Agents Pty Ltd**, ABN 86 690 344 597, of 208/2 Infinity
 Drive, Truganina VIC 3029.
 
-Taken from the active row in `outbound_identity` (migration 0019), which is
-what every message Crown sends will carry. That row is the authoritative copy
-and this paragraph follows it: to change the identity, supersede the row first
-and then restate it here. Editing only this paragraph leaves the messages
-saying something the policy contradicts, which under s17 of the Spam Act 2003
-is a misidentified sender rather than a typo.
+That address is both Crown's registered office and its postal address —
+confirmed by Crown 2026-09-22 — so a formal notice, a complaint and an ordinary
+letter all reach the same place. The distinction matters because "registered
+office" is a term of art: it is where documents can be served under the
+Corporations Act, and a policy that named only a mailing address would leave a
+person no way to serve one.
 
-`[DECIDE]` The registered address above is the postal address Crown gave. If
-the address registered with ASIC differs, say which one this is; a policy has
-to be findable, and "registered office" is a term of art.
+The ABN was confirmed against ABN Lookup by Crown on 2026-09-22; migration 0023
+records who checked and when.
+
+Everything in this section is taken from the active row in `outbound_identity`,
+which is what every message Crown sends will carry. That row is the
+authoritative copy and this paragraph follows it: to change the identity,
+supersede the row first and then restate it here. Editing only this paragraph
+leaves the messages saying something the policy contradicts, which under s17 of
+the Spam Act 2003 is a misidentified sender rather than a typo.
 
 ## 2. What we collect, and from where
 

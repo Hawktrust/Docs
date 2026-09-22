@@ -11,6 +11,11 @@ information is collected from someone other than the individual, the notice must
 be given as soon as practicable after collection, and the usual answer is that
 the first contact carries it.
 
+**Crown agreed this approach 2026-09-22:** collecting from a register rather
+than from the person does not remove the APP 5 duty, so the first contact
+carries the notice. That settles the shape of the document. The `[DECIDE]`
+marks below are details inside it, and they are still open.
+
 Two versions follow because they do different jobs.
 
 ---
