@@ -45,6 +45,7 @@ MIGRATIONS = [
     os.path.join(ROOT, "migrations", "0020_an_identity_that_means_something.sql"),
     os.path.join(ROOT, "migrations", "0021_the_sender_changes_address.sql"),
     os.path.join(ROOT, "migrations", "0022_the_public_inbox_is_not_the_login.sql"),
+    os.path.join(ROOT, "migrations", "0023_the_abn_is_confirmed.sql"),
 ]
 LEADS_FILE = os.path.join(ROOT, "seeds", "relay_leads.json")
 SEEDS = [

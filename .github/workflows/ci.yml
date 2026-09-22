@@ -91,6 +91,7 @@ jobs:
                -f migrations/0020_an_identity_that_means_something.sql
                -f migrations/0021_the_sender_changes_address.sql
                -f migrations/0022_the_public_inbox_is_not_the_login.sql
+               -f migrations/0023_the_abn_is_confirmed.sql
 
       - name: Test suite
         run: python -m pytest -q

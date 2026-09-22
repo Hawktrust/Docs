@@ -339,3 +339,40 @@ def test_the_entity_survived_a_second_supersede(db):
     assert entity == "Crown Real Estate Agents Pty Ltd"
     assert abn == "86 690 344 597"
     assert address == "208/2 Infinity Drive, Truganina VIC 3029"
+
+
+# ------------------------------------------- somebody checked the ABN
+
+def test_the_abn_confirmation_is_recorded(db):
+    """0020 proved the digits are consistent and said plainly that it could not
+    prove ownership. This is the other half, and it could only ever arrive from
+    a person."""
+    state = db.execute(
+        """SELECT new_state FROM audit_event
+           WHERE action = 'SENDER_ABN_CONFIRMED'""").fetchone()[0]
+    assert state["abn"] == "86 690 344 597"
+    assert state["legal_entity_name"] == "Crown Real Estate Agents Pty Ltd"
+    assert state["confirmed_by"] == "Crown"
+
+
+def test_the_record_says_a_person_checked_and_not_this_system(db):
+    """The build environment cannot reach ABN Lookup. A record implying it did
+    would be exactly the provenance failure evidence_record's retrieval_method
+    exists to prevent — who looked matters as much as what they saw."""
+    state = db.execute(
+        """SELECT new_state FROM audit_event
+           WHERE action = 'SENDER_ABN_CONFIRMED'""").fetchone()[0]
+    assert state["method"].startswith("OPERATOR_CAPTURE")
+    assert "cannot reach" in state["method"]
+
+
+def test_the_confirmation_points_at_the_identity_it_confirms(db):
+    """Not at the previous one. Two supersedes have happened since the ABN was
+    first recorded, and a confirmation attached to a retired row would say
+    nothing about what Crown sends as now."""
+    object_id = db.execute(
+        """SELECT object_id FROM audit_event
+           WHERE action = 'SENDER_ABN_CONFIRMED'""").fetchone()[0]
+    active = db.execute(
+        "SELECT id FROM outbound_identity WHERE is_active").fetchone()[0]
+    assert object_id == str(active)

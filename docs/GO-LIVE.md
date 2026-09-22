@@ -80,10 +80,12 @@ decide:
 
 What it deliberately does not check: whether the postal address is real,
 whether the ABN *belongs* to this entity, or whether anybody reads the inbox.
-The checksum proves eleven digits are consistent. **Only ABN Lookup proves the
-number is Crown's, and a well-formed ABN belonging to somebody else is a worse
-s17 breach than none at all** — a false identification rather than an absent
-one.
+The checksum proves eleven digits are consistent. Only ABN Lookup proves the
+number is Crown's, because a well-formed ABN belonging to somebody else is a
+worse s17 breach than none at all — a false identification rather than an
+absent one. **Crown checked it 2026-09-22**, and migration 0023 records who
+checked, when, and that a person did it rather than this system, which cannot
+reach ABN Lookup from here.
 
 ### The opt-out link survives a secret rotation
 
@@ -208,10 +210,10 @@ that runs and a system somebody can run.
    0021 moved the address to the new domain, 0022 separated the published
    contact point from the login. Each retired row keeps the address it sent
    under, because 0017 freezes content — a correction is a new row and never an
-   edit. **Confirm the ABN on ABN Lookup before the first message** — the
-   checksum proves the number is well formed, not that it belongs to this
-   entity, and a well formed wrong ABN is a false sender identification under
-   s17.
+   edit. ~~**Confirm the ABN on ABN Lookup.**~~ **Done** — Crown checked it
+   2026-09-22 and 0023 records that. The checksum proved the digits; only ABN
+   Lookup could prove the ownership, and a well formed wrong ABN would have
+   been a false sender identification under s17 rather than an absent one.
 
    **Two addresses, two jobs.** `info@crownrea.com.au` is published: it goes on
    every message, in the privacy policy and in the collection notice, and it
