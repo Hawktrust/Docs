@@ -7,7 +7,7 @@ the approval exists, and that it says APPROVED rather than REJECTED.
 """
 from psycopg.types.json import Jsonb
 
-from . import audit, suppression
+from . import audit, message, suppression
 
 ACTOR_AGENT = "crown.outbound"
 
@@ -86,7 +86,7 @@ def build_content(conn, approval_id, *, note: str = "") -> dict:
     refuses it a moment later.
     """
     if approval_id is None or str(approval_id).strip() == "":
-        return {"note": note}
+        return {"note": note, "body": message.standard_body(note)}
 
     header = conn.execute(
         """SELECT o.lga, o.geography_label, o.stage::text, o.stage_rule,
@@ -103,7 +103,7 @@ def build_content(conn, approval_id, *, note: str = "") -> dict:
         (approval_id,),
     ).fetchone()
     if header is None:
-        return {"note": note}
+        return {"note": note, "body": message.standard_body(note)}
 
     evidence = conn.execute(
         """SELECT e.source_reference, e.title, e.evidence_class::text,
@@ -120,6 +120,10 @@ def build_content(conn, approval_id, *, note: str = "") -> dict:
 
     return {
         "note": note,
+        # Since 0025 an addressed artefact must draw attention to the way out.
+        # Assembling it here rather than asking every caller to remember is the
+        # difference between a rule and a habit.
+        "body": message.standard_body(note),
         "approval": {
             "id": str(approval_id),
             "decision": header[13],
@@ -284,6 +288,11 @@ def create(conn, approval_id, artifact_type: str, content: dict, created_by,
                 f"a {artifact_type} needs a recipient class, one of "
                 f"{', '.join(RECIPIENT_CLASSES)}. It decides which channels "
                 "are lawful for this person.")
+
+        # The way out has to be findable, not merely present. The trigger in
+        # 0025 refuses the row; this says what to change, and says it before a
+        # draft exists that somebody might send.
+        message.check(content.get("body"))
 
         if (channel, recipient_class) == NEEDS_EXPRESS_CONSENT \
                 and not has_express_consent(conn, scope, identifier):

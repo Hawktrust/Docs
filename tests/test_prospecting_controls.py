@@ -11,7 +11,7 @@ import psycopg
 import pytest
 
 from crown import approval, matching, opportunity, outbound, recommendation, suppression
-from tests.conftest import add_evidence, user_id
+from tests.conftest import a_body, add_evidence, user_id
 
 
 def approved(db, *, principal="CLIENT", label="Client A", reference="TEST-PC-1",
@@ -57,7 +57,7 @@ def test_a_suppressed_person_is_not_contacted_whatever_the_approval_says(db):
                        source_of_request="PHONE")
 
     with pytest.raises(suppression.Suppressed, match="asked not to be contacted"):
-        outbound.create(db, approval_id, "OUTREACH_DRAFT", {"body": "hello"},
+        outbound.create(db, approval_id, "OUTREACH_DRAFT", {"body": a_body()},
                         recorder, contact={"PERSON": "A. Landholder"})
     assert db.execute("SELECT count(*) FROM outbound_artifact").fetchone()[0] == 0
 
@@ -93,7 +93,7 @@ def test_an_unsuppressed_target_still_goes_out(db):
     _, approval_id = approved(db)
     an_identity(db)                       # 0016: a message names who sent it
     creator = user_id(db, "compliance@crown.local")
-    artifact_id = outbound.create(db, approval_id, "OUTREACH_DRAFT", {"body": "hi"},
+    artifact_id = outbound.create(db, approval_id, "OUTREACH_DRAFT", {"body": a_body()},
                                   creator, contact={"PERSON": "Nobody Suppressed"},
                                   channel="POST",
                                   recipient_class="LANDHOLDER_FROM_REGISTER")

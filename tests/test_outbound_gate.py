@@ -4,7 +4,7 @@ import psycopg
 import pytest
 
 from crown import approval, matching, opportunity, outbound
-from tests.conftest import approved_match, csrf, sign_in, user_id
+from tests.conftest import a_body, approved_match, csrf, sign_in, user_id
 from tests.test_optout import an_identity
 
 # An OUTREACH_DRAFT is a message to a person, so since 0016 it needs somebody to
@@ -43,7 +43,7 @@ def test_an_approved_match_does_produce_an_artifact(db):
     an_identity(db)
     approval_id, creator = approved_match(db)
     artifact_id = outbound.create(db, approval_id, "OUTREACH_DRAFT",
-                                  {"body": "draft"}, creator, contact=TO,
+                                  {"body": a_body()}, creator, contact=TO,
                                   channel="POST",
                                   recipient_class="LANDHOLDER_FROM_REGISTER")
     row = db.execute(

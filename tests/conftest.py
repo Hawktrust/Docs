@@ -47,6 +47,7 @@ MIGRATIONS = [
     os.path.join(ROOT, "migrations", "0022_the_public_inbox_is_not_the_login.sql"),
     os.path.join(ROOT, "migrations", "0023_the_abn_is_confirmed.sql"),
     os.path.join(ROOT, "migrations", "0024_the_channel_is_part_of_the_decision.sql"),
+    os.path.join(ROOT, "migrations", "0025_the_way_out_is_findable.sql"),
 ]
 LEADS_FILE = os.path.join(ROOT, "seeds", "relay_leads.json")
 SEEDS = [
@@ -62,6 +63,19 @@ APP_PASSWORD = "test-only-password"
 # The seeded mandates, all synthetic. One place to update when the seed changes;
 # test_the_seed_file_matches_this_count keeps it from drifting silently.
 SEEDED_MANDATE_COUNT = 23
+
+
+def a_body(text="Hello. Crown is writing about your land."):
+    """A message body whose way out a reader would actually find.
+
+    Since 0025 an addressed artefact must draw attention to the opt-out, not
+    merely carry one, so `{"body": "hi"}` is no longer a message — it is a
+    message with no way out. This is the shortest thing that is one.
+    """
+    from crown.message import OPT_OUT_MARKER
+    return (f"{text}\n\n"
+            f"If you would rather not hear from us, stop it here:\n"
+            f"{OPT_OUT_MARKER}\n")
 
 
 def seeded_leads():

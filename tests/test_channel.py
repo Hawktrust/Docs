@@ -11,9 +11,10 @@ living in the schema.
 """
 import psycopg
 import pytest
+from psycopg.types.json import Jsonb
 
 from crown import consent, outbound, suppression
-from tests.conftest import approved_match, user_id
+from tests.conftest import a_body, approved_match, user_id
 from tests.test_optout import an_identity
 
 LANDHOLDER = {"PERSON": "A. Landholder"}
@@ -39,7 +40,7 @@ def test_a_landholder_from_a_register_cannot_be_emailed(db):
     approval_id, creator = approved_match(db)
 
     with pytest.raises(outbound.ChannelNotPermitted, match="Send this by post"):
-        outbound.create(db, approval_id, "OUTREACH_DRAFT", {"body": "hi"},
+        outbound.create(db, approval_id, "OUTREACH_DRAFT", {"body": a_body()},
                         creator, contact=LANDHOLDER, channel="EMAIL",
                         recipient_class="LANDHOLDER_FROM_REGISTER")
 
@@ -50,7 +51,7 @@ def test_the_same_landholder_can_be_written_to(db):
     an_identity(db)
     approval_id, creator = approved_match(db)
 
-    assert outbound.create(db, approval_id, "OUTREACH_DRAFT", {"body": "hi"},
+    assert outbound.create(db, approval_id, "OUTREACH_DRAFT", {"body": a_body()},
                            creator, contact=LANDHOLDER, channel="POST",
                            recipient_class="LANDHOLDER_FROM_REGISTER")
 
@@ -61,7 +62,7 @@ def test_a_reply_opens_the_channel(db):
     a_consent(db)
     approval_id, creator = approved_match(db)
 
-    assert outbound.create(db, approval_id, "OUTREACH_DRAFT", {"body": "hi"},
+    assert outbound.create(db, approval_id, "OUTREACH_DRAFT", {"body": a_body()},
                            creator, contact=LANDHOLDER, channel="EMAIL",
                            recipient_class="LANDHOLDER_FROM_REGISTER")
 
@@ -74,7 +75,7 @@ def test_withdrawing_the_consent_closes_it_again(db):
                      withdrawn_by=user_id(db, "analyst@crown.local"))
 
     with pytest.raises(outbound.ChannelNotPermitted):
-        outbound.create(db, approval_id, "OUTREACH_DRAFT", {"body": "hi"},
+        outbound.create(db, approval_id, "OUTREACH_DRAFT", {"body": a_body()},
                         creator, contact=LANDHOLDER, channel="EMAIL",
                         recipient_class="LANDHOLDER_FROM_REGISTER")
 
@@ -88,7 +89,7 @@ def test_a_buyers_mandate_is_not_a_landholders_consent(db):
     approval_id, creator = approved_match(db)
 
     with pytest.raises(outbound.ChannelNotPermitted):
-        outbound.create(db, approval_id, "OUTREACH_DRAFT", {"body": "hi"},
+        outbound.create(db, approval_id, "OUTREACH_DRAFT", {"body": a_body()},
                         creator, contact=LANDHOLDER, channel="EMAIL",
                         recipient_class="LANDHOLDER_FROM_REGISTER")
 
@@ -99,7 +100,7 @@ def test_a_professional_contact_can_be_emailed_without_one(db):
     an_identity(db)
     approval_id, creator = approved_match(db)
 
-    assert outbound.create(db, approval_id, "OUTREACH_DRAFT", {"body": "hi"},
+    assert outbound.create(db, approval_id, "OUTREACH_DRAFT", {"body": a_body()},
                            creator, contact={"ORGANISATION": "A Firm Pty Ltd"},
                            channel="EMAIL",
                            recipient_class="PROFESSIONAL_CONTACT")
@@ -120,9 +121,9 @@ def test_the_database_refuses_it_even_if_the_code_is_bypassed(db):
                    (approval_id, artifact_type, content, created_by,
                     contact_scope, contact_identifier, sender_identity_id,
                     channel, recipient_class)
-               VALUES (%s,'OUTREACH_DRAFT','{}',%s,'PERSON','A. Landholder',%s,
+               VALUES (%s,'OUTREACH_DRAFT',%s,%s,'PERSON','A. Landholder',%s,
                        'EMAIL','LANDHOLDER_FROM_REGISTER')""",
-            (approval_id, creator, sender))
+            (approval_id, Jsonb({"body": a_body()}), creator, sender))
     db.rollback()
 
 
@@ -132,7 +133,7 @@ def test_the_channel_cannot_be_switched_afterwards(db):
     an_identity(db)
     approval_id, creator = approved_match(db)
     artifact_id = outbound.create(
-        db, approval_id, "OUTREACH_DRAFT", {"body": "hi"}, creator,
+        db, approval_id, "OUTREACH_DRAFT", {"body": a_body()}, creator,
         contact=LANDHOLDER, channel="POST",
         recipient_class="LANDHOLDER_FROM_REGISTER")
 
@@ -153,8 +154,8 @@ def test_a_message_to_a_person_must_name_a_channel(db):
             """INSERT INTO outbound_artifact
                    (approval_id, artifact_type, content, created_by,
                     contact_scope, contact_identifier, sender_identity_id)
-               VALUES (%s,'OUTREACH_DRAFT','{}',%s,'PERSON','A. Landholder',%s)""",
-            (approval_id, creator, sender))
+               VALUES (%s,'OUTREACH_DRAFT',%s,%s,'PERSON','A. Landholder',%s)""",
+            (approval_id, Jsonb({"body": a_body()}), creator, sender))
     db.rollback()
 
 
@@ -181,9 +182,9 @@ def test_there_is_no_phone_channel(db):
                    (approval_id, artifact_type, content, created_by,
                     contact_scope, contact_identifier, sender_identity_id,
                     channel, recipient_class)
-               VALUES (%s,'OUTREACH_DRAFT','{}',%s,'PERSON','A. Landholder',%s,
+               VALUES (%s,'OUTREACH_DRAFT',%s,%s,'PERSON','A. Landholder',%s,
                        'PHONE','LANDHOLDER_FROM_REGISTER')""",
-            (approval_id, creator, sender))
+            (approval_id, Jsonb({"body": a_body()}), creator, sender))
     db.rollback()
 
 
@@ -210,7 +211,7 @@ def test_consent_matching_survives_a_differently_typed_name(db):
     a_consent(db, identifier="  a.   LANDHOLDER ")
     approval_id, creator = approved_match(db)
 
-    assert outbound.create(db, approval_id, "OUTREACH_DRAFT", {"body": "hi"},
+    assert outbound.create(db, approval_id, "OUTREACH_DRAFT", {"body": a_body()},
                            creator, contact=LANDHOLDER, channel="EMAIL",
                            recipient_class="LANDHOLDER_FROM_REGISTER")
 
@@ -242,7 +243,7 @@ def test_a_suppression_still_outranks_a_consent(db):
     approval_id, creator = approved_match(db)
 
     with pytest.raises(suppression.Suppressed):
-        outbound.create(db, approval_id, "OUTREACH_DRAFT", {"body": "hi"},
+        outbound.create(db, approval_id, "OUTREACH_DRAFT", {"body": a_body()},
                         creator, contact=LANDHOLDER, channel="EMAIL",
                         recipient_class="LANDHOLDER_FROM_REGISTER")
 

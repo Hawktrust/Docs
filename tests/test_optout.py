@@ -12,7 +12,7 @@ import psycopg
 import pytest
 
 from crown import optout, outbound, suppression
-from tests.conftest import approved_match, csrf, sign_in, user_id
+from tests.conftest import a_body, approved_match, csrf, sign_in, user_id
 
 SECRET = "test-secret-for-opt-out-tokens"
 
@@ -200,7 +200,7 @@ def test_the_suppression_then_blocks_the_next_message(db):
     optout.redeem(db, SECRET, token, requested_at=datetime.now(timezone.utc))
 
     with pytest.raises(suppression.Suppressed):
-        outbound.create(db, approval_id, "OUTREACH_DRAFT", {"body": "hello"},
+        outbound.create(db, approval_id, "OUTREACH_DRAFT", {"body": a_body()},
                         creator, contact=contact)
 
 

@@ -12,7 +12,7 @@ detail line says which.
 """
 from crown import readiness
 from scripts import readiness as cli
-from tests.conftest import add_evidence, sign_in, user_id
+from tests.conftest import a_body, add_evidence, sign_in, user_id
 from tests.test_optout import (an_identity, insert_an_identity,
                                no_active_identity)
 
@@ -122,7 +122,7 @@ def test_an_artifact_built_on_synthetic_records_fails_the_gate(db):
 
     an_identity(db)
     approval_id, creator = approved_match(db)
-    outbound.create(db, approval_id, "OUTREACH_DRAFT", {"body": "hi"}, creator,
+    outbound.create(db, approval_id, "OUTREACH_DRAFT", {"body": a_body()}, creator,
                     contact={"PERSON": "A. Landholder"},
                     channel="POST",
                     recipient_class="LANDHOLDER_FROM_REGISTER")

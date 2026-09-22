@@ -179,11 +179,35 @@ Register Act wants numbers washed before telemarketing and Crown has not built
 that. A value the schema appears to bless and the law does not would be worse
 than having none. Add it in the same migration that adds the wash.
 
-**2. Nothing checks the opt-out is prominent. Still open.** APP 7.3(c) wants it
-drawn to attention. The schema requires its presence and says nothing about its
-placement. Closing this means the system knowing something about the shape of a
-message rather than only its metadata, which is a larger change than 0024 and
-has not been made.
+**2. Nothing checked the opt-out was prominent. ~~Open.~~ Closed by migration
+0025.**
+
+APP 7.3(c) wants the opt-out drawn to the reader's attention, not merely
+present. The link cannot be in the body when the body is written — it is an
+HMAC over the artefact id and the artefact does not exist yet — so the body
+carries `{{opt-out}}` where the link goes and `crown/message.py` substitutes it
+at send time. Prominence is then a property of where the marker sits, which is
+decidable. Five rules, enforced by trigger on INSERT and UPDATE:
+
+| | |
+|---|---|
+| present | a message with no way out is not a message |
+| once | one is a way out; several is a maze |
+| not buried | at most 400 characters may follow it |
+| on its own line | inside a paragraph is how an opt-out gets read past |
+| introduced in words | a bare link draws attention to nothing |
+
+`build_content()` now assembles a compliant body itself, so every artefact
+Crown produces satisfies this by construction. "Remember to include the opt-out
+prominently" is precisely the instruction that gets forgotten on the one
+message that matters.
+
+**What these rules cannot decide**, and it is most of what prominent means to a
+person: font size, colour, contrast, whether the mail client renders it,
+whether a human notices. They decide whether the way out was put somewhere a
+reader would find it. That is a smaller claim than the Act makes, and it is
+stated rather than implied — a check that appears to settle a question it has
+only narrowed is worse than an honest partial one.
 
 ---
 

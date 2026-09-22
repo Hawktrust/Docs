@@ -93,6 +93,7 @@ jobs:
                -f migrations/0022_the_public_inbox_is_not_the_login.sql
                -f migrations/0023_the_abn_is_confirmed.sql
                -f migrations/0024_the_channel_is_part_of_the_decision.sql
+               -f migrations/0025_the_way_out_is_findable.sql
 
       - name: Test suite
         run: python -m pytest -q

@@ -5,7 +5,7 @@ import pytest
 
 from crown import audit, db as crown_db
 from tests.test_optout import an_identity
-from tests.conftest import user_id
+from tests.conftest import a_body, user_id
 
 
 def an_audit_row(conn):
@@ -98,7 +98,7 @@ def test_every_transition_in_the_loop_writes_an_audit_row(db):
     # 0018: a brief is a message to a person, so it names its sender and the
     # buyer it is addressed to.
     an_identity(db)
-    outbound.create(db, approval_id, "BUYER_BRIEF", {"body": "x"}, approver,
+    outbound.create(db, approval_id, "BUYER_BRIEF", {"body": a_body()}, approver,
                     contact={"ORGANISATION": "A Buyer Pty Ltd"},
                     channel="EMAIL", recipient_class="MANDATED_BUYER")
 
