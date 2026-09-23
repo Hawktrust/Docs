@@ -91,3 +91,67 @@ instruction:
 
 (`BYDDF`, the other BYD Company Ltd OTC listing, was checked and found
 `tradable: false` / `status: inactive` on Alpaca — not used.)
+
+## Follow-on: automated trading bot
+
+After the connection test, the user asked for an ongoing automated
+strategy ("keep on setting trades... making profit everytime"). Two
+important caveats given up front and still true: no rule-based bot
+guarantees profit, and this is paper money — losses here have no real
+financial consequence, which is the point of testing it this way.
+
+### v1 — fixed-threshold swing bot (`automation/alpaca_bot.py`)
+
+Sell a position at **+3%** unrealized, rebuy at **-2%** off the last sell
+price, checked hourly via a Routine (trigger `trig_01CoW1HYzK2mUehKfw7dkZas`).
+Traded BYD/BYDDY/MSFT. Over many consecutive hourly checks these three
+barely moved (~3% range across 2 days), so the bot sat idle almost the
+entire time — correct behavior, just not useful.
+
+### v2 — momentum bot (`automation/momentum_bot.py`, current)
+
+Replaced the fixed thresholds with a 3-hour/10-hour SMA crossover, and
+retargeted to the most volatile symbols actually measured on Alpaca paper
+(2-day hourly-bar range%): **BTC/USD** (4.3%), **ETH/USD** (4.2%),
+**DOGE/USD** (14.2%), **LTC/USD** (7.8%), **SOL/USD** (4.2%), and **COIN**
+(5.3%, best-moving equity — beat TSLA/NVDA/MSFT/BYD). Crypto trades 24/7,
+which also fixed the idle-overnight problem from v1. Same Routine, updated
+to call the new script; no local state, everything derived fresh from
+Alpaca's own position/order/bar data each run.
+
+### Bugs found and fixed live
+
+1. **Duplicate orders on unfilled positions.** The bot only checked
+   *filled* positions before deciding to enter, so a symbol whose order
+   was still pending (e.g. an equity order placed while markets were
+   closed) looked identical to "never traded" on the next hourly run — it
+   bought COIN a second time before the first $1000 order had even
+   filled. Caught immediately; the duplicate was cancelled manually. Fix:
+   check `GET /v2/orders?status=open` for the symbol first and skip if one
+   exists.
+2. **Wrong crypto symbol format for position lookups.** Alpaca's
+   `/v2/positions/{symbol}` endpoint uses the compact crypto symbol
+   (`BTCUSD`), while orders/assets/bars use the slash form (`BTC/USD`).
+   Querying positions with the slash form 404s even when a position
+   exists — indistinguishable from "no position" — so the bot re-bought
+   BTC/USD and LTC/USD on top of already-filled positions two hourly
+   cycles in a row before this was caught, roughly doubling both to
+   ~$2000 each instead of the intended $1000. Fix: strip the slash for
+   the positions-endpoint path only.
+
+Both are committed with the fix; no further recurrences observed after.
+
+### Status as of last report
+
+All six target symbols reached a position at some point; COIN's position
+was later closed when its momentum flipped down (SOLD, partial-then-full
+fill, normal fractional-share behavior). Unrealized P&L across the
+remaining crypto positions has been negative since entry (BTC/ETH/DOGE/
+LTC/SOL all down several percent), with the SMA crossover not yet
+flipping to a sell signal — expected behavior for a lagging-indicator
+strategy riding out a drawdown, not a malfunction. Portfolio equity has
+dipped modestly from the $100,000 starting baseline as a result. The
+account also holds a few pre-existing positions (GS, ISRG, MRVL) that
+predate this session and are not managed by the bot.
+
+The Routine remains active and continues checking hourly.
