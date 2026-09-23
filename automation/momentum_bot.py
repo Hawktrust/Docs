@@ -25,13 +25,18 @@ TRADE_BASE = "https://paper-api.alpaca.markets/v2"
 DATA_STOCKS_BASE = "https://data.alpaca.markets/v2"
 DATA_CRYPTO_BASE = "https://data.alpaca.markets/v1beta3"
 
-# symbol -> asset class
+# symbol -> asset class. Chosen for 2-day hourly-bar volatility (measured
+# 2026-09-23): BYD/BYDDY/MSFT dropped (~3% range, barely move); these six
+# were the top movers available on Alpaca paper (DOGE 14.2%, LTC 7.8%,
+# COIN 5.3%, BTC 4.3%, SOL 4.2%, ETH 4.2%). Re-measure periodically —
+# volatility ranking shifts over time.
 SYMBOLS = {
-    "BYD": "equity",
-    "BYDDY": "equity",
-    "MSFT": "equity",
     "BTC/USD": "crypto",
     "ETH/USD": "crypto",
+    "DOGE/USD": "crypto",
+    "LTC/USD": "crypto",
+    "SOL/USD": "crypto",
+    "COIN": "equity",
 }
 
 SHORT_WINDOW = 3
