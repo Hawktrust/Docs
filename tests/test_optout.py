@@ -12,19 +12,60 @@ import psycopg
 import pytest
 
 from crown import optout, outbound, suppression
-from tests.conftest import approved_match, csrf, sign_in, user_id
+from tests.conftest import a_body, approved_match, csrf, sign_in, user_id
 
 SECRET = "test-secret-for-opt-out-tokens"
 
 
 def an_identity(db, user_email="hawk@crown.local"):
+    """Make sure Crown has somebody to send as, and say who.
+
+    Idempotent since 0019 seeds the real one. Only one identity may be active
+    at a time — that is the point of the unique index — so a test that wants
+    one should get the one that exists rather than fight it.
+    """
+    existing = db.execute(
+        "SELECT id FROM outbound_identity WHERE is_active").fetchone()
+    return existing[0] if existing else insert_an_identity(db, user_email)
+
+
+# A constructed ABN that passes the ATO checksum, which 0020 now requires of
+# any stored value. It reads as obviously synthetic, which matters: a
+# checksum-valid ABN can belong to a real entity, so this is a fixture and
+# never goes in a document or a message.
+A_SYNTHETIC_ABN = "11 111 111 106"
+
+
+def insert_an_identity(db, user_email="hawk@crown.local", *,
+                       legal_entity_name="A Second Sender Pty Ltd",
+                       abn=A_SYNTHETIC_ABN,
+                       postal_address="1 Example Street, Werribee VIC 3030",
+                       contact_email="contact@crown.local"):
+    """Always inserts. Raises if one is already active, which is what the
+    uniqueness test is for.
+
+    Every field is overridable because 0020 checks the contents of this row
+    rather than only its existence, and a test of a malformed identity needs
+    to be able to build one.
+    """
     return db.execute(
         """INSERT INTO outbound_identity
                (legal_entity_name, abn, postal_address, contact_email, created_by)
-           VALUES ('Crown Capital & Development Pty Ltd', '00 000 000 000',
-                   '1 Example Street, Werribee VIC 3030',
-                   'contact@crown.local', %s)
-           RETURNING id""", (user_id(db, user_email),)).fetchone()[0]
+           VALUES (%s, %s, %s, %s, %s)
+           RETURNING id""",
+        (legal_entity_name, abn, postal_address, contact_email,
+         user_id(db, user_email))).fetchone()[0]
+
+
+def no_active_identity(db):
+    """Take Crown's sender away, for the tests that need its absence.
+
+    0019 records the real one, so 'nobody has said who we send as' is now a
+    condition to construct rather than one to inherit from an empty table.
+    """
+    db.execute("""UPDATE outbound_identity
+                  SET is_active = false, superseded_at = now()
+                  WHERE is_active""")
 
 
 def active_suppressions(db):
@@ -159,7 +200,7 @@ def test_the_suppression_then_blocks_the_next_message(db):
     optout.redeem(db, SECRET, token, requested_at=datetime.now(timezone.utc))
 
     with pytest.raises(suppression.Suppressed):
-        outbound.create(db, approval_id, "OUTREACH_DRAFT", {"body": "hello"},
+        outbound.create(db, approval_id, "OUTREACH_DRAFT", {"body": a_body()},
                         creator, contact=contact)
 
 
@@ -318,11 +359,16 @@ def test_only_compliance_decides_who_crown_sends_as(app_db, db):
                VALUES ('Not Crown', '1 Somewhere', 'x@y.local', %s)""", (author,))
     app_db.rollback()
 
+    # 0019 seeds the real sender, and only one may be active, so make room
+    # before checking that COMPLIANCE is allowed to record one.
     crowndb.set_identity(app_db, str(author), "COMPLIANCE")
+    app_db.execute("""UPDATE outbound_identity
+                      SET is_active = false, superseded_at = now()
+                      WHERE is_active""")
     app_db.execute(
         """INSERT INTO outbound_identity
                (legal_entity_name, postal_address, contact_email, created_by)
-           VALUES ('Crown Capital & Development Pty Ltd', '1 Example Street',
+           VALUES ('A Replacement Sender Pty Ltd', '1 Example Street',
                    'contact@crown.local', %s)""", (author,))
     app_db.commit()
 

@@ -30,7 +30,16 @@ for f in migrations/0001_ticket01_thin_loop.sql \
          migrations/0016_going_live.sql \
          migrations/0017_close_the_sender_identity.sql \
          migrations/0018_operational_readiness.sql \
-         seeds/001_users_and_config.sql \
+         migrations/0019_crown_sends_as_itself.sql \
+         migrations/0020_an_identity_that_means_something.sql \
+         migrations/0021_the_sender_changes_address.sql \
+         migrations/0022_the_public_inbox_is_not_the_login.sql \
+         migrations/0023_the_abn_is_confirmed.sql \
+         migrations/0024_the_channel_is_part_of_the_decision.sql \
+         migrations/0025_the_way_out_is_findable.sql \
+         migrations/0026_nothing_is_kept_forever.sql \
+         seeds/001_config.sql \
+         seeds/dev_only_users.sql \
          seeds/002_buyer_mandates.sql \
          seeds/003_candidate_sources.sql \
          seeds/dev_only_demo_evidence.sql; do
