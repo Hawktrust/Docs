@@ -65,8 +65,12 @@ def _request(url, method="GET", data=None):
 
 
 def get_position(symbol):
-    encoded = urllib.parse.quote(symbol, safe="")
-    status, body = _request(f"{TRADE_BASE}/positions/{encoded}")
+    # The positions endpoint uses the compact crypto symbol (BTCUSD), not
+    # the slash form (BTC/USD) that orders/assets/bars use. Using the
+    # slash form here 404s even when a position exists, which looks
+    # identical to "never bought" and causes repeat buys every run.
+    path_symbol = symbol.replace("/", "")
+    status, body = _request(f"{TRADE_BASE}/positions/{path_symbol}")
     if status == 404:
         return None
     if status != 200:
