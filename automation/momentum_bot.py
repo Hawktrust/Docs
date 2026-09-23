@@ -74,6 +74,14 @@ def get_position(symbol):
     return body
 
 
+def has_open_order(symbol):
+    encoded = urllib.parse.quote(symbol, safe="")
+    status, body = _request(f"{TRADE_BASE}/orders?status=open&symbols={encoded}&limit=10")
+    if status != 200:
+        raise RuntimeError(f"open orders/{symbol}: {status} {body}")
+    return len(body) > 0
+
+
 def get_bars(symbol, asset_class):
     start = (datetime.now(timezone.utc) - timedelta(days=5)).strftime("%Y-%m-%dT%H:%M:%SZ")
     if asset_class == "crypto":
@@ -122,6 +130,12 @@ def check_symbol(symbol, asset_class):
 
     if signal is None:
         return f"{symbol}: only {n_bars} {TIMEFRAME} bars available (need {LONG_WINDOW}) — skipping"
+
+    # An order can sit unfilled for hours (e.g. equities placed outside
+    # market hours). Without this check, every hourly run would see no
+    # settled position/exit yet and re-issue another order on top of it.
+    if has_open_order(symbol):
+        return f"{symbol}: order already pending — not re-ordering this run"
 
     if pos is None:
         if signal == "up":
