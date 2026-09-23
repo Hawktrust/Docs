@@ -94,6 +94,7 @@ jobs:
                -f migrations/0023_the_abn_is_confirmed.sql
                -f migrations/0024_the_channel_is_part_of_the_decision.sql
                -f migrations/0025_the_way_out_is_findable.sql
+               -f migrations/0026_nothing_is_kept_forever.sql
 
       - name: Test suite
         run: python -m pytest -q

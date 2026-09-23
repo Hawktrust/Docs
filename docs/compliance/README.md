@@ -22,8 +22,15 @@ Filling them raised three new ones, which is the ordinary way of these
 documents — naming a contact address makes "how fast do you answer it" a
 question that was not being asked while the address was blank, and naming a
 postal address raises whether it is the one registered with ASIC.
-**Eighteen remain**: four in the privacy
-policy, ten in the breach plan, four in the collection notice.
+**Seven remain**: three in the privacy policy,
+three in the breach plan, one in the collection notice — and every one of the
+seven is a fact nobody has yet rather than a judgement nobody has made.
+
+They are: the policy's URL and whether hosting is onshore (both wait on a
+deployment), who at Crown ratifies the section 4 position, a mobile number for
+the breach roster, the date the tabletop was run, and the same URL again in the
+collection notice. Nothing else is outstanding that reading this repository
+could settle.
 
 The privacy policy stopped being a form. Every section of it is now answered,
 with the positions taken on Crown's behalf collected in an appendix rather than

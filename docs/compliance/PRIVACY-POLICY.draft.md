@@ -163,11 +163,17 @@ A suppression outliving the contact data it suppresses is deliberate: a list of
 people not to contact is useless if it expires before the data that would let
 Crown contact them.
 
-**This is not yet enforced.** Nothing in the system expires today. The periods
-above are the intended rule, and until a job implements them this table
-describes an intention rather than a behaviour — which is stated plainly here
-because a policy claiming an expiry that does not happen is worse than one that
-admits the gap.
+**This is enforced.** Migration 0026 holds these periods as data, a view shows
+what is due before anything is touched, and `scripts/retention.py` applies
+them. An expired message is de-identified rather than deleted: the recipient's
+name is removed and the record of Crown's decision stays, because the audit
+trail exists to show what Crown did and erasing it would be a deletion schedule
+for evidence.
+
+A request not to be contacted is never expired. It has to outlive the data it
+protects, or honouring it becomes impossible and the person is contacted again
+by a system that forgot — the one place where keeping information is the
+privacy-protective choice.
 
 ## 8. Overseas disclosure
 
@@ -199,11 +205,15 @@ one. That account exists and has no password set, so
 `SOMEBODY_CAN_ANSWER_A_PERSON` is still failing — it is not answerable until
 somebody can actually sign in.
 
-`[DECIDE]` Name who reads info@crownrea.com.au and how often. The proposed
-undertaking is **every business day**, which is what a 30-day response
-commitment needs behind it. The gate can check the address is shaped like one;
-nothing can check that a person opens it, and a published address nobody reads
-satisfies s17's letter while defeating the whole point of APP 1.4.
+**info@crownrea.com.au is read every business day by Inder.** Proposed
+2026-09-23, for Crown to ratify — it is what a 30-day response commitment needs
+behind it, and a commitment with nothing behind it is the one a complainant
+discovers first.
+
+The gate can check the address is shaped like one. Nothing can check that a
+person opens it, and a published address nobody reads satisfies s17's letter
+while defeating the whole point of APP 1.4. This is the sentence to revisit
+first when Crown gets busy.
 
 ## 10. Changes to this policy
 

@@ -37,6 +37,7 @@ for f in migrations/0001_ticket01_thin_loop.sql \
          migrations/0023_the_abn_is_confirmed.sql \
          migrations/0024_the_channel_is_part_of_the_decision.sql \
          migrations/0025_the_way_out_is_findable.sql \
+         migrations/0026_nothing_is_kept_forever.sql \
          seeds/001_config.sql \
          seeds/dev_only_users.sql \
          seeds/002_buyer_mandates.sql \

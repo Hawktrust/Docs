@@ -195,7 +195,7 @@ that runs and a system somebody can run.
 | **Backups** | none | Every table that matters is append-only or audited, which protects against tampering and not against loss. Point-in-time recovery, tested by restoring — an untested backup is a belief. |
 | **Migrations** | forward only | Twenty numbered migrations, no down-steps, applied by hand. Fine so far. The first migration applied to a database holding real records is the one where that stops being fine. |
 | **Observability** | partial | `/health` answers without a session and says only up or not up. Still no structured logging and no error reporting; the audit trail records decisions, not failures, so a crashed alert run leaves only the stderr line `run_alerts.py` prints. |
-| **Retention** | none | Nothing expires. Evidence has a shelf life and says when it is stale; personal information has no retention rule at all, and APP 11.2 requires destroying or de-identifying it when it is no longer needed. |
+| **Retention** | **built** | `retention_rule` holds the periods as data, `retention_due` previews what is about to go, and `scripts/retention.py` applies them — dry run by default, because a sweep that acts by default is one somebody runs by accident. Needs a cron entry: `30 3 * * 0 cd /srv/crown && CROWN_DSN=... python scripts/retention.py --apply` |
 | **Secret rotation** | **built** | `CROWN_OPTOUT_SECRET` signs opt-out links, `CROWN_OPTOUT_SECRET_PREVIOUS` keeps retired secrets verifying, and the readiness gate blocks a launch while the fallback to `CROWN_SECRET` is still in use. |
 
 ---
@@ -242,8 +242,10 @@ that runs and a system somebody can run.
    alive for 30 days past the last message that named it.** Those are two
    different dates and only the first one is in the database.
 4. **Ratify the compliance drafts and have them reviewed.**
-   **Eighteen marks left** — four in the privacy policy, ten in the breach
-   plan, four in the collection notice — of thirty-one. The privacy policy is
+   **Seven marks left** of thirty-one, and each is a fact nobody has yet: the
+   policy's URL and whether hosting is onshore (both wait on a deployment), who
+   ratifies the section 4 position, a mobile number for the breach roster, and
+   the date the tabletop is run. The privacy policy is
    now a complete document rather than a form: every section is answered, and
    the positions proposed on Crown's behalf are collected in its appendix
    rather than left as blanks, because a lawyer can only argue with a document
@@ -263,7 +265,10 @@ that runs and a system somebody can run.
    relied on per audience — is the one that matters most.
 5. **Deployment and backups.** Ordinary work, none of it surprising. Set
    `CROWN_OPTOUT_SECRET` while you are setting the others.
-6. **Decide retention.** Nothing expires today, and APP 11.2 requires it.
+6. ~~**Decide retention.**~~ **Done** — migration 0026. The periods the privacy
+   policy quotes are now the periods the database applies, which is the point:
+   a published retention period nobody implements is worse than an admitted
+   absence, because it is relied on.
 7. **Re-read `launch_readiness`.** It will not go green on its own.
 
 ---

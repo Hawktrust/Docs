@@ -1,0 +1,18 @@
+# Crown's scheduled work. Install with: crontab -u crown deploy/crown.cron
+#
+# Both entries matter for different reasons. A system that alerts nobody will
+# not be noticed when it stops working. A retention period nobody applies is a
+# promise in a privacy policy that the database does not keep.
+
+CROWN_DSN=postgresql://crown_app@127.0.0.1:5432/crown_ai
+
+# Watchlist detectors. Quiet on a quiet day, safe to re-run after a crash.
+15 7 * * *   cd /srv/crown && .venv/bin/python scripts/run_alerts.py --quiet
+
+# Retention sweep. --apply, because without it this is a preview that changes
+# nothing and the periods go unapplied forever.
+30 3 * * 0   cd /srv/crown && .venv/bin/python scripts/retention.py --apply --quiet
+
+# Backup, with a restore check once a week. An untested backup is a belief.
+0  2 * * 1-6 cd /srv/crown && deploy/backup.sh
+0  2 * * 0   cd /srv/crown && deploy/backup.sh --verify-restore
