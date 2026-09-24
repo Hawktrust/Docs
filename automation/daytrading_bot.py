@@ -25,7 +25,7 @@ from datetime import datetime, timedelta, timezone
 TRADE_BASE = "https://paper-api.alpaca.markets/v2"
 DATA_CRYPTO_BASE = "https://data.alpaca.markets/v1beta3"
 
-SYMBOLS = ["BTC/USD", "ETH/USD", "DOGE/USD", "LTC/USD", "SOL/USD"]
+SYMBOLS = ["BTC/USD", "ETH/USD", "DOGE/USD", "LTC/USD", "SOL/USD", "GRT/USD", "UNI/USD"]
 
 SHORT_WINDOW = 3
 LONG_WINDOW = 10
