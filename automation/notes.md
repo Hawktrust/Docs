@@ -1,5 +1,15 @@
 # Trading bot notes
 
+## 2026-09-24 ~12:58 UTC — First scheduled cycle since dead-zone fix: clean
+
+First hourly Routine run after the 0.15% dead-zone fix and GRT/UNI
+addition landed. Zero trades — all 7 positions (BTC/ETH/DOGE/SOL/GRT/UNI
+holding, LTC still correctly out) stayed put. GRT is down -1.37%
+unrealized but its gap (+0.374%) is well past the dead zone, so it held
+through the dip on a real signal rather than reacting to noise — exactly
+the intended behavior. One data point, not proof, but consistent with
+the fix working.
+
 Running journal for the Alpaca connection test / trading bot experiments
 (branch `claude/alpaca-connection-test-fpuiei`, PR #5). Newest entries at
 the top.
