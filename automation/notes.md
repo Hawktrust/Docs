@@ -1,5 +1,15 @@
 # Trading bot notes
 
+## 2026-09-24 ~13:58 UTC — First all-green cycle since the fix; LTC rebought
+
+Every held position now unrealized-positive (BTC +0.77%, ETH +0.51%, DOGE
++1.19%, SOL +0.78%, GRT +2.01%, UNI +1.51%). Rebought LTC on a strong
++3.588% gap — well clear of the dead zone, a real trend signal not noise.
+Broader crypto market appears to have turned up this hour. Too early to
+credit the dead-zone fix specifically (could just be market direction),
+but no whipsaw and a clean single trade this cycle is the behavior we
+wanted.
+
 ## 2026-09-24 ~12:58 UTC — First scheduled cycle since dead-zone fix: clean
 
 First hourly Routine run after the 0.15% dead-zone fix and GRT/UNI
