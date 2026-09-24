@@ -31,6 +31,7 @@ SHORT_WINDOW = 3
 LONG_WINDOW = 10
 TIMEFRAME = "15Min"
 NOTIONAL = "1000"  # dollars per new entry
+SIGNAL_THRESHOLD = 0.0015  # 0.15% minimum SMA gap to count as a real signal
 
 
 def _request(url, method="GET", data=None):
@@ -99,19 +100,34 @@ def sma(closes, n):
 
 
 def momentum_signal(symbol):
+    # A plain crossover flips on any gap, including near-zero noise (measured
+    # 2026-09-24: BTC +0.01%, ETH -0.04%, DOGE -0.04%, SOL +0.07% — all well
+    # under 0.1%), which whipsawed the bot into a same-day sell-then-rebuy at
+    # a worse price. Require the gap to clear SIGNAL_THRESHOLD before calling
+    # it a real trend; a gap inside the dead zone is "neutral" and leaves
+    # whatever position state already exists unchanged (no trade either way).
     bars = get_bars(symbol)
     closes = [b["c"] for b in bars]
     if len(closes) < LONG_WINDOW:
         return None, len(closes)
-    return ("up" if sma(closes, SHORT_WINDOW) > sma(closes, LONG_WINDOW) else "down"), len(closes)
+    short, long_ = sma(closes, SHORT_WINDOW), sma(closes, LONG_WINDOW)
+    gap = (short - long_) / long_
+    if gap > SIGNAL_THRESHOLD:
+        signal = "up"
+    elif gap < -SIGNAL_THRESHOLD:
+        signal = "down"
+    else:
+        signal = "neutral"
+    return (signal, gap), len(closes)
 
 
 def check_symbol(symbol):
-    signal, n_bars = momentum_signal(symbol)
+    result, n_bars = momentum_signal(symbol)
     pos = get_position(symbol)
 
-    if signal is None:
+    if result is None:
         return f"{symbol}: only {n_bars} {TIMEFRAME} bars available (need {LONG_WINDOW}) — skipping"
+    signal, gap = result
 
     if has_open_order(symbol):
         return f"{symbol}: order already pending — not re-ordering this run"
@@ -119,15 +135,15 @@ def check_symbol(symbol):
     if pos is None:
         if signal == "up":
             place_order(symbol, "buy", notional=NOTIONAL)
-            return f"BOUGHT ~${NOTIONAL} {symbol} (momentum up: {SHORT_WINDOW}x15m SMA > {LONG_WINDOW}x15m SMA)"
-        return f"{symbol}: no position, momentum down — staying out"
+            return f"BOUGHT ~${NOTIONAL} {symbol} (momentum up: gap {gap:+.3%} > {SIGNAL_THRESHOLD:.3%})"
+        return f"{symbol}: no position, momentum {signal} (gap {gap:+.3%}) — staying out"
 
     plpc = float(pos.get("unrealized_plpc", 0))
     if signal == "down":
         qty = pos["qty"]
         place_order(symbol, "sell", qty=qty)
-        return f"SOLD {qty} {symbol} (momentum flipped down, unrealized was {plpc:+.2%})"
-    return f"{symbol}: holding, momentum still up (unrealized {plpc:+.2%})"
+        return f"SOLD {qty} {symbol} (momentum down: gap {gap:+.3%}, unrealized was {plpc:+.2%})"
+    return f"{symbol}: holding, momentum {signal} (gap {gap:+.3%}, unrealized {plpc:+.2%})"
 
 
 def main():
