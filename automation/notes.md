@@ -111,3 +111,18 @@ See `reports/alpaca-connection-test.md` for the full write-up: fixed
 symbols. Two bugs caught and fixed live: duplicate orders on unfilled
 positions, and wrong crypto symbol format (`BTC/USD` vs `BTCUSD`) breaking
 position lookups and causing repeat buys.
+
+## 2026-09-26 ~13:00 UTC — Credential-injection outage: authenticated endpoints hanging
+
+The scheduled bot check timed out on all 7 symbols (`ERROR The read operation timed out`).
+Investigated: public/unauthenticated Alpaca endpoints (`/v2/clock`, data feed
+`/trades/latest`) respond normally (0.2-0.4s), but every authenticated
+endpoint (`/v2/account`, `/v2/positions`, `/v2/orders`) hangs and times out
+consistently across multiple retries (15-30s timeouts). This isolates the
+problem to the environment's credential-injection layer for the Alpaca API
+credential, not Alpaca's API itself (which is clearly up and fast for
+public routes) and not a bug in daytrading_bot.py.
+
+Practical effect: can't verify current positions or place/confirm trades
+until this clears. No fabricated status reported during the outage —
+reported as "unknown, blocked" instead.
