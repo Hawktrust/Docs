@@ -15,13 +15,46 @@ from crown import db
 
 from . import registry
 from .adapters import vic_planning
-from .fetch import Retrieval, RetrievalBlocked, fetch
+from .fetch import Retrieval, RetrievalBlocked, fetch, fetch_many
 from .pipeline import ingest
 
 SOURCE_CODE = "VIC_PLANNING_AMENDMENTS"
 # The amendments index for the LGAs in Ticket 01. Recorded here so the exact URL
 # fetched is a reviewable constant, not a string built at runtime.
 SOURCE_URL = "https://www.planning.vic.gov.au/guides-and-resources/amendments"
+
+
+def _prefetch(targets, workers: int):
+    """Retrieve every URL up front, then hand the results back one at a time.
+
+    Returns a fetcher with the signature the verify paths already inject, so
+    concurrency is confined to this function: the pipeline still writes one
+    record at a time, on this thread, in the order the leads were queued. A
+    psycopg connection is not thread-safe, and an ingestion that wrote rows from
+    four threads would be impossible to review afterwards.
+
+    With workers == 1 nothing is prefetched and the real fetcher is returned
+    unchanged, so the default path is exactly what it was.
+    """
+    if workers <= 1 or not targets:
+        return fetch
+
+    urls = [t[0] for t in targets]
+    validators = {url: (etag, last_modified) for url, etag, last_modified in targets
+                  if etag or last_modified}
+    results = fetch_many(urls, workers=workers, validators=validators)
+    by_url = dict(zip(urls, results))
+
+    def replay(url, timeout=30, *, etag=None, last_modified=None):
+        result = by_url.get(url)
+        if result is None:
+            # Not prefetched — ask for it now rather than pretend it is missing.
+            return fetch(url, timeout=timeout, etag=etag, last_modified=last_modified)
+        if isinstance(result, Exception):
+            raise result
+        return result
+
+    return replay
 
 
 def main(argv=None) -> int:
@@ -45,6 +78,12 @@ def main(argv=None) -> int:
     parser.add_argument("--capture", nargs="+", metavar="BUNDLE",
                         help="one or more bundles exported by the capture tools; "
                              "all three LGAs can go in one command")
+    parser.add_argument("--workers", type=int, default=1, metavar="N",
+                        help="fetch N pages at once during --verify or "
+                             "--revalidate (default 1, serial). Pages are "
+                             "retrieved in parallel and written to the database "
+                             "one at a time; requests to any one host stay "
+                             "spaced apart whatever N is")
     parser.add_argument("--as", dest="operator",
                         help="the email of the person who took the capture")
     args = parser.parse_args(argv)
@@ -106,9 +145,14 @@ def main(argv=None) -> int:
             limit = args.revalidate or None
             due = verify_module.revalidation_due(conn, limit=limit)
             counts = {"UNCHANGED": 0, "CHANGED": 0, "UNAVAILABLE": 0}
+            replay = _prefetch(
+                [(url, etag, last_modified)
+                 for _id, url, etag, last_modified, _verified in due],
+                args.workers)
             for evidence_id, url, _etag, _last_modified, _verified in due:
                 try:
-                    counts[verify_module.revalidate(conn, evidence_id)] += 1
+                    counts[verify_module.revalidate(
+                        conn, evidence_id, fetcher=replay)] += 1
                 except verify_module.VerificationFailed as exc:
                     print(f"  {url}: {exc}", file=sys.stderr)
             conn.commit()
@@ -122,9 +166,12 @@ def main(argv=None) -> int:
         if args.verify:
             from . import verify as verify_module
             ok = failed = 0
-            for queue_id, _, lead in verify_module.pending(conn, source.id):
+            queued = verify_module.pending(conn, source.id)
+            replay = _prefetch([(lead["canonical_url"], None, None)
+                                for _q, _s, lead in queued], args.workers)
+            for queue_id, _, lead in queued:
                 try:
-                    verify_module.verify(conn, queue_id, source)
+                    verify_module.verify(conn, queue_id, source, fetcher=replay)
                     ok += 1
                 except verify_module.VerificationFailed as exc:
                     failed += 1

@@ -6,6 +6,9 @@
 ```
 python -m ingest.cli --lga Wyndham                    # fetch the source live
 python -m ingest.cli --lga Wyndham --from-file x.json # run on a saved payload
+python -m ingest.cli --lga Wyndham --verify           # retrieve every queued lead
+python -m ingest.cli --lga Wyndham --verify --workers 8   # ... several at once
+python -m ingest.cli --lga Wyndham --revalidate       # ask the source what changed
 ```
 
 `CROWN_DSN` sets the connection. The pipeline connects as an ordinary
@@ -37,23 +40,30 @@ is a strict allowlist. Everything relevant is refused with a 403 at the CONNECT:
 | Host | Result |
 |---|---|
 | `www.planning.vic.gov.au` | blocked |
-| `planning-schemes.app.planning.vic.gov.au` | blocked |
+| `planning-schemes.app.planning.vic.gov.au` | **reachable**, and serves no data |
+| `api.app.planning.vic.gov.au` | blocked — this is the one that matters |
 | `data.vic.gov.au` | blocked |
 | `www.wyndham.vic.gov.au` | blocked |
 | `en.wikipedia.org` (control) | blocked |
 
-The allowlist permits the Anthropic API, GitHub and the package registries, and
-nothing else. `WebFetch` is refused for every domain, so it is not an alternative
-route. The proxy's own documentation says a policy denial must be reported rather
-than routed around, so it has not been.
+Retested 2026-09-27 in the Crown Prospecting environment. The amendment portal is
+open now and it did not help: it is a static Vue app, every path returns the same
+1.5 KB shell, and its own `/config.json` names `api.app.planning.vic.gov.au` as
+the API holding the data. That hostname is still refused at the CONNECT tunnel.
+`docs/EGRESS-ALLOWLIST-REQUEST.md` has the full retest table.
 
-Running the live path produces exactly this, and writes nothing:
+The proxy's own documentation says a policy denial must be reported rather than
+routed around, so it has not been.
+
+Running `--verify` reaches all eleven leads and promotes none, which is the
+correct outcome for eleven empty bodies:
 
 ```
-$ python -m ingest.cli --lga Wyndham
-retrieval failed, nothing ingested: ... ProxyError('Tunnel connection failed: 403 Forbidden')
+$ python -m ingest.cli --lga Wyndham --verify
+  C266wynd: ... was retrieved but not parseable: no verified parser exists ...
+verified 0, still queued 11
 $ echo $?
-3
+5
 ```
 
 ### What did get through, and why it is not evidence
@@ -144,6 +154,50 @@ There is still no parser for the live page, and `from_html()` still raises
 been observed, and what it contains is nothing. A parser cannot be written
 against markup that does not exist, and one that produced a record anyway would
 emit real URLs and real retrieval timestamps around content nobody was served.
+
+## Fetching several pages at once
+
+`--workers N` retrieves N pages in parallel. It is off by default, and what it
+does *not* parallelise is the point: pages are fetched concurrently and written
+to the database one at a time, on the main thread, in the order the leads were
+queued. A psycopg connection is not thread-safe, and an ingestion that wrote rows
+from four threads would be impossible to review afterwards.
+
+Two properties hold whatever N is, and `tests/test_concurrent_fetch.py` pins
+them: results come back in the order they were asked for, and a URL that fails
+comes back in place as its exception rather than being dropped. Requests to any
+one host also stay at least `DEFAULT_MIN_INTERVAL_SECONDS` apart — eight workers
+must not become eight simultaneous requests to a council's web server. Different
+hosts are paced separately, so four councils at once is four polite conversations
+rather than one queue.
+
+Measured against the live amendment host: eleven leads in 13.5s serially, 3.8s
+with eight workers, with the pacing still in force.
+
+## Re-verification: asking instead of re-reading
+
+`--revalidate` asks the source whether a document has changed, using the `ETag`
+or `Last-Modified` the original retrieval stored (migration 0028). A `304 Not
+Modified` is the publisher confirming the page Crown read is still the page it
+serves — a stronger statement than re-parsing our own guess at the markup, and it
+costs one small request instead of a document.
+
+The three outcomes are kept distinguishable because they support different claims:
+
+| | what moves |
+|---|---|
+| `304` unchanged | `last_verified_at` and `last_revalidated_at`. **Not** `retrieved_at` — Crown did not retrieve the document, and no record may imply a fetch that did not happen |
+| `200` changed | nothing. It is reported and audited; re-ingesting needs the parser and the provenance checks, so it is a separate act |
+| unreachable | nothing. The record keeps the verification date it honestly had |
+
+Only `DIRECT_FETCH` records may carry a validator, and the schema enforces it. An
+operator capture's `ETag` belongs to a person's browser request, not to one Crown
+can repeat, so a later `304` against it would refresh a verification date on a
+record the system has never fetched.
+
+This matters beyond tidiness: migration 0026 measures evidence shelf life from
+`last_verified_at`, so a column that could never be refreshed honestly was
+deciding what `NO_EVIDENCE_IS_PAST_ITS_SHELF_LIFE` reports.
 
 ## Tests
 
