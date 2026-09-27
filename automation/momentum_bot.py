@@ -43,6 +43,7 @@ SHORT_WINDOW = 3
 LONG_WINDOW = 10
 TIMEFRAME = "1Hour"
 NOTIONAL = "1000"  # dollars per new entry
+SIGNAL_THRESHOLD = 0.0015  # 0.15% minimum SMA gap to count as a real signal (see daytrading_bot.py)
 
 
 def _request(url, method="GET", data=None):
@@ -121,19 +122,34 @@ def sma(closes, n):
 
 
 def momentum_signal(symbol, asset_class):
+    # A plain crossover flips on any gap, including near-zero noise, which
+    # whipsawed the day-trading variant of this bot into same-hour
+    # sell-then-rebuy at a worse price (see automation/notes.md). Require
+    # the gap to clear SIGNAL_THRESHOLD before calling it a real trend; a
+    # gap inside the dead zone is "neutral" and leaves the current
+    # position (in or out) unchanged.
     bars = get_bars(symbol, asset_class)
     closes = [b["c"] for b in bars]
     if len(closes) < LONG_WINDOW:
         return None, len(closes)
-    return ("up" if sma(closes, SHORT_WINDOW) > sma(closes, LONG_WINDOW) else "down"), len(closes)
+    short, long_ = sma(closes, SHORT_WINDOW), sma(closes, LONG_WINDOW)
+    gap = (short - long_) / long_
+    if gap > SIGNAL_THRESHOLD:
+        signal = "up"
+    elif gap < -SIGNAL_THRESHOLD:
+        signal = "down"
+    else:
+        signal = "neutral"
+    return (signal, gap), len(closes)
 
 
 def check_symbol(symbol, asset_class):
-    signal, n_bars = momentum_signal(symbol, asset_class)
+    result, n_bars = momentum_signal(symbol, asset_class)
     pos = get_position(symbol)
 
-    if signal is None:
+    if result is None:
         return f"{symbol}: only {n_bars} {TIMEFRAME} bars available (need {LONG_WINDOW}) — skipping"
+    signal, gap = result
 
     # An order can sit unfilled for hours (e.g. equities placed outside
     # market hours). Without this check, every hourly run would see no
@@ -144,15 +160,15 @@ def check_symbol(symbol, asset_class):
     if pos is None:
         if signal == "up":
             place_order(symbol, "buy", notional=NOTIONAL)
-            return f"BOUGHT ~${NOTIONAL} {symbol} (momentum up: {SHORT_WINDOW}h SMA > {LONG_WINDOW}h SMA)"
-        return f"{symbol}: no position, momentum down — staying out"
+            return f"BOUGHT ~${NOTIONAL} {symbol} (momentum up: gap {gap:+.3%} > {SIGNAL_THRESHOLD:.3%})"
+        return f"{symbol}: no position, momentum {signal} (gap {gap:+.3%}) — staying out"
 
     plpc = float(pos.get("unrealized_plpc", 0))
     if signal == "down":
         qty = pos["qty"]
         place_order(symbol, "sell", qty=qty)
-        return f"SOLD {qty} {symbol} (momentum flipped down, unrealized was {plpc:+.2%})"
-    return f"{symbol}: holding, momentum still up (unrealized {plpc:+.2%})"
+        return f"SOLD {qty} {symbol} (momentum down: gap {gap:+.3%}, unrealized was {plpc:+.2%})"
+    return f"{symbol}: holding, momentum {signal} (gap {gap:+.3%}, unrealized {plpc:+.2%})"
 
 
 def main():

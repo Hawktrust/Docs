@@ -1,5 +1,52 @@
 # Trading bot notes
 
+## 2026-09-27 ~11:00-13:54 UTC — 3-day day-trading experiment ended; reverted to hourly momentum bot
+
+Trigger `trig_01RSyB63t9jWKFfS3rboZAeR` fired at the scheduled end time. Pulled
+all filled orders for the 7 day-trading symbols from experiment start
+(2026-09-24 11:00 UTC) through end (2026-09-27 11:58 UTC) — 132 filled orders
+total (68 buys, 64 closing sells) — and ran FIFO matching per symbol:
+
+| Symbol | Realized P&L | Sells | Buys |
+|---|---|---|---|
+| LTC/USD | -$78.66 | 12 | 12 |
+| GRT/USD | -$35.07 | 14 | 14 |
+| UNI/USD | -$22.73 | 13 | 13 |
+| DOGE/USD | -$16.85 | 9 | 10 |
+| ETH/USD | +$1.47 | 5 | 6 |
+| BTC/USD | +$1.39 | 3 | 4 |
+| SOL/USD | +$25.59 | 8 | 9 |
+| **Total realized** | **-$124.85** | 64 | 68 |
+
+Win rate on closing trades: 19 wins / 45 losses (29.7%) — consistent with a
+dead-zone-filtered crossover: most closes are small losses cut early, a
+minority are the larger wins that make up for them. Positions still open at
+experiment end (BTC, DOGE, ETH, SOL) carried +$53.85 unrealized, for a net
+result of **-$71.00** over the 3 days on ~$1000/symbol sizing.
+
+**Caveat on the "compared to the original hourly bot" ask:** `momentum_bot.py`
+was not run in parallel during these 3 days (the day-trading bot fully
+replaced it), so there's no live side-by-side. The closest comparison is
+qualitative: before the dead-zone fix (2026-09-24, pre-noon), the combined
+v1+v2 bots had run up roughly -$330 realized from whipsaw alone. The
+day-trading bot's 3-day result (-$71 net) trades far more frequently (132
+fills vs. momentum_bot.py's much lower hourly-bar turnover) but lands closer
+to break-even than the pre-fix trajectory — mildly encouraging for the
+dead-zone fix, but a small sample and not proof either strategy has a real
+edge on a plain SMA crossover.
+
+Reverted the Routine (`trig_01CoW1HYzK2mUehKfw7dkZas`) back to its original
+name "Alpaca swing bot check" and to running `momentum_bot.py` hourly, per
+the scheduled instruction. Before reactivating it, ported the 0.15%
+dead-zone fix into `momentum_bot.py` itself (previously only
+`daytrading_bot.py` had it) — running the known-whipsaw-prone version back
+would have reintroduced the exact problem the fix addressed. Did not port
+the GRT/UNI symbol expansion; `momentum_bot.py` keeps its original
+BTC/ETH/DOGE/LTC/SOL/COIN set. First run under the reverted Routine (run
+manually to verify the fix) immediately sold ETH/DOGE/SOL on momentum turning
+down and bought LTC on momentum turning up — normal crossover behavior, not
+an error.
+
 ## 2026-09-24 ~13:58 UTC — First all-green cycle since the fix; LTC rebought
 
 Every held position now unrealized-positive (BTC +0.77%, ETH +0.51%, DOGE

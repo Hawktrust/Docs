@@ -155,3 +155,40 @@ account also holds a few pre-existing positions (GS, ISRG, MRVL) that
 predate this session and are not managed by the bot.
 
 The Routine remains active and continues checking hourly.
+
+### v3 — 3-day day-trading experiment (`automation/daytrading_bot.py`, 2026-09-24 to 2026-09-27)
+
+At the user's request, tried a faster-cadence variant for 3 days: crypto-only
+(to stay clear of the Pattern Day Trader rule), 15-minute bars instead of
+1-hour, checked hourly (the platform's minimum Routine interval). Two bugs
+were found and fixed live during the run:
+
+- **Whipsaw from a plain SMA crossover.** The crossover flipped on gaps as
+  small as 0.01–0.07%, causing same-hour sell-then-rebuy at worse prices.
+  Root-caused after the user pushed back on the bot's performance; fixed
+  with a 0.15% "dead zone" — a gap smaller than that counts as neutral and
+  leaves the current position alone.
+- **A credential-injection outage** (~2026-09-26 13:00 UTC, roughly an hour)
+  where authenticated Alpaca endpoints hung while public endpoints stayed
+  fast, isolated to the environment's proxy layer rather than Alpaca or the
+  bot; no status was fabricated during the gap, and it self-resolved.
+
+Also expanded the watchlist mid-experiment (added GRT/USD and UNI/USD) after
+a 14-pair volatility scan found the original 5 crypto symbols sitting
+momentum-neutral while GRT/UNI had both higher volatility and live signals.
+
+**Result at the scheduled end (2026-09-27 11:00 UTC):** -$124.85 realized
+P&L across 132 filled orders (64 closing trades, 19 wins/45 losses, 29.7%
+win rate) plus +$53.85 unrealized on positions still open, for **-$71.00
+net** over the 3 days on ~$1000/symbol sizing. `momentum_bot.py` was not run
+in parallel during this window, so there's no live side-by-side; the
+closest comparison is that the pre-dead-zone-fix bots had run up roughly
+-$330 from whipsaw alone, so -$71 net is closer to break-even but far too
+small a sample to call either strategy's edge real. Full trade-by-trade
+detail is in `automation/notes.md`.
+
+The Routine was reverted to its original name and to running
+`momentum_bot.py` hourly per the pre-scheduled plan. The 0.15% dead-zone fix
+was ported into `momentum_bot.py` before reactivating it, since running the
+known-whipsaw-prone version back would have undone the one concrete fix this
+experiment validated.
