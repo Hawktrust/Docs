@@ -17,7 +17,7 @@ from crown import audit
 
 from . import provenance
 from .adapters import vic_planning
-from .fetch import RetrievalBlocked, fetch
+from .fetch import NotModified, RetrievalBlocked, fetch
 
 ACTOR_AGENT = "ingest.verify"
 
@@ -83,8 +83,8 @@ def verify(conn, queue_id, source, *, fetcher=fetch, parser=None,
             source_id, source_reference, source_url, provider, retrieved_at,
             observed_at, last_verified_at, lane, reliability, evidence_class,
             confidence, lga, title, summary, amendment_status, geography,
-            retrieval_method)
-        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,'DIRECT_FETCH')
+            http_etag, http_last_modified, retrieval_method)
+        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,'DIRECT_FETCH')
         RETURNING id
         """,
         (source.id, record["source_reference"], record["source_url"],
@@ -92,7 +92,11 @@ def verify(conn, queue_id, source, *, fetcher=fetch, parser=None,
          record["last_verified_at"], record["lane"], record["reliability"],
          record["evidence_class"], record["confidence"], record["lga"],
          record["title"], record.get("summary"), record.get("amendment_status"),
-         Jsonb(record["geography"]) if record.get("geography") else None),
+         Jsonb(record["geography"]) if record.get("geography") else None,
+         # Kept so this record can be re-verified later by asking the publisher
+         # whether it changed, rather than by re-reading it and hoping.
+         getattr(retrieval, "etag", None),
+         getattr(retrieval, "last_modified", None)),
     ).fetchone()[0]
 
     conn.execute(
@@ -134,3 +138,97 @@ def _to_evidence(parsed, lead, retrieval, source) -> dict:
         "amendment_status": item.get("status"),
         "geography": item.get("geography"),
     }
+
+
+# ------------------------------------------------------- re-verification
+
+def revalidation_due(conn, *, older_than=None, limit=None):
+    """Directly-fetched records that carry a validator, least recently verified first.
+
+    Only DIRECT_FETCH records appear: migration 0028 refuses validators on
+    anything else, because an operator capture's ETag belongs to a person's
+    browser request rather than to one Crown can repeat.
+    """
+    sql = """SELECT id, source_url, http_etag, http_last_modified, last_verified_at
+               FROM evidence_record
+              WHERE retrieval_method = 'DIRECT_FETCH'
+                AND (http_etag IS NOT NULL OR http_last_modified IS NOT NULL)"""
+    params: list = []
+    if older_than is not None:
+        sql += " AND last_verified_at < %s"
+        params.append(older_than)
+    sql += " ORDER BY last_verified_at"
+    if limit is not None:
+        sql += " LIMIT %s"
+        params.append(limit)
+    return conn.execute(sql, tuple(params)).fetchall()
+
+
+def revalidate(conn, evidence_id, *, fetcher=fetch, correlation_id=None,
+               actor_user_id=None) -> str:
+    """Ask the source whether one record's document has changed.
+
+    Returns what was learned, and the return value is the point:
+
+      UNCHANGED  the source answered 304. last_verified_at and
+                 last_revalidated_at move. retrieved_at does NOT — Crown did not
+                 retrieve the document, and a record must never imply a fetch
+                 that did not happen.
+      CHANGED    the source served a document. Nothing is written here: what the
+                 page now says has to go through the parser and the provenance
+                 checks like any other retrieval, so this reports and leaves the
+                 record alone rather than half-updating it.
+      UNAVAILABLE the check did not reach the source. Nothing moves; the record
+                 keeps the verification date it honestly had.
+    """
+    correlation_id = correlation_id or audit.new_correlation_id()
+    row = conn.execute(
+        """SELECT source_url, http_etag, http_last_modified FROM evidence_record
+            WHERE id = %s AND retrieval_method = 'DIRECT_FETCH'""",
+        (evidence_id,),
+    ).fetchone()
+    if row is None:
+        raise VerificationFailed(
+            f"no directly-fetched evidence record {evidence_id} to revalidate")
+    url, etag, last_modified = row
+    if not (etag or last_modified):
+        raise VerificationFailed(
+            f"{url} has no validator stored, so there is nothing to ask the source")
+
+    try:
+        result = fetcher(url, etag=etag, last_modified=last_modified)
+    except RetrievalBlocked as exc:
+        audit.write(conn, correlation_id, "EVIDENCE_REVALIDATION_UNAVAILABLE",
+                    "evidence_record", evidence_id,
+                    new_state={"source_url": url, "error": str(exc)},
+                    evidence_id=evidence_id, actor_user_id=actor_user_id,
+                    actor_agent=ACTOR_AGENT)
+        return "UNAVAILABLE"
+
+    if isinstance(result, NotModified):
+        conn.execute(
+            """UPDATE evidence_record
+                  SET last_verified_at = %s, last_revalidated_at = %s,
+                      http_etag = %s, http_last_modified = %s
+                WHERE id = %s""",
+            (result.checked_at, result.checked_at, result.etag,
+             result.last_modified, evidence_id),
+        )
+        audit.write(conn, correlation_id, "EVIDENCE_REVALIDATED_UNCHANGED",
+                    "evidence_record", evidence_id,
+                    new_state={"source_url": url,
+                               "confirmed_at": result.checked_at.isoformat()},
+                    evidence_id=evidence_id, actor_user_id=actor_user_id,
+                    actor_agent=ACTOR_AGENT)
+        return "UNCHANGED"
+
+    # 200: the document moved. Recording that is useful; acting on it is a
+    # re-ingestion, not a revalidation, so it is left to the path that has a
+    # parser and the provenance checks.
+    audit.write(conn, correlation_id, "EVIDENCE_CHANGED_AT_SOURCE",
+                "evidence_record", evidence_id,
+                new_state={"source_url": url,
+                           "observed_at": result.retrieved_at.isoformat()},
+                evidence_id=evidence_id, actor_user_id=actor_user_id,
+                actor_agent=ACTOR_AGENT)
+    return "CHANGED"

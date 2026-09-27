@@ -36,6 +36,12 @@ def main(argv=None) -> int:
                              "verification instead of ingesting")
     parser.add_argument("--verify", action="store_true",
                         help="attempt direct retrieval of every queued lead")
+    parser.add_argument("--revalidate", nargs="?", const=0, type=int,
+                        metavar="N",
+                        help="ask the source whether each directly-fetched record "
+                             "has changed, oldest verification first; N limits how "
+                             "many. Moves last_verified_at on a 304 and never "
+                             "claims a fetch that did not happen")
     parser.add_argument("--capture", nargs="+", metavar="BUNDLE",
                         help="one or more bundles exported by the capture tools; "
                              "all three LGAs can go in one command")
@@ -95,6 +101,24 @@ def main(argv=None) -> int:
                   f"none entered the graph")
             return 0
 
+        if args.revalidate is not None:
+            from . import verify as verify_module
+            limit = args.revalidate or None
+            due = verify_module.revalidation_due(conn, limit=limit)
+            counts = {"UNCHANGED": 0, "CHANGED": 0, "UNAVAILABLE": 0}
+            for evidence_id, url, _etag, _last_modified, _verified in due:
+                try:
+                    counts[verify_module.revalidate(conn, evidence_id)] += 1
+                except verify_module.VerificationFailed as exc:
+                    print(f"  {url}: {exc}", file=sys.stderr)
+            conn.commit()
+            print(f"asked the source about {len(due)} record(s): "
+                  f"{counts['UNCHANGED']} unchanged, {counts['CHANGED']} changed "
+                  f"upstream, {counts['UNAVAILABLE']} could not be checked")
+            # A record that changed upstream is not an error, but it is the one
+            # outcome that needs a person: re-ingesting it is a separate act.
+            return 7 if counts["CHANGED"] else 0
+
         if args.verify:
             from . import verify as verify_module
             ok = failed = 0
@@ -121,12 +145,21 @@ def main(argv=None) -> int:
             )
         else:
             try:
-                retrieval = fetch(SOURCE_URL)
+                fetched = fetch(SOURCE_URL)
             except RetrievalBlocked as exc:
                 # Nothing was retrieved, so nothing is written. This is the
                 # correct outcome for a failed fetch: no placeholder rows.
                 print(f"retrieval failed, nothing ingested: {exc}", file=sys.stderr)
                 return 3
+            if not isinstance(fetched, Retrieval):
+                # This fetch asked no conditional question, so a "not modified"
+                # answer is meaningless here. Refusing beats ingesting a payload
+                # from a body that was never sent.
+                print(f"{SOURCE_URL} answered 'not modified' to an unconditional "
+                      "request; nothing was asked, so nothing is ingested",
+                      file=sys.stderr)
+                return 3
+            retrieval = fetched
             try:
                 payload = vic_planning.from_html(retrieval.body, retrieval.url)
             except vic_planning.SourceFormatUnknown as exc:
