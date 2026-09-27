@@ -4,7 +4,8 @@
 (`VIC_PLANNING_AMENDMENTS`) and driven one LGA at a time.
 
 ```
-python -m ingest.cli --lga Wyndham                    # fetch the source live
+python -m ingest.cli --lga Wyndham --amendment-list   # real amendments, per LGA
+python -m ingest.cli --lga Wyndham                    # fetch the amendments index
 python -m ingest.cli --lga Wyndham --from-file x.json # run on a saved payload
 python -m ingest.cli --lga Wyndham --verify           # retrieve every queued lead
 python -m ingest.cli --lga Wyndham --verify --workers 8   # ... several at once
@@ -32,30 +33,64 @@ Classification is a rule, stated once in `adapters/vic_planning.py`: gazetted is
 Ingestion never emits `INFERENCE` — an inference is something Crown concluded,
 and ingestion concludes nothing.
 
-## Blocked: no live data has been ingested
+## Where the real amendments come from
 
-**No amendment has entered the graph, for any LGA.** Egress from this environment
-is a strict allowlist. Everything relevant is refused with a 403 at the CONNECT:
+`--amendment-list` reads DTP's official *List of Amendments*, one PDF per planning
+scheme, from the publisher's own production bucket — the object the portal's
+`/config.json` names as `amendmentListUrl`. Each page is headed with the scheme
+name and marked OFFICIAL, and each entry gives an amendment number, the date it
+came into operation, and a description. Ingested 2026-09-27:
+
+| LGA | Amendments | Earliest | Latest |
+|---|---|---|---|
+| Wyndham | 176 | 1999-11-18 | 2022-11-25 (`C264wynd`) |
+| Melton | 155 | 1999-11-25 | 2023-07-13 (`C219melt`) |
+| Hume | 191 | 2000-11-02 | 2023-07-27 (`C271hume`) |
+
+`DIRECT_FETCH` / `AUTHORITATIVE` / `FACT` / `REAL`, with `source_url` set to the
+PDF actually retrieved — never a portal page that was not. This is what makes
+acceptance criterion 1 pass.
+
+**Three limits, none of them hidden.** The list is behind the present:
+`Last-Modified` 2024-08-22, newest entry 3 AUG 2023, so it is silent about every
+amendment since, including all eleven queued leads. Every record carries the
+document's own date in `list_as_at`. No geography finer than the LGA is claimed,
+because extracting a suburb from prose is inference. And entries whose day the
+document states ambiguously — `218 NOV 2005` is 18 or 28 or 21 — are skipped,
+counted, and reported, with the CLI exiting 8 so a caller cannot miss it.
+
+Statewide `VC` and `GC` amendments are excluded by default: VC238 changed all 79
+schemes, so ingesting it would raise a CONFIRMED opportunity in every LGA in
+Victoria on the strength of a provisions tweak that says nothing about anybody's
+land. `--include-statewide` takes them.
+
+## Still blocked: current amendments
+
+The list gives history. Knowing about an amendment in the month it happens needs
+the portal's API, and that is still refused:
 
 | Host | Result |
 |---|---|
-| `www.planning.vic.gov.au` | blocked |
-| `planning-schemes.app.planning.vic.gov.au` | **reachable**, and serves no data |
-| `api.app.planning.vic.gov.au` | blocked — this is the one that matters |
+| `api.app.planning.vic.gov.au` | blocked — **this is the one that matters** |
+| `planning-schemes.app.planning.vic.gov.au` | reachable, and serves no data |
+| `prd-vicplanning-app.s3.ap-southeast-2.amazonaws.com` | reachable — the amendment list above |
+| `www.planning.vic.gov.au` | reachable, Cloudflare bot challenge; not ours to defeat |
 | `data.vic.gov.au` | blocked |
 | `www.wyndham.vic.gov.au` | blocked |
 | `en.wikipedia.org` (control) | blocked |
 
 Retested 2026-09-27 in the Crown Prospecting environment. The amendment portal is
-open now and it did not help: it is a static Vue app, every path returns the same
-1.5 KB shell, and its own `/config.json` names `api.app.planning.vic.gov.au` as
+open now and it did not help for the queued leads: it is a static Vue app, every
+path returns the same 1.5 KB shell, and its own `/config.json` names `api.app.planning.vic.gov.au` as
 the API holding the data. That hostname is still refused at the CONNECT tunnel.
 `docs/EGRESS-ALLOWLIST-REQUEST.md` has the full retest table.
 
 The proxy's own documentation says a policy denial must be reported rather than
 routed around, so it has not been.
 
-Running `--verify` reaches all eleven leads and promotes none, which is the
+So the eleven queued leads are still queued, and the two CONTRADICTED ones are
+still contradicted — both are more recent than the amendment list, so it cannot
+settle them. Running `--verify` reaches all eleven and promotes none, which is the
 correct outcome for eleven empty bodies:
 
 ```

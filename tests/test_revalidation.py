@@ -96,6 +96,7 @@ def test_a_retrieval_keeps_the_validators_the_source_offered(monkeypatch):
         headers = {"etag": '"v2"', "last-modified": "Thu, 01 Jan 2026 00:00:00 GMT",
                    "content-type": "text/html"}
         text = "<html></html>"
+        content = b"<html></html>"
 
     monkeypatch.setattr(fetch_module._session, "get", lambda *a, **k: Response())
     result = fetch_module.fetch("https://example.test/page", check_robots=False)

@@ -39,6 +39,11 @@ class Retrieval:
     status_code: int
     body: str
     content_type: str
+    # The undecoded bytes. requests has already buffered them — response.text is
+    # decoded from them — so carrying a reference costs nothing, and a document
+    # that is not text (the amendment-list PDF) needs them: reading a PDF through
+    # .body would hand a parser mojibake and call it a retrieval.
+    content: bytes | None = None
     # What the source offered for asking "has this changed?" later. Opaque
     # values, stored and replayed verbatim; see migration 0028.
     etag: str | None = None
@@ -152,6 +157,7 @@ def _get(session: requests.Session, url: str, *, timeout: int,
         status_code=response.status_code,
         body=response.text,
         content_type=response.headers.get("content-type", ""),
+        content=response.content,
         etag=response.headers.get("etag"),
         last_modified=response.headers.get("last-modified"),
     )

@@ -1,14 +1,24 @@
 # Egress allowlist request
 
-Acceptance criterion 1 cannot pass until the source is reachable from the build
-environment. This is the list to hand to whoever controls the network policy.
+This is the list to hand to whoever controls the network policy. It is no longer
+what stands between Crown and acceptance criterion 1 — see below — but it is still
+what stands between Crown and knowing about an amendment in the month it happens.
 
 Re-tested **2026-09-27** in the **Crown Prospecting** environment
 (`env_018LhDUE8DAFRNybsGenzTQ5`), which was created specifically to open the
-Victorian planning hosts. It did open them. **AC1 still fails**, and the reason
-is now a different and much narrower one than a blanket policy denial.
+Victorian planning hosts. It did open them, though not the one that mattered.
 
-## The finding, in one paragraph
+**AC1 now passes**, by a route found while testing this: DTP's own official
+*List of Amendments* PDF, served from the publisher's own bucket, which is
+reachable. 522 real amendments across Wyndham, Melton and Hume, `DIRECT_FETCH`
+and `AUTHORITATIVE`. The detail is under *The S3 bucket*, below.
+
+**The request below still stands**, because that document is two years behind and
+answers a different question. The list gives Crown the approved history of a
+scheme; only the API gives it what changed this month, and it is the API that is
+still refused.
+
+## The finding about the portal, in one paragraph
 
 `planning-schemes.app.planning.vic.gov.au` is now allowlisted and answers `200`.
 All eleven queued leads were fetched successfully. **None of them yielded a
@@ -21,7 +31,7 @@ data. **That host is a separate hostname and is still denied at CONNECT.** The
 allowlist opened the shop front and not the warehouse. One more hostname closes
 this.
 
-## The one host still required for Ticket 01
+## The one host still required for current amendment data
 
 | Host | Why | Status 2026-09-27 |
 |---|---|---|
@@ -37,10 +47,12 @@ Verbatim, so it is not mistaken for a fault at the far end:
 curl: (56) CONNECT tunnel failed, response 403
 ```
 
-With it open, `python -m ingest.cli --lga Wyndham --verify` retrieves each
-queued lead and promotes it. That path is built, tested, and — as of
-2026-09-27 — proven to reach the network correctly. Only the parse step fails,
-and only because there is nothing to parse.
+With it open, `python -m ingest.cli --lga Wyndham --verify` retrieves each queued
+lead and promotes it. That path is built, tested, and — as of 2026-09-27 — proven
+to reach the network correctly: all eleven leads fetched, `HTTP 200`. Only the
+parse step fails, and only because there is nothing in the body to parse. It is
+also the only way to resolve the two CONTRADICTED leads, which the amendment list
+cannot touch because both are more recent than it.
 
 `spatial.planning.vic.gov.au` (`mapUrl` in the same config) is also still
 `403 at CONNECT`. It is not needed for Ticket 01.
@@ -93,23 +105,48 @@ reachable, and it serves DTP's official *List of Amendments* PDF per scheme at
 They are genuine: each is headed `LIST OF AMENDMENTS`, marked `OFFICIAL`, and
 carries amendment number, *in operation from* date and description.
 
-**Nothing was ingested from them, deliberately.** Three reasons, and the third
-is on its own sufficient:
+**This is now the route AC1 passes by, and the reasoning that first ruled it out
+was wrong.** Recorded because the mistake is instructive.
 
-1. They stop at 3 AUG 2023, so they contain **none** of the four amendments this
-   session was asked to verify — `C266wynd`, `C232melt`, `C267hume`, `C287wsea`
-   are all absent, as are `C267wynd`, `C269wynd`, `C272hume`, `C269wsea` and
-   `C249wsea`.
-2. They contain exactly two of the eleven queued leads: `C261hume` (in operation
-   6 JUN 2022) and `C255wsea` (22 OCT 2021).
-3. Those two are **two LGAs, and AC1 requires three.** Writing a PDF adapter
-   could therefore not make AC1 pass, only add stale records to the graph while
-   appearing to.
+The first reading of these files was that they could not satisfy AC1: they hold
+only two of the eleven queued leads — `C261hume` (6 JUN 2022) and `C255wsea`
+(22 OCT 2021) — which is two LGAs where AC1 wants three. That is true of the
+queued leads and irrelevant to the criterion. AC1 asks for a real amendment from
+each of three LGAs, not for those particular eleven. The lists carry the full
+approved history of each scheme, so they answer it comfortably.
 
-Recorded here as a real, reachable publisher origin so the next person does not
-have to find it again — and as a **lead, not a route**. Whether Crown should
-ingest a historical amendment list at all is a product decision, not a
-workaround for a blocked host, and it is not taken here.
+What was ingested on 2026-09-27, through `--amendment-list`:
+
+| LGA | Amendments | Earliest | Latest |
+|---|---|---|---|
+| Wyndham | 176 | 1999-11-18 | 2022-11-25 (`C264wynd`) |
+| Melton | 155 | 1999-11-25 | 2023-07-13 (`C219melt`) |
+| Hume | 191 | 2000-11-02 | 2023-07-27 (`C271hume`) |
+
+522 records, `DIRECT_FETCH` / `AUTHORITATIVE` / `FACT` / `REAL`, with
+`source_url` set to the PDF that was actually retrieved. `REAL_EVIDENCE_EXISTS`
+passes. Re-running ingests nothing and reports 176 duplicates, so AC2 still holds.
+
+Three limits travel with it, and none is hidden:
+
+1. **The list is behind the present.** `Last-Modified` 2024-08-22, newest entry
+   3 AUG 2023, so it is silent about every amendment since — including all eleven
+   queued leads. It cannot answer "what changed this month". Each record carries
+   the document's own `Last-Modified` in `list_as_at` so a reader never has to
+   assume otherwise. **This does not replace the allowlist request above**; it
+   supplies history where the API would supply currency.
+2. **No geography finer than the LGA.** The descriptions name streets in prose,
+   and extracting a suburb from a sentence is inference. `geography` is left
+   absent, so the opportunity rule falls back to the LGA.
+3. **Four entries across the four lists were skipped, not guessed.** DTP's own
+   text layer states some days ambiguously — `218 NOV 2005` is 18 or 28 or 21 —
+   and a wrong gazettal date is exactly the failure the CONTRADICTED leads warn
+   about. The run reports the count and the CLI exits 8 so a caller cannot miss it.
+
+Statewide `VC` and `GC` amendments are read but not ingested by default. VC238
+changed all 79 planning schemes; ingesting it would raise a CONFIRMED opportunity
+in every LGA in Victoria on the strength of a provisions tweak that says nothing
+about anybody's land. `--include-statewide` takes them.
 
 ## Worth permitting in the same change
 
@@ -185,19 +222,26 @@ python -m ingest.cli --lga Wyndham --verify
 | `evidence_record` rows | **0** |
 | Leads still unresolved in the queue | 11 of 11 |
 | Audit events | 11 × `LEAD_QUEUED`, 11 × `LEAD_VERIFICATION_UNPARSEABLE` |
-| Evidence grade achieved | **none** |
+| Evidence grade achieved | **none** — from the leads. `AUTHORITATIVE` was reached the same day from the amendment list, by a different document |
 
-The grade this session existed to obtain — `AUTHORITATIVE`, which migration
-0006's `retrieval_method_limits_reliability` reserves for `DIRECT_FETCH` — was
-**not** obtained, and no row claims it. The pipeline behaved exactly as
+No lead was promoted and no row from a lead claims any grade. `AUTHORITATIVE` —
+which migration 0006's `retrieval_method_limits_reliability` reserves for
+`DIRECT_FETCH` — was reached, but from the amendment list rather than from any of
+these eleven pages. The pipeline behaved exactly as
 designed: a fetch that returns nothing writes nothing, leaves the lead queued,
 and records why. `LEAD_VERIFICATION_UNPARSEABLE` rather than
 `LEAD_VERIFICATION_BLOCKED` is the honest distinction — the page was reached.
 
-`scripts/readiness.py` accordingly still reports:
+`scripts/readiness.py` reported, before the amendment list was ingested:
 
 ```
 [BLOCK] REAL_EVIDENCE_EXISTS: 0 evidence record(s) with origin REAL
+```
+
+and after:
+
+```
+[ pass] REAL_EVIDENCE_EXISTS: 522 evidence record(s) with origin REAL
 ```
 
 ### The two contradicted leads are still contradicted

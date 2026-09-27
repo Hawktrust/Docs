@@ -7,10 +7,12 @@ function, one approval step, one attribution record:
 SIGNAL -> EVIDENCE -> OPPORTUNITY -> BUYER MATCH -> HUMAN APPROVAL -> ATTRIBUTION
 ```
 
-Everything is real except the buyer mandates, which are synthetic and labelled
-as such — with one exception that matters and is documented below: no real
-planning amendments have been ingested, because the build environment cannot
-reach the source.
+Everything is real except the buyer mandates, which are synthetic and labelled as
+such. Real planning amendments are ingested from DTP's official per-scheme *List
+of Amendments*: 522 of them across three LGAs, directly fetched from the
+publisher's own bucket. That document stops two years short of the present, which
+is a limit recorded on every record rather than worked around — the portal's JSON
+API, which would give current amendments, is still refused by network policy.
 
 ## Layout
 
@@ -44,7 +46,7 @@ psql -v ON_ERROR_STOP=1 -d crown_ai -f seeds/003_candidate_sources.sql
 # privileged roles. seeds/dev_only_* stays off a database anybody relies on.
 psql -v ON_ERROR_STOP=1 -d crown_ai -f seeds/dev_only_users.sql
 
-python -m ingest.cli --lga Wyndham          # blocked; see below
+python -m ingest.cli --lga Wyndham --amendment-list   # real amendments, per LGA
 CROWN_DSN=postgresql://crown_app@/crown_ai CROWN_SECRET=... \
   flask --app crown.web:create_app run
 ```
@@ -70,7 +72,7 @@ afterwards. CI runs the same three checks.
 
 | # | Criterion | Status | Where |
 |---|---|---|---|
-| 1 | Real amendment from each of 3 LGAs, full provenance | **FAIL** | the only one outstanding. No amendment ingested. The amendment portal is now allowlisted and all 11 queued leads fetch `200`, but it is a JavaScript shell holding no content; the API behind it, `api.app.planning.vic.gov.au`, is still denied. See `docs/EGRESS-ALLOWLIST-REQUEST.md`. Unblocked by `tools/collector.html` without waiting on the network policy |
+| 1 | Real amendment from each of 3 LGAs, full provenance | **PASS** | 522 amendments across Wyndham, Melton and Hume, `DIRECT_FETCH`/`AUTHORITATIVE`/`FACT`, from DTP's official *List of Amendments*. `python -m ingest.cli --lga Wyndham --amendment-list`; `tests/test_amendment_list.py`. That document is two years behind, so the allowlist request in `docs/EGRESS-ALLOWLIST-REQUEST.md` still stands for current amendments |
 | 2 | Re-running ingestion produces zero duplicates | PASS | `tests/test_ingest.py` |
 | 3 | Missing provenance rejected to review queue | PASS | `tests/test_ingest.py` |
 | 4 | Opportunity linked to evidence, named human owner | PASS | `tests/test_opportunity.py` |

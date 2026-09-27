@@ -23,6 +23,10 @@ class Response:
         self.status_code = status
         self.headers = headers or {"content-type": "text/html"}
         self.text = text
+        # A real requests.Response carries the undecoded bytes too, and
+        # Retrieval keeps them so a PDF can be read. A stub without them stops
+        # standing in for the thing it is standing in for.
+        self.content = text.encode()
 
 
 @pytest.fixture(autouse=True)
