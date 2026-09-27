@@ -8,36 +8,20 @@ set -euo pipefail
 DB="${CROWN_DEMO_DB:-crown_demo}"
 ADMIN="${CROWN_ADMIN_DSN:-postgresql:///postgres}"
 BASE="${ADMIN%/*}"
+# The DSN of the demo database this script just built. It was used twice below
+# and never assigned, so with set -u the script aborted on "DEMO_DSN: unbound
+# variable" immediately after applying the schema — the README's own "see the
+# loop" instruction got as far as an empty database and then stopped. Exported
+# because the python3 block reads it from the environment.
+export DEMO_DSN="$BASE/$DB"
 
 psql -q -d "$ADMIN" -c "DROP DATABASE IF EXISTS $DB WITH (FORCE)"
 psql -q -d "$ADMIN" -c "CREATE DATABASE $DB"
 
-for f in migrations/0001_ticket01_thin_loop.sql \
-         migrations/0002_rls_policies.sql \
-         migrations/0003_retrieval_method.sql \
-         migrations/0004_integrity_fixes.sql \
-         migrations/0005_audit_and_controls.sql \
-         migrations/0006_real_authentication.sql \
-         migrations/0007_personal_information.sql \
-         migrations/0008_prospecting_controls.sql \
-         migrations/0009_automated_access.sql \
-         migrations/0010_land_layer.sql \
-         migrations/0011_market_signals.sql \
-         migrations/0012_watchlists_and_alerts.sql \
-         migrations/0013_close_the_base_tables.sql \
-         migrations/0014_terms_read.sql \
-         migrations/0015_councils_and_signature.sql \
-         migrations/0016_going_live.sql \
-         migrations/0017_close_the_sender_identity.sql \
-         migrations/0018_operational_readiness.sql \
-         migrations/0019_crown_sends_as_itself.sql \
-         migrations/0020_an_identity_that_means_something.sql \
-         migrations/0021_the_sender_changes_address.sql \
-         migrations/0022_the_public_inbox_is_not_the_login.sql \
-         migrations/0023_the_abn_is_confirmed.sql \
-         migrations/0024_the_channel_is_part_of_the_decision.sql \
-         migrations/0025_the_way_out_is_findable.sql \
-         migrations/0026_nothing_is_kept_forever.sql \
+# Every migration in the directory, then the seeds, in order. Discovered rather
+# than listed: the same list hand-maintained in CI had already drifted, and a
+# demo built from a partial schema fails in ways that look like application bugs.
+for f in migrations/[0-9]*.sql \
          seeds/001_config.sql \
          seeds/dev_only_users.sql \
          seeds/002_buyer_mandates.sql \

@@ -12,6 +12,7 @@ Fixture records are test data. They live in a throwaway database, they are
 prefixed TEST- or flagged DEMO_SYNTHETIC, and they never touch a database a
 person reads a figure from.
 """
+import glob
 import os
 import subprocess
 import uuid
@@ -22,34 +23,15 @@ import pytest
 
 HERE = os.path.dirname(__file__)
 ROOT = os.path.join(HERE, "..")
-MIGRATIONS = [
-    os.path.join(ROOT, "migrations", "0001_ticket01_thin_loop.sql"),
-    os.path.join(ROOT, "migrations", "0002_rls_policies.sql"),
-    os.path.join(ROOT, "migrations", "0003_retrieval_method.sql"),
-    os.path.join(ROOT, "migrations", "0004_integrity_fixes.sql"),
-    os.path.join(ROOT, "migrations", "0005_audit_and_controls.sql"),
-    os.path.join(ROOT, "migrations", "0006_real_authentication.sql"),
-    os.path.join(ROOT, "migrations", "0007_personal_information.sql"),
-    os.path.join(ROOT, "migrations", "0008_prospecting_controls.sql"),
-    os.path.join(ROOT, "migrations", "0009_automated_access.sql"),
-    os.path.join(ROOT, "migrations", "0010_land_layer.sql"),
-    os.path.join(ROOT, "migrations", "0011_market_signals.sql"),
-    os.path.join(ROOT, "migrations", "0012_watchlists_and_alerts.sql"),
-    os.path.join(ROOT, "migrations", "0013_close_the_base_tables.sql"),
-    os.path.join(ROOT, "migrations", "0014_terms_read.sql"),
-    os.path.join(ROOT, "migrations", "0015_councils_and_signature.sql"),
-    os.path.join(ROOT, "migrations", "0016_going_live.sql"),
-    os.path.join(ROOT, "migrations", "0017_close_the_sender_identity.sql"),
-    os.path.join(ROOT, "migrations", "0018_operational_readiness.sql"),
-    os.path.join(ROOT, "migrations", "0019_crown_sends_as_itself.sql"),
-    os.path.join(ROOT, "migrations", "0020_an_identity_that_means_something.sql"),
-    os.path.join(ROOT, "migrations", "0021_the_sender_changes_address.sql"),
-    os.path.join(ROOT, "migrations", "0022_the_public_inbox_is_not_the_login.sql"),
-    os.path.join(ROOT, "migrations", "0023_the_abn_is_confirmed.sql"),
-    os.path.join(ROOT, "migrations", "0024_the_channel_is_part_of_the_decision.sql"),
-    os.path.join(ROOT, "migrations", "0025_the_way_out_is_findable.sql"),
-    os.path.join(ROOT, "migrations", "0026_nothing_is_kept_forever.sql"),
-]
+# Every migration in the directory, in order, discovered rather than listed.
+#
+# This was a hand-maintained list of 26 paths, and the identical list in
+# .github/workflows/ci.yml had already drifted: 0020-0026 were appended to it
+# wrongly and stopped being applied. A list here that falls behind the directory
+# is worse than that, because it fails silently — the whole suite would run
+# against a schema missing the newest migration and every test would still pass.
+# Sorting is lexicographic, which for the four-digit prefixes is numeric order.
+MIGRATIONS = sorted(glob.glob(os.path.join(ROOT, "migrations", "[0-9]*.sql")))
 LEADS_FILE = os.path.join(ROOT, "seeds", "relay_leads.json")
 SEEDS = [
     os.path.join(ROOT, "seeds", "001_config.sql"),
