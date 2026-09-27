@@ -44,6 +44,21 @@ USER_AGENT = "CrownAI-Ingest/0.1 (Ticket 01 thin loop)"
 # Parsed robots files, so one poll does not re-fetch robots.txt per URL.
 _robots: dict[str, urllib.robotparser.RobotFileParser] = {}
 
+# One pooled connection per host, reused for robots.txt and for every page.
+#
+# Every retrieval used to open its own TCP connection and complete its own TLS
+# handshake. Measured against the live amendment host on 2026-09-27 that cost
+# 1,948 ms per request against 1,011 ms over a reused connection — 48% of the
+# time spent on a handshake the previous request had already paid for. A poll of
+# one LGA does it once per lead; a statewide re-verification would do it
+# thousands of times. robots.txt shares the session deliberately: it is on the
+# same origin, so fetching it warms the connection the page then travels over.
+#
+# Sessions are not thread-safe. Ingestion is a single-threaded CLI; a concurrent
+# fetcher must build its own session per worker rather than borrow this one.
+_session = requests.Session()
+_session.headers.update({"User-Agent": USER_AGENT})
+
 
 def robots_allows(url: str, *, timeout: int = 10) -> bool:
     """Whether this site's robots.txt permits us to fetch this path.
@@ -60,8 +75,7 @@ def robots_allows(url: str, *, timeout: int = 10) -> bool:
         parser = urllib.robotparser.RobotFileParser()
         parser.set_url(robots_url)
         try:
-            response = requests.get(robots_url, timeout=timeout,
-                                    headers={"User-Agent": USER_AGENT})
+            response = _session.get(robots_url, timeout=timeout)
             parser.parse(response.text.splitlines() if response.status_code == 200 else [])
         except requests.RequestException:
             parser.parse([])
@@ -76,11 +90,7 @@ def fetch(url: str, timeout: int = 30, *, check_robots: bool = True) -> Retrieva
 
     retrieved_at = datetime.now(timezone.utc)
     try:
-        response = requests.get(
-            url,
-            timeout=timeout,
-            headers={"User-Agent": USER_AGENT},
-        )
+        response = _session.get(url, timeout=timeout)
     except requests.RequestException as exc:
         raise RetrievalBlocked(f"GET {url} failed: {exc}") from exc
 

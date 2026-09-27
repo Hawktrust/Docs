@@ -178,11 +178,17 @@ def refresh(conn, owner_user_id, *, correlation_id=None, lga=None) -> list[Oppor
                             new_state={"stage": stage, "stage_rule": reason},
                             actor_user_id=owner_user_id, actor_agent=ACTOR_AGENT)
 
-        for evidence_id in evidence_ids:
+        # One statement for the whole geography's evidence, not one per record.
+        # A geography with 300 amendments under it cost 300 round trips here, and
+        # a statewide refresh is dominated by that count rather than by any work
+        # the database does. unnest keeps the ON CONFLICT DO NOTHING, so a rerun
+        # still links nothing twice.
+        if evidence_ids:
             conn.execute(
                 """INSERT INTO opportunity_evidence (opportunity_id, evidence_id)
-                   VALUES (%s,%s) ON CONFLICT DO NOTHING""",
-                (opportunity_id, evidence_id),
+                   SELECT %s, e FROM unnest(%s::uuid[]) AS e
+                   ON CONFLICT DO NOTHING""",
+                (opportunity_id, [str(e) for e in evidence_ids]),
             )
 
         changes.append(OpportunityChange(
