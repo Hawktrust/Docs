@@ -65,7 +65,7 @@ afterwards. CI runs the same three checks.
 
 | # | Criterion | Status | Where |
 |---|---|---|---|
-| 1 | Real amendment from each of 3 LGAs, full provenance | **FAIL** | the only one outstanding. No amendment ingested; every Victorian host answers 403. Unblocked by `tools/collector.html` without waiting on the network policy |
+| 1 | Real amendment from each of 3 LGAs, full provenance | **FAIL** | the only one outstanding. No amendment ingested. The amendment portal is now allowlisted and all 11 queued leads fetch `200`, but it is a JavaScript shell holding no content; the API behind it, `api.app.planning.vic.gov.au`, is still denied. See `docs/EGRESS-ALLOWLIST-REQUEST.md`. Unblocked by `tools/collector.html` without waiting on the network policy |
 | 2 | Re-running ingestion produces zero duplicates | PASS | `tests/test_ingest.py` |
 | 3 | Missing provenance rejected to review queue | PASS | `tests/test_ingest.py` |
 | 4 | Opportunity linked to evidence, named human owner | PASS | `tests/test_opportunity.py` |

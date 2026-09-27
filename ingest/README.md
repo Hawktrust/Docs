@@ -117,20 +117,33 @@ This is the fastest route to acceptance criterion 1: three pages, one per LGA.
 
 ### What still finishes the automated path
 
-1. Allowlist `planning-schemes.app.planning.vic.gov.au` for the environment.
-2. Run `python -m ingest.cli --lga Wyndham --verify`. It retrieves each queued
+Step 1 below is done, and it was not enough. That is the finding of 2026-09-27,
+and it replaces the assumption this section used to carry.
+
+1. ~~Allowlist `planning-schemes.app.planning.vic.gov.au`~~ — **done** in the
+   Crown Prospecting environment. The host answers `200`.
+2. **Allowlist `api.app.planning.vic.gov.au`.** This is the host that matters
+   and the one nobody knew to ask for. `planning-schemes` is a static Vue app:
+   every path on it, including each queued lead's canonical URL, returns the
+   same 1.5 KB shell with no amendment content. The app reads its own
+   `/config.json`, which names `https://api.app.planning.vic.gov.au/planning/v2`
+   as the API. That host is still denied at CONNECT.
+3. Run `python -m ingest.cli --lga Wyndham --verify`. It retrieves each queued
    lead's canonical URL and promotes it.
-3. Write `from_html` against the real markup, and replace
+4. Write `from_html` against the real response, and replace
    `test_live_page_parser_refuses_to_guess`.
 
-Steps 1 and 3 need a human. Step 2 is built and tested — `tests/test_relay_leads.py`
+Steps 2 and 4 need a human. Step 3 is built and tested — `tests/test_relay_leads.py`
 exercises the promotion path with an injected fetcher and shows a promoted record
-arriving as `DIRECT_FETCH` / `AUTHORITATIVE` / `FACT`.
+arriving as `DIRECT_FETCH` / `AUTHORITATIVE` / `FACT`. Run live on 2026-09-27 it
+fetched all eleven leads successfully and promoted none, because there was
+nothing in any of the eleven bodies to promote.
 
-There is no parser for the live page. `from_html()` raises
-`SourceFormatUnknown` on purpose: the page has never been observed from here, and
-a parser written against a guessed DOM would emit records carrying real URLs and
-real retrieval timestamps around content nobody checked.
+There is still no parser for the live page, and `from_html()` still raises
+`SourceFormatUnknown` — but for a sharper reason than before. The page has now
+been observed, and what it contains is nothing. A parser cannot be written
+against markup that does not exist, and one that produced a record anyway would
+emit real URLs and real retrieval timestamps around content nobody was served.
 
 ## Tests
 
