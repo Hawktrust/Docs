@@ -56,7 +56,7 @@ refuses a bundle without it, and your name is recorded against every record it c
 <div id="result"></div>
 
 <h2>4. Import it</h2>
-<pre class="note">python -m ingest.cli --capture crown-capture-....json --as you@crown.local</pre>
+<pre class="note">python -m ingest.cli --capture crown-capture-....json --as you@crownrea.com.au</pre>
 
 </main>
 <script>
@@ -239,6 +239,6 @@ document.querySelector('#export').onclick = () => {
   a.download = `crown-capture-${currentHash.slice(0, 12)}.json`;
   a.click();
   out.innerHTML = `<div class="ok">Exported ${records.length} record(s).
-    Import with <code>python -m ingest.cli --capture ${a.download} --as you@crown.local</code></div>`;
+    Import with <code>python -m ingest.cli --capture ${a.download} --as you@crownrea.com.au</code></div>`;
 };
 </script>
