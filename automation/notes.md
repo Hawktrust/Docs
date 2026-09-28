@@ -1,5 +1,25 @@
 # Trading bot notes
 
+## 2026-09-28 ~13:58 UTC — Trailing stop fired for the first time
+
+LTC (bought ~09:58 UTC at $70.08 on a regime-confirmed entry) ran up to
++3.38% unrealized, then the trailing stop caught a 2.89% pullback from that
+peak and sold at $70.25 (+0.40% unrealized) — well before the lagging
+crossover would have flipped down on its own. Confirmed via order history:
+sell filled 13.928408315 @ $70.25.
+
+This is the comparison case the fix was meant for: contrast with the old
+behavior (SOL running +2.74% → -2.44% across consecutive hourly checks on
+2026-09-27/28 before the plain crossover caught the reversal). One data
+point, but it's the first live confirmation the trailing stop is doing its
+job rather than just adding complexity.
+
+Also the regime filter has been blocking BTC/ETH/DOGE entries on every run
+since it went live, all had positive crossover gaps up to +2.1% but sat
+below the 50h trend — worth revisiting whether the filter is too strict if
+this persists for days without any of them clearing it, since that would
+mean missing real trend continuations rather than just filtering noise.
+
 ## 2026-09-28 ~08:15 UTC — Added regime filter + trailing stop to momentum_bot.py
 
 User asked how to make more money; after laying out several options (regime
