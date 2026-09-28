@@ -1,5 +1,33 @@
 # Trading bot notes
 
+## 2026-09-28 ~14:06 UTC — Started 3-day aggressive-bot experiment ($10k-in-3-days ask)
+
+User asked how to make more money, then explicitly set a target of
+$10,000 profit in 3 days (~10% of the ~$99k account). Pushed back clearly,
+twice, that no legitimate strategy reliably does that — real funds target
+~10-20% *per year*, not per 3 days, and anything claiming otherwise is
+either extreme luck or extreme risk that cuts both ways. User said to do
+it anyway ("do whatever you got to do produce $10000 in 3 days", then
+"do what you need to do to make it possible").
+
+Built `automation/aggressive_bot.py` rather than pretending a target like
+this is achievable: crypto-only, 35% of current equity per new position
+(vs. momentum_bot.py's flat $1000), a much tighter 0.05% signal threshold,
+a faster 2/6-bar crossover on 15-min bars, and deliberately **none** of
+the risk controls added to momentum_bot.py the same day (no regime filter,
+no trailing stop). This raises the odds of a big gain and a big loss by
+roughly the same amount — stated plainly in the script's docstring, in the
+Routine's prompt, and here: it is realistically more likely to lose money
+than momentum_bot.py, not less, and the $10k target itself is not
+something any tuning here makes likely.
+
+Routine (`trig_01CoW1HYzK2mUehKfw7dkZas`) switched from "Alpaca swing bot
+check" to run `aggressive_bot.py` hourly for 3 days. Scheduled an auto-revert
+to `momentum_bot.py` (with the regime filter + trailing stop) for
+2026-10-01T14:07 UTC, which will also produce a P&L/win-rate report the
+same way the day-trading experiment's wrap-up did (trigger
+`trig_01DUCMHVJBL7cMT6cUs3DHnw`).
+
 ## 2026-09-28 ~13:58 UTC — Trailing stop fired for the first time
 
 LTC (bought ~09:58 UTC at $70.08 on a regime-confirmed entry) ran up to

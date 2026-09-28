@@ -47,6 +47,21 @@ Run manually:
 python3 automation/momentum_bot.py
 ```
 
+## aggressive_bot.py (active 2026-09-28 to 2026-10-01 — bounded high-variance experiment)
+
+Built after the user set an explicit $10,000-in-3-days target, which was
+pushed back on clearly as not a realistic target for any legitimate
+strategy before building this. Same crossover shape as the other bots, but
+tuned for much higher variance, not higher expected returns: 35% of
+current equity per position (vs. $1000 flat), a 0.05% signal threshold
+(much tighter than momentum_bot.py's 0.15%), a faster 2/6-bar crossover on
+15-min bars, and deliberately none of momentum_bot.py's risk controls (no
+regime filter, no trailing stop). Crypto-only to avoid the Pattern Day
+Trader rule at this trade frequency. Currently running hourly via the
+Routine; scheduled to auto-revert to `momentum_bot.py` on 2026-10-01 with
+a P&L report — see `notes.md` for the full reasoning and the eventual
+result.
+
 ## daytrading_bot.py (inactive — bounded 3-day experiment, 2026-09-24 to 2026-09-27)
 
 Same crossover shape as `momentum_bot.py`, but on 15-minute bars checked
