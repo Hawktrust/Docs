@@ -137,10 +137,58 @@ signed with the new secret and old ones keep verifying — which the system
 already supports, and which nobody will think of at the time unless they have
 thought of it before.
 
-Walk it end to end: who notices, who is called, what is rotated, in what order,
-what is written down, and whether it is notifiable. `[DECIDE]` The date it was
-run.
+### The technical half, exercised 2026-09-28
+
+The rotation was not discussed, it was run against a database built from all 28
+migrations. Recorded here because this is the step that goes wrong under
+pressure, and because a runbook nobody has executed is a guess with formatting.
+
+```
+1. A link was sent last week, signed with the compromised secret.
+   link issued, 103 chars
+
+2. WRONG MOVE: rotate and drop the old secret.
+   old link now FAILS to verify -> every unsubscribe sent in the
+   last 30 days is dead, which is a fresh s18 breach on top of the
+   one being contained.
+
+3. RIGHT MOVE: new secret signs, compromised one only verifies.
+   old link verifies: A. Landholder
+   new links do NOT verify under the compromised secret
+
+4. The old link still acts, not just verifies.
+   suppressions recorded: 1
+
+5. After 30 days, drop the compromised value.
+   it stops verifying, which by then is correct
+```
+
+So the order is: **set `CROWN_OPTOUT_SECRET` to a new value and move the
+compromised one into `CROWN_OPTOUT_SECRET_PREVIOUS` in the same edit.** Not one
+then the other — between the two there is a window where live unsubscribe links
+do not work. Step 4 matters on its own: a link that verifies but does not record
+the suppression would look contained and would not be.
+
+Drop the compromised value from `CROWN_OPTOUT_SECRET_PREVIOUS` 30 days after the
+last message that was signed with it, not 30 days after the incident. Those are
+different dates and only the first one discharges s18.
+
+### The half that still needs people
+
+What was exercised is the mechanism. What has not been exercised is the part
+that involves humans, and it is the part that fails at 2am:
+
+- who notices, and how — nothing currently alerts on a leaked secret;
+- who is called, and on what number;
+- who decides it is notifiable, working the three questions above;
+- who writes it down, and who tells affected people.
+
+`[DECIDE]` Walk those four with the people named in the roster, once, for
+fifteen minutes, and put the date here. The commands are proven; the phone calls
+are not.
 
 ---
 
-**Last reviewed:** never. **Exercised:** never. **Approved by:** nobody.
+**Last reviewed:** never. **Exercised:** the rotation mechanism, 2026-09-28,
+against a real database. The human roster has not been walked through.
+**Approved by:** nobody.
