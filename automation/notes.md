@@ -1,5 +1,43 @@
 # Trading bot notes
 
+## 2026-09-28 ~08:15 UTC — Added regime filter + trailing stop to momentum_bot.py
+
+User asked how to make more money; after laying out several options (regime
+filter, trailing stop, volatility-weighted sizing, compounding,
+multi-timeframe confirmation), picked the two addressing the clearest
+failure modes actually observed in this account's history:
+
+1. **Regime filter** — a new entry now requires price to be above the
+   50-hour SMA (`TREND_WINDOW`), not just a positive 3h/10h crossover gap.
+   Only gates entries; exits on a down signal are never blocked (missing an
+   exit is worse than missing an entry). `get_bars()` now takes a longer
+   lookback (8 days crypto / 25 days equity, to get 50+ bars even on
+   COIN's sparse trading-hours-only bar count) and returns closes alongside
+   the signal so the regime check can reuse them without a second fetch.
+2. **Trailing stop** — once a held position has been up at least 0.5%
+   (`MIN_PEAK_GAIN`) since entry, sell early if price pulls back 1%
+   (`TRAILING_STOP_PCT`) from that peak, instead of waiting for the
+   crossover to flip down. Directly targets the repeated pattern this
+   week of a position running to +2-2.7% unrealized then round-tripping
+   to a loss before the lagging signal caught up (SOL went +2.74% →
+   -2.44% over consecutive hourly checks on 2026-09-27/28, for example).
+   Peak-since-entry is derived statelessly each run: look up the most
+   recent filled buy order for the symbol (its fill time = entry time,
+   since the bot always fully enters/exits, never scales), then fetch bar
+   highs from that timestamp forward and take the max.
+
+Verified live immediately after deploying: LTC sold normally via the
+ordinary crossover-down path (never armed the trailing stop, since it
+never reached +0.5% before turning down) — confirms the new
+`check_trailing_stop()` call doesn't error or interfere when it has
+nothing to do. Both additions are unverified on an actual trailing-stop
+trigger or a regime-blocked entry as of this entry; will note here when
+either first fires.
+
+Not implemented from the same discussion (out of scope for this pass):
+volatility-weighted position sizing, compounding position size with
+account equity, and multi-timeframe (15m+1h) confirmation.
+
 ## 2026-09-27 ~11:00-13:54 UTC — 3-day day-trading experiment ended; reverted to hourly momentum bot
 
 Trigger `trig_01RSyB63t9jWKFfS3rboZAeR` fired at the scheduled end time. Pulled

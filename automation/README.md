@@ -15,8 +15,19 @@ and COIN:
   trading on noise. Ported from `daytrading_bot.py` after the 3-day
   day-trading experiment (2026-09-24 to 2026-09-27) proved it out live —
   see `notes.md` for the whipsaw root cause and the experiment's results.
-- No position + uptrend (gap > threshold) → buy ~$1000 notional.
-- Holding + downtrend (gap < -threshold) → sell the full position.
+- **Regime filter** (added 2026-09-28): a new entry also requires price to
+  be above the 50-hour SMA — blocks entries taken against the broader
+  trend. Only gates entries, never exits.
+- **Trailing stop** (added 2026-09-28): once a held position is up at
+  least 0.5% since entry, sell early if it gives back 1% from that peak,
+  instead of waiting for the crossover to flip down. Targets the repeated
+  pattern of multi-percent unrealized gains evaporating before the lagging
+  crossover reacted — see `notes.md` for the concrete example that
+  prompted it.
+- No position + uptrend (gap > threshold) + above the 50h trend → buy
+  ~$1000 notional.
+- Holding + downtrend (gap < -threshold), or trailing stop triggers → sell
+  the full position.
 - Not enough bar history yet → skip that symbol this run.
 
 Crypto pairs trade around the clock; COIN is the one equity leg and only
