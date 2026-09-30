@@ -15,10 +15,40 @@ Nothing in this directory is secret. Every secret is named and none is stored.
 Deploying a system the gate refuses is deploying a system that cannot lawfully
 be used, which is a worse problem than not having deployed it.
 
+## Start here
+
+```bash
+sudo ./deploy/provision.sh \
+     --admin-dsn postgresql://admin:...@db.example:5432/postgres \
+     --database crown_ai \
+     --domain crown.example.com
+```
+
+It creates the database, applies all 28 migrations, seeds the configuration and
+the data rights register **and nothing else**, gives `crown_app` a password while
+proving it is not a superuser, cannot bypass row-level security and owns no
+tables, writes `/etc/crown/crown.env` at mode 0600 with two freshly generated
+secrets, and then **reads the readiness gate as `crown_app` and exits non-zero
+if anything blocking fails.**
+
+That last part is the point. The gate is a set of queries, so a connection
+exempt from the policies reads it clean and reports itself ready — which is
+exactly what a provisioning script must never do. Its exit code is the number of
+blocking failures.
+
+Re-running it is safe. It will not re-apply migrations to a database that
+already has a schema, and it reuses the password already in the env file rather
+than rotating it out from under a running service.
+
+What it deliberately leaves to you: a human's password (interactive, because a
+credential this script generated would be a credential in a log), ingesting real
+evidence, and publishing the privacy policy.
+
 ## The pieces
 
 | | |
 |---|---|
+| `provision.sh` | the above; the only file here you have to run |
 | `crown.service` | systemd unit, gunicorn behind it |
 | `gunicorn.conf.py` | workers, timeouts, logging to stdout for the journal |
 | `crown.env.example` | every variable Crown reads, with what breaks if it is wrong |
