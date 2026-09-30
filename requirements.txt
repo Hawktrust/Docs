@@ -7,3 +7,10 @@ requests==2.33.1
 # the portal's JSON API is refused by network policy. See
 # ingest/adapters/vic_amendment_list.py.
 pypdf==6.19.0
+# pypdf imports cryptography for its crypt providers. A stale one does not raise
+# ImportError — it PANICS in its Rust extension, so pypdf's fallback never
+# catches it and fourteen tests fail as though the PDF code were broken. Seen on
+# a container carrying cryptography 41 from the system packages. Pinned as a
+# floor rather than exactly, because nothing here depends on its version beyond
+# importing without dying.
+cryptography>=44
