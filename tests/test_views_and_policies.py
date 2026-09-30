@@ -99,3 +99,97 @@ def test_the_three_that_expose_a_name_are_caller_scoped(db):
     for view in ("channel_exception", "opt_out_prominence_exception",
                  "retention_due"):
         assert invoker[view] == "true", f"{view} bypasses row-level security"
+
+
+# ---------------------------------------------------------------- the tables
+
+# Tables that carry no row-level security, each with the reason. Every one is
+# from 0001 and each is a decision; the migration comments say the same thing at
+# more length. Anything not on this list must have policies.
+DELIBERATE_NO_RLS = {
+    "app_user":
+        "authentication reads a row by email before any role is known, so a "
+        "policy gated on crown_role() would refuse every login",
+    "audit_event":
+        "it exists to be auditable by anybody entitled to audit; UPDATE and "
+        "DELETE are revoked and the 0005 trigger refuses both anyway",
+    "evidence_record":
+        "the shared graph — separation that matters is by origin, and the "
+        "parcel_real and buyer_mandate_real views carry it",
+    "data_source":
+        "the rights register is read by the crawler gate on every fetch",
+    "evidence_review_queue":
+        "a work queue every analyst works, not owned by whoever queued it",
+    "match_weight_config":
+        "every score records the weight version that produced it",
+    "signal_weight_config":
+        "same as match_weight_config",
+    "raw_ingest":
+        "bodies as fetched, read by nothing at run time; the weakest of the "
+        "nine, and it needs a policy the day anything surfaces it to a user",
+}
+
+
+def tables_without_rls(db):
+    return [r[0] for r in db.execute(
+        """SELECT relname FROM pg_class
+           WHERE relkind = 'r' AND relnamespace = 'public'::regnamespace
+             AND NOT relrowsecurity
+           ORDER BY relname""").fetchall()]
+
+
+def test_every_unprotected_table_is_one_somebody_chose(db):
+    """The same invariant as the views, one layer down. A table with no policies
+    is either on the list with a reason or an accident nobody has noticed."""
+    unexplained = [t for t in tables_without_rls(db)
+                   if t not in DELIBERATE_NO_RLS]
+    assert unexplained == [], (
+        "these tables have no row-level security and no reason is recorded: "
+        + ", ".join(unexplained)
+        + ". Add policies, or add them to DELIBERATE_NO_RLS with the reason.")
+
+
+def test_the_list_does_not_outlive_its_tables(db):
+    """So a rename cannot leave behind an exemption that silently covers
+    whatever took the old name."""
+    present = set(tables_without_rls(db))
+    stale = [t for t in DELIBERATE_NO_RLS if t not in present]
+    assert stale == [], (
+        "on the no-policy list but now protected or gone: " + ", ".join(stale)
+        + " — remove the exemption rather than leaving it")
+
+
+def test_no_table_referencing_a_row_restricted_one_is_unprotected(db):
+    """The leak 0030 closed, as an invariant. opportunity restricts by row, so a
+    table pointing at it without policies lets somebody enumerate the rows they
+    were refused — which is what opportunity_evidence and opportunity_parcel
+    did, measured at one leaked link out of two."""
+    offenders = db.execute(
+        """SELECT DISTINCT c.relname
+           FROM pg_constraint co
+           JOIN pg_class c ON c.oid = co.conrelid
+           JOIN pg_class p ON p.oid = co.confrelid
+           WHERE co.contype = 'f'
+             AND NOT c.relrowsecurity
+             AND p.relrowsecurity
+             AND EXISTS (SELECT 1 FROM pg_policies
+                         WHERE tablename = p.relname
+                           AND qual LIKE '%crown.user_id%')
+           ORDER BY 1""").fetchall()
+    names = [r[0] for r in offenders]
+    assert names == [], (
+        "these have no policies but reference a table restricted by row, so "
+        "they expose rows their parent refuses: " + ", ".join(names))
+
+
+def test_the_join_tables_follow_their_opportunity(db):
+    """Written as a subquery on purpose: the link inherits whatever opportunity
+    decides, so there is one copy of the rule rather than two, and the second
+    copy is the one that goes stale."""
+    for table in ("opportunity_evidence", "opportunity_parcel"):
+        quals = [r[0] for r in db.execute(
+            """SELECT qual FROM pg_policies
+               WHERE tablename = %s AND cmd = 'SELECT'""", (table,)).fetchall()]
+        assert quals, f"{table} has no SELECT policy"
+        assert any("opportunity" in (q or "") for q in quals), (
+            f"{table}'s SELECT policy does not defer to opportunity")
