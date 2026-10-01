@@ -304,6 +304,31 @@ Three things it is careful about:
 is a proxy for adjacency, not adjacency. True touching needs PostGIS, which this
 cluster does not have.
 
+## The owner's name
+
+`/land` carries no owner because the cadastre has none. The authoritative record
+is the Victorian Titles Register, and the commercial platforms that show an owner
+can do so because they hold commercial licences to state land registry data —
+which is a licence question, not an access one. Crown's route is the same
+register, searched one property at a time under its own licence.
+
+Migration 0031 builds it and leaves both gates on it closed:
+
+- **No search can be recorded** until somebody has read the licence and
+  `data_source.terms_read_by` names them.
+- **No owner's name can be stored** until `privacy_basis` states which APP is
+  relied on for the intended use.
+
+A prospecting search must name the parcel or the opportunity it came from, so the
+register is read in answer to a question the system already had rather than swept
+for questions to ask. A recorded result is frozen — a register answer that has
+changed is a new search on a new date — and the name expires after twelve months
+while the search, its purpose and its fee stay, because those are the record of
+Crown's conduct under the licence. `title_search_spend` says what it has cost.
+
+`docs/TITLE-SEARCH-PATH.md` sets out the route and the two pieces of work that
+open the gates. `SELECT * FROM title_search_readiness;` says where they stand.
+
 ## Prospecting controls
 
 `docs/PRODUCT-REVIEW.md` reviews the prospecting vision and finds where it leaks.

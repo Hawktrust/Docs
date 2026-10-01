@@ -61,11 +61,20 @@ refuses it.
 **About the people who use Crown.** Names, email addresses, roles, and a record
 of the decisions they took in the system.
 
-**What Crown does not collect.** Owner names from the Titles Register, and
-anything from RP Data or CoreLogic. Those are licensed products and Crown holds
-no agreement for them. Crown does not scrape social media, marketplaces, or
+**What Crown does not collect.** Anything from RP Data, Pricefinder or
+CoreLogic. Those are licensed products and Crown holds no agreement permitting
+it to extract from them. Crown does not scrape social media, marketplaces, or
 property portals; their terms prohibit it and its register records that
 position.
+
+**Owner names from the Titles Register — not today.** Crown holds none. If Crown
+begins obtaining them, it will be by a title search of the Victorian Titles
+Register, through Land Use Victoria, one property at a time, under Crown's own
+licence — never in bulk and never by searching on a person's name. The database
+will not store an owner's name until a basis for that use is written down, and
+**this section and section 4 will be updated before the first such search, not
+after it.** Where a name is held, the search that produced it is recorded: what
+was searched, by whom, why, and when.
 
 ## 3. Why we collect it
 
@@ -157,15 +166,16 @@ purpose. Crown's periods:
 | Contact details of someone approached | **7 years** from last contact | the ordinary limitation period for a dispute about that approach |
 | A request not to be contacted | **indefinitely** | deleting it would let the request be undone by accident, which is the one outcome worse than keeping the record |
 | Audit records of decisions | **indefinitely** | they exist to show what was done and why, which a deletion schedule would defeat |
+| An owner's name from a title search | **12 months** from the search | the name was obtained for one approach, and the register moves on; the search itself, its purpose and its cost are kept as the record of Crown's conduct under the licence |
 | User accounts | until closed, then **7 years** | attribution of decisions already taken |
 
 A suppression outliving the contact data it suppresses is deliberate: a list of
 people not to contact is useless if it expires before the data that would let
 Crown contact them.
 
-**This is enforced.** Migration 0026 holds these periods as data, a view shows
-what is due before anything is touched, and `scripts/retention.py` applies
-them. An expired message is de-identified rather than deleted: the recipient's
+**This is enforced.** Migrations 0026 and 0031 hold these periods as data, a
+view shows what is due before anything is touched, and `scripts/retention.py`
+applies them. An expired message is de-identified rather than deleted: the recipient's
 name is removed and the record of Crown's decision stays, because the audit
 trail exists to show what Crown did and erasing it would be a deletion schedule
 for evidence.
@@ -243,7 +253,7 @@ was decided quietly.
 | 4 | **No cold email to individual landholders; post for first contact** | this is the costly one, and the reasoning is in `CONSENT-POSITION.md` |
 | 4 | Email permitted to professional contacts and mandated buyers | |
 | 6 | 30-day response undertaking | shorten it only if the inbox is watched daily |
-| 7 | 12 months / 7 years / indefinite retention by category | |
+| 7 | 12 months / 7 years / indefinite retention by category, including 12 months for an owner's name from a title search | |
 | 8 | All data held in Australia | must be checked against the actual deployment |
 | 9 | info@ read every business day | |
 | 10 | Superseded versions stay published | |

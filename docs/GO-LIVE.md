@@ -174,6 +174,18 @@ people came from public registers, but the *combination* it assembles is not,
 and deciding during an incident how to treat that means deciding it under
 pressure to find the smaller number.
 
+### An owner's name, if that is ever wanted
+
+Crown holds none. The only lawful route is a per-property title search of the
+Victorian Titles Register under Crown's own licence —
+`docs/TITLE-SEARCH-PATH.md` sets it out, and migration 0031 builds it with both
+gates closed: no search can be recorded until somebody reads the licence, and no
+owner's name can be stored until a privacy basis for the intended use is on file.
+
+Neither gate blocks a launch. Both block the first search, which is the point:
+they stop being closed when a person reads a document and signs for it, not when
+somebody needs them open. `SELECT * FROM title_search_readiness;` says which.
+
 ### Telephone contact, if that is ever the channel
 
 The **Do Not Call Register Act 2006** requires numbers to be washed against the
@@ -193,7 +205,7 @@ that runs and a system somebody can run.
 | **Deployment** | none | A WSGI server (the Flask dev server is not one), `CROWN_SECRET` and `CROWN_DSN` from a secret store, TLS terminated in front. `CROWN_INSECURE_COOKIES` must be unset in production — it exists for the test client and turns off `Secure` on the session cookie. |
 | **Scheduler** | **built** | `scripts/run_alerts.py`, safe to re-run and quiet on a quiet day. Still needs a cron entry: `15 7 * * * cd /srv/crown && CROWN_DSN=... python scripts/run_alerts.py --quiet` |
 | **Backups** | none | Every table that matters is append-only or audited, which protects against tampering and not against loss. Point-in-time recovery, tested by restoring — an untested backup is a belief. |
-| **Migrations** | forward only | Twenty numbered migrations, no down-steps, applied by hand. Fine so far. The first migration applied to a database holding real records is the one where that stops being fine. |
+| **Migrations** | forward only | Thirty-one numbered migrations, no down-steps, applied by hand. Fine so far. The first migration applied to a database holding real records is the one where that stops being fine. |
 | **Observability** | partial | `/health` answers without a session and says only up or not up. Still no structured logging and no error reporting; the audit trail records decisions, not failures, so a crashed alert run leaves only the stderr line `run_alerts.py` prints. |
 | **Retention** | **built** | `retention_rule` holds the periods as data, `retention_due` previews what is about to go, and `scripts/retention.py` applies them — dry run by default, because a sweep that acts by default is one somebody runs by accident. Needs a cron entry: `30 3 * * 0 cd /srv/crown && CROWN_DSN=... python scripts/retention.py --apply` |
 | **Secret rotation** | **built** | `CROWN_OPTOUT_SECRET` signs opt-out links, `CROWN_OPTOUT_SECRET_PREVIOUS` keeps retired secrets verifying, and the readiness gate blocks a launch while the fallback to `CROWN_SECRET` is still in use. |

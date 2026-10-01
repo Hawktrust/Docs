@@ -57,3 +57,24 @@ Before any of this is published or relied on:
 
 `docs/GO-LIVE.md` tracks these as blocking items, and they stay blocking until
 somebody who can be held to them says they are done.
+
+## A fifth question for the same review
+
+`docs/TITLE-SEARCH-PATH.md` describes the only lawful route to a registered
+proprietor's name: a per-property title search of the Victorian Titles Register,
+under Crown's own licence. Migration 0031 builds it, and the database refuses to
+store an owner's name until a basis for that use is on file — so the question
+cannot be answered by writing code, and nothing in this repository has answered
+it.
+
+It belongs with these four documents rather than beside them, because it turns on
+the same section 4 position: whether Crown may approach a landholder whose name
+came from a register, and by which channel. `CONSENT-POSITION.md` reaches **post,
+not email**, for exactly that person. If the reviewer disagrees, the title search
+path and section 4 change together.
+
+The privacy policy's section 2 now says Crown holds no owner names from the
+Titles Register today, and that the section will be updated before the first such
+search rather than after it. That is a commitment, and it is the one most easily
+broken by a system that works: the gate is in the database so that opening it is
+a deliberate act with a name attached.
