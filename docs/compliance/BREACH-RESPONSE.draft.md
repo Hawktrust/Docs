@@ -52,8 +52,10 @@ nobody should be working this out from first principles.
 
 | Data | Personal information? | Where |
 |---|---|---|
-| Parcels, zoning, overlays, amendments | No | `parcel`, `parcel_planning`, `evidence_record` |
-| Names from public registers | Yes, but already public | `market_actor`, `outbound_artifact.contact_identifier` |
+| Parcels, zoning, overlays, amendments | Not on their own; **yes once linked to an identifiable owner** | `parcel`, `parcel_planning`, `evidence_record` |
+| Valuations and Crown's assessment of a property | **Yes** — an opinion about an identifiable owner | scoring tables |
+| Names from public registers (legacy — no longer collected) | Yes. "Already public" does not reduce it — see the aggregation judgement below | `market_actor`, `outbound_artifact.contact_identifier` |
+| Owners who asked to be contacted, and clients | Yes | `contact_consent` and client records |
 | Suppression list | **Yes, and sensitive by implication** | `contact_suppression` |
 | User accounts | Yes | `app_user` |
 | Passwords | Hashed (scrypt), not recoverable | `app_user.password_hash` |

@@ -1,6 +1,6 @@
 # Drafts, not policy
 
-Four documents sit in this folder. **None of them is in force, and none has
+Five documents sit in this folder. **None of them is in force, and none has
 been reviewed by a lawyer.** They exist because "write a privacy policy" is
 easier to act on as a marked-up draft than as a line on a to-do list, and
 because the facts they turn on — what Crown collects, from where, under what
@@ -11,38 +11,34 @@ Every place a decision is required rather than a fact restated is marked
 **`[DECIDE]`**. Those are the parts no amount of care in this repository can
 settle, because they are choices about how Crown intends to operate.
 
-There were thirty-one. Migration 0019 recorded who Crown is, and 0021 changed
-the contact address — Crown Real Estate Agents Pty Ltd, ABN 86 690 344 597,
-208/2 Infinity Drive, Truganina VIC 3029, info@crownrea.com.au. Six marks were
-only waiting on that, and are now filled from it: who Crown is, in the policy
-and in the notice, and where a person writes to stop, to correct, or to
-complain.
+**What is still marked `[DECIDE]`** — every one a fact nobody has yet, not a
+judgement nobody has made:
 
-Filling them raised three new ones, which is the ordinary way of these
-documents — naming a contact address makes "how fast do you answer it" a
-question that was not being asked while the address was blank, and naming a
-postal address raises whether it is the one registered with ASIC.
-**Seven remain**: three in the privacy policy,
-three in the breach plan, one in the collection notice — and every one of the
-seven is a fact nobody has yet rather than a judgement nobody has made.
+| Document | Open facts |
+|---|---|
+| Privacy policy | hosting location; overseas providers' countries; the policy URL; its effective date |
+| Collection notice | the short URL printed on letters; the policy URL |
+| Breach plan | a mobile number for the roster; the date the people half of the tabletop is walked |
 
-They are: the policy's URL and whether hosting is onshore (both wait on a
-deployment), who at Crown ratifies the section 4 position, a mobile number for
-the breach roster, the date the tabletop was run, and the same URL again in the
-collection notice. Nothing else is outstanding that reading this repository
-could settle.
+Who at Crown ratifies the §4 position is also open; it is listed in the
+policy's internal appendix rather than marked in the published text.
 
-The privacy policy stopped being a form. Every section of it is now answered,
-with the positions taken on Crown's behalf collected in an appendix rather than
-scattered as blanks — a lawyer can only argue with a document that says
-something, and a draft full of gaps postpones the review it is supposed to
-enable. The four marks still in it are facts nobody has yet: a URL, a hosting
-decision, and two names.
+**Positions changed on 2026-10-01, for the lawyer to review with the rest:**
 
-A fourth document joins the three. `CONSENT-POSITION.md` works the question the
-policy's section 4 had been deferring, and reaches a conclusion that costs
-Crown something — which is why it is set out as an argument rather than a
-ruling.
+- Crown works on **both sides** — finding land for buyers it acts for, and
+  approaching owners about selling their own property. The purpose, the
+  notices and the consent table say so.
+- First contact with an owner is a letter to **"The Owner"**. Crown does not
+  look up owner names — not from the Titles Register or the products that
+  resell it (their licence forbids marketing use), and not from council
+  planning registers (published "for the sole purpose" of the planning
+  process).
+- **No email or SMS to an owner who has not asked for it, named or unnamed.**
+  The Spam Act attaches to the address, not the name. `CONSENT-POSITION.md`
+  sets out why.
+- The **privacy policy's public sections name no tables, migrations or
+  scripts.** Those moved into an internal appendix that is not published, next
+  to the list of statements the system does not yet enforce.
 
 Crown has since confirmed that 208/2 Infinity Drive is both the registered
 office and the postal address, which closed the mark asking which one it was,
@@ -51,7 +47,7 @@ and that the ABN is registered to the company, which migration 0023 records.
 Before any of this is published or relied on:
 
 1. Fill every remaining `[DECIDE]`.
-2. Have a lawyer review all three together — they cross-reference each other,
+2. Have a lawyer review all five together — they cross-reference each other,
    and the privacy basis chosen in one determines wording in the others.
 3. Publish the privacy policy before collection begins, not after (APP 1.3).
 

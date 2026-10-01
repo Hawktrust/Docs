@@ -3,18 +3,14 @@
 **Status: complete draft, pending legal review and Crown's ratification. Not
 published. Do not rely on it until both have happened.**
 
-APP 1.3 requires a clearly expressed, up-to-date privacy policy, available free
-of charge, published **before** personal information is collected. This is one,
-written from what the system actually does rather than from a template.
+> **Before publishing:** everything from the top of this file down to the first
+> horizontal rule, and the whole of the internal appendix at the end, is for
+> Crown and its lawyer. Publish sections 1 to 10 only. They are written for the
+> public and deliberately name no database tables, scripts or internal checks —
+> those are in the appendix, where the person maintaining the system can find
+> them.
 
-**Every section below is answered.** Where a decision was Crown's to make, a
-position has been proposed rather than left blank, because a policy full of
-blanks cannot be reviewed — a lawyer can only argue with a document that says
-something. Each proposed position is listed in the appendix with the reasoning
-behind it, so nothing has been decided quietly.
-
-Marks remain only where the answer is a fact nobody has yet: a URL that does
-not exist, a person not yet named, a hosting decision not yet taken.
+`[DECIDE]` marks a fact nobody has yet: a URL, a name, a hosting decision.
 
 ---
 
@@ -23,236 +19,230 @@ not exist, a person not yet named, a hosting decision not yet taken.
 **Crown Real Estate Agents Pty Ltd**, ABN 86 690 344 597, of 208/2 Infinity
 Drive, Truganina VIC 3029.
 
-That address is both Crown's registered office and its postal address —
-confirmed by Crown 2026-09-22 — so a formal notice, a complaint and an ordinary
-letter all reach the same place. The distinction matters because "registered
-office" is a term of art: it is where documents can be served under the
-Corporations Act, and a policy that named only a mailing address would leave a
-person no way to serve one.
-
-The ABN was confirmed against ABN Lookup by Crown on 2026-09-22; migration 0023
-records who checked and when.
-
-Everything in this section is taken from the active row in `outbound_identity`,
-which is what every message Crown sends will carry. That row is the
-authoritative copy and this paragraph follows it: to change the identity,
-supersede the row first and then restate it here. Editing only this paragraph
-leaves the messages saying something the policy contradicts, which under s17 of
-the Spam Act 2003 is a misidentified sender rather than a typo.
+That address is both our registered office and our postal address, so a formal
+notice, a complaint and an ordinary letter all reach the same place.
 
 ## 2. What we collect, and from where
 
-Crown is a property-intelligence and prospecting system. It collects:
+**Information about land.** Parcel boundaries and identifiers, land area,
+zoning, planning overlays, planning scheme amendments and planning permit
+activity. This comes from Victorian government open data. On its own it is
+about land, not people — but once we link it to a property that belongs to an
+identifiable person, we treat it as personal information about that person.
 
-**About land, not people.** Parcel boundaries and identifiers, area, zoning,
-planning overlays, planning scheme amendments, and planning permit activity.
-These come from Victorian government open data published under Creative Commons
-Attribution licences. **None of it is personal information.** It is the majority
-of what Crown holds.
+**Our own assessments of a property.** We estimate what a property may be worth
+and whether it may suit a buyer or be worth approaching its owner about. These
+are opinions we form, not facts anyone published. Where the owner of the
+property can be identified, our assessment is personal information about them,
+and we handle it as such: you can ask to see it, and ask us to correct it.
 
-**About people, where a public register names them.** Where Crown records a
-named individual — an applicant on a planning permit, a party to a panel
-submission — that name came from a register the publisher made public. Crown's
-data rights register records, for every source, whether it carries personal
-information and on what basis it may be used. A source that identifies living
-individuals cannot be switched on until that basis is written down; the database
-refuses it.
+**Information people give us.** When you contact us, scan a code on one of our
+letters, or ask us to sell or appraise a property, we collect what you give us —
+usually your name, phone number, email address and what you would like us to do.
 
-**About the people who use Crown.** Names, email addresses, roles, and a record
-of the decisions they took in the system.
+**Information about professional contacts.** Names and work contact details of
+people at developers, agencies and other firms, taken from their own business
+websites and published work details.
 
-**What Crown does not collect.** Owner names from the Titles Register, and
-anything from RP Data or CoreLogic. Those are licensed products and Crown holds
-no agreement for them. Crown does not scrape social media, marketplaces, or
-property portals; their terms prohibit it and its register records that
-position.
+**Information about the people who use our system.** Names, email addresses,
+roles, and a record of the decisions they took in it.
+
+**What we do not collect.**
+
+- Owner names from the Victorian Titles Register, or from products that resell
+  it, such as RP Data / Cotality or Pricefinder. Their licence terms do not
+  permit marketing use, and we do not hold an agreement that would.
+- Names of people from council planning permit registers. Councils publish
+  those registers for the planning process only, and we respect that.
+- Anything from the electoral roll.
+- Email addresses or phone numbers gathered by scraping websites, social media,
+  marketplaces or property portals.
 
 ## 3. Why we collect it
 
-**To identify land that may suit a buyer Crown is acting for, and to approach
-the parties connected with that land.**
+We collect it for two purposes, and only these two:
 
-That is the whole purpose. It is written narrowly on purpose. Crown does not
-build profiles of people, does not sell or licence what it holds, and does not
-use it to assess anybody's creditworthiness, tenancy or character. A purpose
-written wide today is a purpose to be justified later.
+1. **Finding land for buyers we act for.** We identify land that may suit a
+   buyer who has engaged us, and approach its owner to ask whether they would
+   consider selling.
+2. **Selling property for owners.** We approach owners whose property may be in
+   demand, to ask whether they would like an appraisal or would like us to sell
+   it for them, and we act for owners who engage us.
 
-## 4. The basis we rely on, and how we may contact you
+We do not sell or licence the information we hold to anyone, and we do not use
+it to assess anybody's creditworthiness, tenancy or character. A brief we
+prepare for a buyer describes the land and why it may suit them; **it does not
+name the owner.**
 
-Two laws apply and they are not the same test. **APP 7** governs whether Crown
-may use your information for direct marketing at all. The **Spam Act 2003**
-separately governs whether Crown may email you. Publicly available personal
-information is not exempt from either.
+**If we act for a buyer and are also approached by, or act for, the owner of
+the same property,** we tell both of them before going any further, and we
+follow the rules that apply to estate agents in Victoria about acting for more
+than one party.
 
-Where Crown obtained your details from a public register rather than from you,
-it relies on **APP 7.3**: that obtaining your consent beforehand is
-impracticable, because the only way to ask would be to make the very approach
-consent is needed for. Crown does not claim you consented, because you did not.
+## 4. How we may contact you
 
-**How that limits the way Crown contacts you:**
+Two laws apply. The Privacy Act governs whether we may use your information for
+direct marketing at all. The Spam Act 2003 separately governs whether we may
+send you a marketing email or text message. Information being publicly
+available does not exempt it from either.
 
-| If you are | First contact | By email |
+| If you are | How we first contact you | Email or SMS |
 |---|---|---|
-| A landholder Crown found in a public register | **by post** | only after you reply, or otherwise agree |
+| The owner of a property we have not been in touch with before | **by post only**, addressed to "The Owner" at the property | only after you ask us to |
+| Someone who has asked us to contact you, or engaged us | the way you asked | yes |
 | A professional contact at a firm, at your published work address | email or post | yes, where the message relates to your work |
-| A buyer Crown already acts for under a mandate | either | yes — the mandate is your consent |
 
-Crown does not cold-email landholders. A register publishes an address because
-a statute requires it, not because the person offered it, and Crown does not
-treat a statutory disclosure as an invitation.
+**We do not cold-email or cold-text property owners** — whether or not we know
+your name. The law attaches to sending a marketing message to an email address
+or phone number, not to knowing who is behind it, so addressing a message to
+"The Owner" rather than to you by name makes no difference to whether we may
+send it.
 
-**If you ask where Crown got your information, you will be told which register,
-specifically.** Crown records the source of every record it holds, along with
-the terms that source is used under. That is APP 7.6(c), and Crown can answer
-it precisely rather than generally.
+Where we write to you without your having asked us to, it is because asking you
+first is not practicable: the only way to ask would be the very letter consent
+is needed for. So our first letter does two things — it tells you who we are
+and why we are writing, and it asks whether you would like to hear from us. **If
+you do not reply, we do not keep writing.** We send at most one follow-up, and
+then stop.
 
-The reasoning behind this position, including the Spam Act analysis that
-produces the post-only rule, is set out in `CONSENT-POSITION.md` in full.
+**If you ask where we got your information, we will tell you specifically.**
 
-`[DECIDE]` Who at Crown ratified this position, and on what date. An
-unattributed position is one nobody defends when it is questioned.
+We do not make unsolicited phone calls to property owners. If that changes, it
+will only be to numbers checked against the Do Not Call Register, within the
+calling hours the law allows, and this policy will say so first.
 
 ## 5. How to stop hearing from us
 
-Every message Crown sends carries a link that removes you, immediately, without
-an account and without contacting anybody. Using it is the fastest route and it
-is recorded so that it is not undone by accident.
+Every message we send carries a way to stop — a link, or for a letter a short
+web address and our contact details. It works immediately, without an account
+and without having to speak to anybody.
 
-You can also reply to any message, or write to info@crownrea.com.au, or to
+You can also reply to any message, email info@crownrea.com.au, or write to
 208/2 Infinity Drive, Truganina VIC 3029.
 
-A request to stop is honoured against the person, the organisation, the address
-and the parcel — whichever we were given — so being reached under a different
+A request to stop is honoured against the person, the business, the address
+and the property — whichever we were given — so being reached under a different
 detail does not defeat it.
 
 ## 6. Access and correction
 
-You may ask what personal information Crown holds about you, and ask for it to
-be corrected. APP 12 and APP 13. Write to info@crownrea.com.au.
+You may ask what personal information we hold about you — including our own
+assessment of your property — and ask for it to be corrected. Write to
+info@crownrea.com.au.
 
-**Crown answers within 30 days.** In practice most requests are a database
-query and are answered far sooner, but 30 days is what Crown undertakes,
-because a commitment made here is one you can hold Crown to and it should hold
-during a busy month as well as a quiet one.
+**We answer within 30 days.** Most requests are answered much sooner.
 
-Crown's audit trail records decisions and cannot be edited or deleted, by
-design. Where information is corrected, the correction is recorded alongside
-rather than replacing what was there — which is the honest way to keep both an
-accurate present and a truthful history, and should be explained to anyone who
-asks rather than discovered by them.
+Where we correct information, we record the correction alongside the original
+rather than silently replacing it, so that there is an accurate present and a
+truthful history. If you ask, we will explain what that means for your record.
 
 ## 7. How it is held, and for how long
 
-Personal information is held in a database with row-level access control, so
-that a user sees only what their role permits. Passwords are stored as scrypt
-hashes and never in readable form.
+Personal information is held in a database with access controls, so that each
+person who uses the system sees only what their role permits. Passwords are
+stored in a form that cannot be read back.
 
-**How long Crown keeps it.** APP 11.2 requires personal information to be
-destroyed or de-identified once it is no longer needed for any permitted
-purpose. Crown's periods:
+We keep personal information only as long as we need it, then delete it or
+remove the details that identify you:
 
-| What | Kept for | Why |
+| What | How long | Why |
 |---|---|---|
-| Contact details of someone never contacted | **12 months** from collection | if no approach has been made in a year, the reason for holding it has lapsed |
-| Contact details of someone approached | **7 years** from last contact | the ordinary limitation period for a dispute about that approach |
-| A request not to be contacted | **indefinitely** | deleting it would let the request be undone by accident, which is the one outcome worse than keeping the record |
-| Audit records of decisions | **indefinitely** | they exist to show what was done and why, which a deletion schedule would defeat |
-| User accounts | until closed, then **7 years** | attribution of decisions already taken |
+| Details of a property owner we have never contacted | **12 months** from collection | if we have not approached you in a year, we no longer have a reason to hold it |
+| Details of an owner we wrote to who did not reply | **24 months** from our last letter | long enough to deal with any question about the approach |
+| A record that we wrote to you, when, and why | **7 years**, then identifying details removed | to answer any complaint or dispute about what we did |
+| Details of clients and people who asked us to contact them | **7 years** after our dealings end | the records an estate agent must be able to produce |
+| A request not to be contacted | **for as long as we operate** | so the request cannot be undone by accident; kept only in a form used to check against |
+| User accounts | until closed, then **7 years** | so decisions already taken stay attributable |
 
-A suppression outliving the contact data it suppresses is deliberate: a list of
-people not to contact is useless if it expires before the data that would let
-Crown contact them.
+Keeping a "do not contact" request longer than the details it protects is
+deliberate: a list of people not to contact is useless if it expires before the
+information that would let us contact them.
 
-**This is enforced.** Migration 0026 holds these periods as data, a view shows
-what is due before anything is touched, and `scripts/retention.py` applies
-them. An expired message is de-identified rather than deleted: the recipient's
-name is removed and the record of Crown's decision stays, because the audit
-trail exists to show what Crown did and erasing it would be a deletion schedule
-for evidence.
+## 8. Where your information is held
 
-A request not to be contacted is never expired. It has to outlive the data it
-protects, or honouring it becomes impossible and the person is contacted again
-by a system that forgot — the one place where keeping information is the
-privacy-protective choice.
+Our main database is hosted in `[DECIDE: Australia, once hosting is chosen]`.
 
-## 8. Overseas disclosure
-
-**Crown's intention is that all personal information is held in Australia**,
-and it discloses none of it overseas.
-
-`[DECIDE]` Confirm this once the hosting is chosen. APP 8 requires the policy
-to name the countries if any processor, hosting provider or backup destination
-sits outside Australia, and it makes Crown accountable for what that recipient
-does. This sentence must be checked against the deployment before the policy is
-published, not after.
+Some of the service providers we use — for email, document storage, and
+printing and posting letters — may store or process information outside
+Australia, in `[DECIDE: countries, once providers are chosen]`. Where that
+happens we remain responsible for how they handle it.
 
 ## 9. Complaints
 
-Complaints go to info@crownrea.com.au. If you are not satisfied with how
-Crown handles one, you may escalate to the Office of the Australian Information
-Commissioner.
-
-One inbox, deliberately, and not the one anybody signs in with. Migration 0022
-separated the published contact point from the login: an address printed on a
-cold approach has to keep working when the person behind it is away, and an
-address that names one human does not. Whether a second inbox is worth opening
-depends on somebody different reading it, which at Crown's size is not yet
-true.
-
-The system requires at least one active ADMIN or COMPLIANCE account precisely
-so that somebody exists to answer; the readiness gate blocks a launch without
-one. That account exists and has no password set, so
-`SOMEBODY_CAN_ANSWER_A_PERSON` is still failing — it is not answerable until
-somebody can actually sign in.
-
-**info@crownrea.com.au is read every business day by Inder.** Proposed
-2026-09-23, for Crown to ratify — it is what a 30-day response commitment needs
-behind it, and a commitment with nothing behind it is the one a complainant
-discovers first.
-
-The gate can check the address is shaped like one. Nothing can check that a
-person opens it, and a published address nobody reads satisfies s17's letter
-while defeating the whole point of APP 1.4. This is the sentence to revisit
-first when Crown gets busy.
+Complaints go to info@crownrea.com.au, which is read every business day. If you
+are not satisfied with how we handle a complaint, you may take it to the Office
+of the Australian Information Commissioner (oaic.gov.au).
 
 ## 10. Changes to this policy
 
-The current version always lives at `[DECIDE: URL]` — the one thing still
-missing, because the policy needs somewhere to live before it can say where
-that is — and each version carries the date it took effect. Crown keeps the
-superseded versions available at the same place, so a person can see what the
-policy said when they were contacted rather than only what it says now.
+The current version is always at `[DECIDE: URL]`, and each version carries the
+date it took effect. We keep earlier versions available at the same place, so
+you can see what the policy said when we contacted you.
 
-Where a change materially affects how Crown uses information it already holds,
-Crown notifies the people affected directly rather than relying on them to
-re-read the page.
+Where a change materially affects how we use information we already hold, we
+tell the people affected directly rather than relying on them to re-read this
+page.
+
+**This version took effect:** `[DECIDE: date]`.
 
 ---
 
-## Appendix — positions proposed, for Crown to ratify or strike
+## Internal appendix — do not publish
 
-Everything in this appendix was written on Crown's behalf and has not been
-agreed by Crown. It is collected here rather than left as blanks in the body so
-that a lawyer can review a document that says something, and so that nothing
-was decided quietly.
+### How each public statement is made true by the system
+
+A policy statement the system does not enforce is a promise nobody is keeping.
+This is where each one is kept.
+
+| § | Statement | Enforced by |
+|---|---|---|
+| 1 | Who we are | the active row in `outbound_identity`. Supersede that row first, then restate §1 — changing only the policy leaves messages contradicting it, which under Spam Act s17 is a misidentified sender |
+| 2 | Sources that identify people are documented | `data_source.privacy_basis`; the database refuses to switch on a source that identifies people without one |
+| 2 | No title, RP Data, Pricefinder, electoral roll or scraped contacts | data rights register entries for each; see `CONSENT-POSITION.md` |
+| 2 | No planning-register names | **not yet true** — the planning adapter records applicant names into `market_actor`. Keep the permit as a signal about the land; stop recording the person, and de-identify what is already held |
+| 3 | A buyer brief does not name the owner | `outbound.build_content()`; asserted by `tests/test_brief.py` |
+| 4 | Post-only first contact; no email to owners without consent | migration 0024 trigger on `outbound_artifact.channel` / `recipient_class`, consent in `contact_consent`. **See the gap below** |
+| 4 | At most one follow-up | **not yet enforced** — needs a constraint |
+| 4 | No phone channel | the `channel` enum has no `PHONE` value; add one only with a DNCR wash |
+| 5 | Opt-out on every message, prominent | `crown/optout.py`, migration 0025 prominence rules, `contact_suppression` |
+| 7 | Retention periods | migration 0026 holds them as data; `scripts/retention.py` applies them. **The 24-month and evidence-record rows are new and need adding** |
+| 7 | Suppressions kept "only in a form used to check against" | **not yet true** — store normalised hashes rather than plain values |
+| 7 | Identifying details removed after 7 years | **not yet true for the audit trail** — `audit_event` is append-only; it must carry pseudonymous ids pointing at a table that can be de-identified |
+| 9 | Someone answers info@ | readiness gate `SOMEBODY_CAN_ANSWER_A_PERSON` — still failing: the ADMIN/COMPLIANCE account has no password set |
+
+**Gap — the email rule must attach to the address, not the name.** The 0024
+trigger keys on `recipient_class = LANDHOLDER_FROM_REGISTER`. An email to "The
+Owner" with no name attached could be classed as something else and pass. Every
+email to an owner's address must be refused unless `contact_consent` holds a
+consent for **that address**, whatever the recipient class.
+
+Every row marked "not yet" must be closed before the policy is published, or the
+statement it supports removed.
+
+### Positions proposed, for Crown to ratify or strike
 
 | § | Position taken | If Crown disagrees |
 |---|---|---|
-| 3 | Purpose stated narrowly: identify land for a buyer, approach the parties connected with it | widen it only with a reason; a wide purpose is one to justify later |
-| 4 | APP 7.3 impracticability for register-sourced landholders, not consent | the alternative is not contacting them at all |
-| 4 | **No cold email to individual landholders; post for first contact** | this is the costly one, and the reasoning is in `CONSENT-POSITION.md` |
-| 4 | Email permitted to professional contacts and mandated buyers | |
-| 6 | 30-day response undertaking | shorten it only if the inbox is watched daily |
-| 7 | 12 months / 7 years / indefinite retention by category | |
-| 8 | All data held in Australia | must be checked against the actual deployment |
-| 9 | info@ read every business day | |
+| 2 | Inferred assessments are personal information when the owner is identifiable | not optional — it is the statutory definition ("information or an opinion… whether true or not") |
+| 2 | No planning-register names as a contact source | councils publish them "for the sole purpose" of the planning process |
+| 3 | Two purposes: buyer-side and seller-side | widen only with a reason |
+| 3 | Disclose to both sides where Crown is connected to both | **lawyer to confirm** what the Estate Agents Act 1980 and the Professional Conduct Regulations require when acting near both sides of one sale |
+| 4 | APP 7.3(b)(ii) impracticability for first contact, one follow-up maximum | impracticability is hard to argue after the first letter has given a chance to ask |
+| 4 | No cold email or SMS to owners, named or unnamed | Spam Act s16; reasoning in `CONSENT-POSITION.md` |
+| 6 | 30-day response undertaking | shorten only if the inbox is watched daily |
+| 7 | 12 months / 24 months / 7 years / indefinite by category | |
+| 8 | Main database onshore, providers named | do not promise "all information is held in Australia" — email, backups and printing make that untrue |
+| 9 | info@ read every business day by Inder | |
 | 10 | Superseded versions stay published | |
 
-**Still genuinely unknown**, and not for Crown to invent: the policy's URL, who
-ratified the §4 position, who reads info@, and whether the hosting is onshore.
+**Still unknown:** the policy's URL and effective date, the hosting location
+and providers' countries, and who at Crown ratifies §4.
+
+**Due 10 December 2026:** the Privacy Act will require a policy to describe
+automated decisions that could significantly affect people. Crown's scoring
+decides whom to write to, which is probably below that threshold — the lawyer
+should confirm, and a sentence in §3 is cheap if they are unsure.
 
 ---
 
 **Last reviewed:** never. **Approved by:** nobody.
-**Positions proposed:** 2026-09-22, by Claude, on Crown's instruction to draft
-rather than to enumerate. Ratification is Crown's and has not happened.

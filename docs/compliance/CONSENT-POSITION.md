@@ -28,19 +28,26 @@ consequential thing in this document.
 
 ## APP 7 — may Crown use the information at all
 
-Crown collects landholder names from public registers, which means **from a
-third party rather than from the individual**. That puts it in APP 7.3, not
+Crown identifies properties, and so their owners, from public land and
+planning data rather than from the owner — **from a third party rather than
+from the individual**. That is true even though Crown no longer records owner
+names: the address and Crown's assessment of it are personal information about
+an identifiable owner. That puts it in APP 7.3, not
 7.2. Under 7.3 Crown may use the information for direct marketing only if:
 
-- **(a)** the individual consented, **or** it is impracticable to obtain that
+- **(b)** the individual consented, **or** it is impracticable to obtain that
   consent; **and**
-- **(b)** Crown provides a simple means of opting out; **and**
-- **(c)** each message prominently draws attention to that opt-out.
+- **(c)** Crown provides a simple means of opting out; **and**
+- **(d)** each message prominently draws attention to that opt-out; **and**
+- **(e)** the individual has not already opted out.
+
+(Limb (a) is simply that the information was collected from someone other than
+the individual.)
 
 And separately, **APP 7.6(c)**: if asked, Crown must tell the person **where it
 got their information**.
 
-### (a) — consent or impracticability
+### (b) — consent or impracticability
 
 Consent is absent by definition in a cold approach. So the question is whether
 obtaining it is impracticable.
@@ -59,14 +66,19 @@ Crown should not plan on it doing more work than it can.
 *why* in those terms rather than asserting it. Crown holds no channel to the
 person that does not itself constitute the approach.
 
-### (b) and (c) — already built
+**But it covers the first letter, not a campaign.** Once the first letter has
+gone, Crown has had its chance to ask, and "we could not ask" stops being true.
+So the first letter asks — "tell us if you would like to hear from us" — and
+silence is treated as no: **at most one follow-up, then stop.**
+
+### (c), (d) and (e) — already built
 
 The opt-out exists: a signed link on every message, no account needed, and the
 suppression is honoured against person, organisation, address and parcel so
 being reached under a different detail does not defeat it. `contact_suppression`
 and `crown/optout.py`.
 
-What is **not** yet enforced is (c): that the opt-out is *prominent*. The schema
+What is **not** yet enforced is (d): that the opt-out is *prominent*. The schema
 requires an artefact to carry one; nothing checks where it sits in the message.
 That is a gap and it is named again at the end of this document.
 
@@ -123,8 +135,27 @@ a developer's work address, published on their own company website, in a
 message about land relevant to their job, satisfies all three limbs of
 conspicuous publication comfortably. This is the audience email works for.
 
-**A reply is express consent.** Once a landholder writes back, the channel
-opens.
+**A reply that asks to hear more is consent.** Not every reply is: "how did you
+get my address?" or "stop writing to me" opens nothing. Record in
+`contact_consent` what the person actually asked for, and open only that.
+
+### Email without a name is still email
+
+It is tempting to think the problem is the name — that an email to "The Owner"
+at an address found somewhere, carrying no personal name, is outside all this.
+**It is not.** Section 16 is about *sending a commercial electronic message to
+an electronic address*. Whether Crown knows who is behind the address is
+irrelevant to it. An unnamed cold email to a landholder is the same breach as a
+named one.
+
+And getting the address in the first place has its own problem. Part 3 of the
+Spam Act prohibits supplying, acquiring or using address-harvesting software or
+a harvested-address list. Collecting owners' email addresses by scraping
+websites, registers or portals is a breach before anything is sent.
+
+So: **the post-only rule attaches to the address, not to the name.** An owner's
+email address enters Crown's system one way — the owner gives it to Crown — and
+arrives with the consent that lets Crown use it.
 
 ---
 
@@ -132,7 +163,8 @@ opens.
 
 | Audience | APP 7 basis | First contact | Email allowed |
 |---|---|---|---|
-| **Landholders from public registers** | impracticability (APP 7.3(a)) | **post only** | only after they reply, or otherwise consent expressly |
+| **Owners of property Crown has identified** — whether approached for a buyer or about selling their own property | impracticability (APP 7.3(b)(ii)), first letter only | **post only, to "The Owner"** | only after they ask to be contacted |
+| **Owners who have asked to be contacted or engaged Crown to sell** | **consent** | as they asked | yes |
 | **Professional contacts at firms** | impracticability, with a much easier case | email | yes — inferred consent, conspicuous publication, work-related |
 | **Buyers under an existing mandate** | **consent**, from the mandate itself | either | yes — the mandate is the express consent |
 
@@ -168,6 +200,10 @@ It is now a constraint:
 - a trigger refuses `EMAIL` + `LANDHOLDER_FROM_REGISTER` unless an express
   consent is on record, on INSERT **and** on UPDATE, because a channel changed
   afterwards is the obvious way around a rule enforced only at insert;
+- **gap, still open:** the trigger keys on the recipient class. An unnamed
+  email "to The Owner" could be classed as something else and pass. The rule
+  must refuse any `EMAIL` to an address that has no consent on record for
+  **that address**, whatever the class;
 - `contact_consent` records express consent — what the person actually did, in
   a sentence, because "they consented" is a conclusion rather than evidence;
 - a mandate is explicitly **not** accepted as a landholder's consent: it is
