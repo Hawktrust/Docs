@@ -127,6 +127,17 @@ for f in ("research_A.json", "research_B.json", "research_C.json", "research_moe
         if "moe" in f: r["sources"].add("Moe private developers")
         if d.get("notes"): r["notes"].append(d["notes"])
 
+# 5b. Homes Victoria: its only source URL was a news article, and its public phone
+# line (1800 825 955) is for housing support, so give DFFH's general enquiries line.
+hv = rec("Homes Victoria")
+hv["website"] = {"Research": "https://www.homes.vic.gov.au/"}
+put(hv, "phone", "Research", "1300 475 170")
+put(hv, "address", "Research", "50 Lonsdale Street, Melbourne VIC 3000")
+hv["contact_page"] = "https://www.homes.vic.gov.au/get-touch"
+hv["notes"].append("No email published; contact form at homes.vic.gov.au/get-touch. Phone is the Department of Families, "
+                   "Fairness and Housing general enquiries line (dffh.vic.gov.au/contact-us); Homes Victoria's own "
+                   "1800 825 955 line is for housing support.")
+
 # 6. Email-enrichment pass
 for f in ("emails_1.json", "emails_2.json", "emails_3.json"):
     for d in load(f, []):

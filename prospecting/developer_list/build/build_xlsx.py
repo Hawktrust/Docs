@@ -17,7 +17,6 @@ MSG_NAME = {"AHB Group": "Mirrastone", "Costa Asset Management": "Costa Property
             "Star Investment Group Australia (Star Marketing)": "Star Investment Group", "Gull & Company": "Gull & Co",
             "Wel.Co": "Wel.Co", "GURNER": "GURNER", "ID_Land": "ID_Land"}
 SKIP = {  # left out of the Outreach tab, with the reason
-    "Development Victoria": "Government agency", "Homes Victoria": "Government agency",
     "Community Housing Victoria Ltd": "Community housing provider", "Housing Choices Australia Limited (Victoria)": "Community housing provider",
     "HousingFirst Ltd": "Community housing provider", "Launch Housing": "Homelessness charity", "Bolton Clarke": "Aged-care not-for-profit",
     "Banner Asset Management": "Finance firm", "Three Thirds Group": "Professional services firm",
@@ -155,12 +154,16 @@ for r in rows:
     if dev in SKIP: skipped.append([DISPLAY.get(dev, dev), SKIP[dev]]); continue
     a = area(r["Regional projects / footprint"])
     where = f"in {a}" if a else "across Melbourne's growth corridors and regional Victoria"
+    if dev == "Homes Victoria":  # its only listed project is 7 social homes in Moe
+        where = "in delivering new homes across Melbourne's growth areas and regional Victoria"
     form = r["Contact page"] if "openlot.com.au" not in r["Contact page"] else ""
     form = form or r["Website"] or "No website — use email / phone"
     out.append([DISPLAY.get(dev, dev), form, r["Website"], r["Email"] if "@" in r["Email"] else "", r["Phone"],
                 "Inder Sandhu", "inder@crownrea.com.au", "0484926324", "Crown Real Estate Agents",
                 "Development sites – Wollert, Beveridge, Tarneit, Geelong & more",
                 BODY.format(who=(lambda n: n + ("'" if n.endswith('s') else "'s"))(msg_name(dev)), where=where), "Not sent", "", ""])
+    if dev == "Homes Victoria":
+        out[-1][10] = out[-1][10].replace("active presence in delivering", "role in delivering")
 for name, em, ph, page, source, suburbs in COUNCILS:
     out.append([name, page, re.sub(r"(https://[^/]+).*", r"\1", page), em, ph,
                 "Inder Sandhu", "inder@crownrea.com.au", "0484926324", "Crown Real Estate Agents",
