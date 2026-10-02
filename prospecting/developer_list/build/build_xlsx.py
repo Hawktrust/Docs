@@ -17,8 +17,7 @@ MSG_NAME = {"AHB Group": "Mirrastone", "Costa Asset Management": "Costa Property
             "Star Investment Group Australia (Star Marketing)": "Star Investment Group", "Gull & Company": "Gull & Co",
             "Wel.Co": "Wel.Co", "GURNER": "GURNER", "ID_Land": "ID_Land"}
 SKIP = {  # left out of the Outreach tab, with the reason
-    "Banner Asset Management": "Finance firm", "Three Thirds Group": "Professional services firm",
-    "Antipodean Land Developments": "Only contact is a personal gmail", "Sunrise Ventures": "No public contact details",
+    "Sunrise Ventures": "No public contact details",
     "The Range (Trafalgar) Pty Ltd": "Landowner entity, no contacts", "Trafalgar Property Developments Pty Ltd": "Landowner entity, no contacts",
     "Narracan Meadows developer (entity not identified)": "Developer not identified; only agent contact",
     "Hunter Park Country Estate developer (entity not identified)": "Developer not identified; only agent contact",
@@ -53,7 +52,7 @@ REGIONAL_COUNCILS = [  # regional councils without a listed site: name, email, p
     ("Greater Shepparton City Council", "council@shepparton.vic.gov.au", "03 5832 9700",
      "https://greatershepparton.com.au/", "business.gov.au and OVIC agency listings", "Greater Shepparton"),
     ("Latrobe City Council", "latrobe@latrobe.vic.gov.au", "1300 367 700",
-     "https://www.latrobe.vic.gov.au/Contact_Us", "council contact page and vic.gov.au listing", "Latrobe, including Moe and Newborough"),
+     "https://www.latrobe.vic.gov.au/Contact_Us", "council contact page and vic.gov.au listing", "Latrobe (Moe and Newborough)"),
 ]
 REGIONAL_COUNCIL_BODY = """Hi Property and Strategic Acquisitions Team,
 
