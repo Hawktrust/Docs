@@ -1,0 +1,164 @@
+[
+  {
+    "name": "Goldfields",
+    "website": "https://goldfieldsgroup.com.au",
+    "phone": "",
+    "email": "info@goldfieldsgroup.com.au",
+    "address": "Goldfields House, Level 23, 627 Chapel Street, South Yarra VIC 3141",
+    "contact_page": "https://goldfieldsgroup.com.au/contact/",
+    "notes": "Entity is Goldfields Group (national diversified developer, CEO Lachlan Thompson), confirmed as developer of Parkers Grove, Shepparton (641-lot, $205M) per The Urban Developer. No phone published on the contact page (contact form plus email). Also has Brisbane and Perth offices."
+  },
+  {
+    "name": "GURNER",
+    "website": "https://www.gurner.com.au",
+    "phone": "+61 3 9654 6222",
+    "email": "",
+    "address": "Level 3, 10 River St, South Yarra VIC 3141",
+    "contact_page": "https://www.gurner.com.au/contact",
+    "notes": "No email published; enquiry form only. Page meta description still lists older HQ address of 168 Williams Rd, Prahran VIC 3181. The visible page shows River St. Sydney office at 44 Martin Place."
+  },
+  {
+    "name": "Gull & Company",
+    "website": "https://gullco.com.au",
+    "phone": "03 5331 2222",
+    "email": "webenquiries@gullgroup.com.au",
+    "address": "20 Peel Street North, Ballarat VIC 3350 (postal: PO Box 84, Ballarat VIC 3350)",
+    "contact_page": "https://gullco.com.au/contact-us/",
+    "notes": "Gull & Co / Gull Group, Ballarat land developer and real estate agency. Avenue Hill estate (Cardigan) is listed on its site (avenuehillestate.com). Land sales contact on the same page: cameron@gullco.com.au, 0438 341 592."
+  },
+  {
+    "name": "ID_Land",
+    "website": "https://idland.com.au",
+    "phone": "+61 3 9867 4700",
+    "email": "",
+    "address": "Level 11, 484 St Kilda Road, Melbourne VIC 3004",
+    "contact_page": "https://idland.com.au/contact",
+    "notes": "Victorian head office. Part of the ID_Corp group. No email published; contact form only."
+  },
+  {
+    "name": "Intrapac Property",
+    "website": "https://intrapac.com.au",
+    "phone": "03 9207 8000",
+    "email": "info@intrapac.com.au",
+    "address": "Level 6, 580 St Kilda Road, Melbourne VIC 3004",
+    "contact_page": "https://intrapac.com.au/contact-us/",
+    "notes": "Head office and Victorian office. Media: media@intrapac.com.au. Queensland office in Robina."
+  },
+  {
+    "name": "Jinding",
+    "website": "https://www.jinding.com.au",
+    "phone": "+61 3 9457 8588",
+    "email": "info@jinding.com.au",
+    "address": "Level 53, Rialto South Tower, 525 Collins Street, Melbourne VIC 3000",
+    "contact_page": "https://www.jinding.com.au/contact/",
+    "notes": "Melbourne head office. Developer of Broadstead, Kilmore (200 Quinns Road). Brisbane office: Suite 1605, Level 16, 239 George St."
+  },
+  {
+    "name": "Lendlease",
+    "website": "https://www.lendlease.com",
+    "phone": "(03) 9643 0000",
+    "email": "",
+    "address": "Level 14, Two Melbourne Quarter, 697 Collins Street, Docklands VIC 3008",
+    "contact_page": "https://www.lendlease.com/contact-us/",
+    "notes": "Melbourne office details. No general email; enquiry form only. IMPORTANT: as of 29 Nov 2024, Stockland (with Supalai) acquired Lendlease's Victorian communities (Atherstone, Aurora, Averley, Harpley) per communities.lendlease.com/victoria/. Victorian community enquiries may now sit with Stockland."
+  },
+  {
+    "name": "MAB Corporation",
+    "website": "https://www.mab.com.au",
+    "phone": "+61 3 8681 2222",
+    "email": "enquiries@mab.com.au",
+    "address": "Level 5, 441 St Kilda Road, Melbourne VIC 3004 (PO Box 7657, St Kilda Road VIC 3004)",
+    "contact_page": "https://www.mab.com.au/contact/",
+    "notes": "Media: media@mab.com.au, +61 3 8681 2268."
+  },
+  {
+    "name": "Mirvac",
+    "website": "https://www.mirvac.com",
+    "phone": "+61 3 9695 9400",
+    "email": "viccustomer@mirvac.com",
+    "address": "Level 8, 1 Southbank Boulevard, Southbank VIC 3006",
+    "contact_page": "https://www.mirvac.com/contact",
+    "notes": "Melbourne office address and phone are from /contact. The email is the VIC Customer Relationship Team address (phone +61 3 9695 9408), from https://www.mirvac.com/contact/contact-us. No general corporate email is published. Head office is Sydney: Level 28, 200 George St, +61 2 9080 8000."
+  },
+  {
+    "name": "Monno",
+    "website": "https://monno.com.au",
+    "phone": "+61 3 8547 7477",
+    "email": "info@monno.com.au",
+    "address": "Level 2, 28 Clarendon Street, Southbank VIC 3006",
+    "contact_page": "https://monno.com.au/contact/",
+    "notes": "MONNO (formerly CostaFox), developer of Stella Maris, 39 Bay St, Rippleside, Geelong."
+  },
+  {
+    "name": "Moremac Property Group",
+    "website": "https://moremac.com.au",
+    "phone": "03 9851 3307",
+    "email": "support@moremac.com.au",
+    "address": "Suite 11, 860 Doncaster Road, Doncaster East VIC 3109",
+    "contact_page": "https://moremac.com.au/contact/",
+    "notes": "The page footer gives postcode 3108. The main contact block says 3109, which is the correct Doncaster East postcode."
+  },
+  {
+    "name": "Morgan & Griffin",
+    "website": "https://oakdeneestate.com.au",
+    "phone": "(03) 9650 2516",
+    "email": "oakdene@morgangriffin.com.au",
+    "address": "Level 28, 101 Collins St, Melbourne VIC 3000 (postal: PO Box 16057, Collins Street West VIC 8007)",
+    "contact_page": "https://oakdeneestate.com.au/oakdene-estate/oakdene-estate-morgan-griffin/",
+    "notes": "No standalone corporate website found. D&B lists Morgan & Griffin Pty Ltd at L28, 101 Collins St, Melbourne with website oakdeneestate.com.au (Oakdene Estate, Ocean Grove). The phone, email and PO Box come from the Oakdene Design Guidelines PDF (oakdeneestate.com.au/wp-content/uploads/2020/02/Oakdene-Design-Guidelines-Rev-20180411.pdf). The email is project-specific and the PDF is from 2018, so check it is current. Estate selling agent: Kerleys Coastal, 03 5258 4100, oakdene@kerleys.com.au. MD: Nicholas O'Donohue."
+  },
+  {
+    "name": "Newland Developers",
+    "website": "https://www.newland.com.au",
+    "phone": "",
+    "email": "info@newland.com.au",
+    "address": "2/615 Dandenong Road, Armadale VIC 3143 (mail: Suite 2.02 and PO Box 675, Malvern VIC 3144)",
+    "contact_page": "https://www.newland.com.au/contact-us",
+    "notes": "Now branded Newland Developments. Developer of Mandalay, Beveridge (with Urbex). No phone on the contact page. ZoomInfo lists +61 3 9915 5555 at an older Mount Waverley address (497 Blackburn Rd, linked to Metricon). That number is unverified and was not recorded."
+  },
+  {
+    "name": "Nexus Developments",
+    "website": "https://nexusdevelopments.com.au",
+    "phone": "+61 3 9460 1865",
+    "email": "info@nexusdevelopments.com.au",
+    "address": "314/101 Overton Rd, Williams Landing VIC 3027",
+    "contact_page": "https://nexusdevelopments.com.au/contact-us/",
+    "notes": "Confirmed developer of The Clan Estate, Beveridge, which is listed in the project selector on the contact form."
+  },
+  {
+    "name": "Oreana",
+    "website": "https://oreana.com.au",
+    "phone": "+61 3 9804 7113",
+    "email": "info@oreana.com.au",
+    "address": "Level 17, 627 Chapel Street, South Yarra VIC 3141",
+    "contact_page": "https://oreana.com.au/contact/",
+    "notes": "Melbourne office. Founded by Tony and Steven Sass. Also has Sydney, Brisbane and Hong Kong offices."
+  },
+  {
+    "name": "Peet",
+    "website": "https://www.peet.com.au",
+    "phone": "(03) 9868 5900",
+    "email": "melbourne@peet.com.au",
+    "address": "Level 4, 380 St Kilda Road, Melbourne VIC 3004",
+    "contact_page": "https://www.peet.com.au/contact-us/",
+    "notes": "Victorian corporate office (Peet Estates (VIC) Pty Ltd). Community enquiries: community.vic@peet.com.au. Head office is Perth: Level 7, 200 St Georges Tce, (08) 9420 1111."
+  },
+  {
+    "name": "Ramsey Property Group",
+    "website": "https://www.ramseypropertygroup.com.au",
+    "phone": "03 5255 4407",
+    "email": "info@ramseypg.com.au",
+    "address": "",
+    "contact_page": "https://www.ramseypropertygroup.com.au/enquire/",
+    "notes": "Bellarine/Geelong-based family land developer (est. 1983). The site says only 'Offices in South Yarra & Queenscliff' and gives no street address. The email is from the company's own enquire page. The phone is from the DA Leads directory (daleads.com.au/directory/ramsey-property-group), not the company site."
+  },
+  {
+    "name": "Risland",
+    "website": "https://risland.com.au",
+    "phone": "03 8639 0469",
+    "email": "info@risland.com.au",
+    "address": "275 Greens Road, Mambourin VIC 3024",
+    "contact_page": "https://risland.com.au/contact-us/",
+    "notes": "Risland Australia (part of Risland/Country Garden group). The address is the Melbourne office listed on the site. Sydney office: Suite 9.05, Level 9, 12 Help St, Chatswood NSW 2067, 02 9283 8388."
+  }
+]

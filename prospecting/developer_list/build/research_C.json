@@ -1,0 +1,164 @@
+[
+  {
+    "name": "Riverlee",
+    "website": "https://www.riverlee.com.au",
+    "phone": "+61 3 9620 3888",
+    "email": "admin@riverlee.com.au",
+    "address": "Level 17, 379 Collins Street, Melbourne VIC 3000",
+    "contact_page": "https://www.riverlee.com.au/#contact-form",
+    "notes": "Phone/address from site contact section; contact page itself is a form. admin@riverlee.com.au is published on https://www.riverlee.com.au/privacy-policy/ (privacy/access-request address; no other general email published). Riverlee is a Lovely Banks Development Group (Northern Geelong Growth Area) consortium member."
+  },
+  {
+    "name": "Satterley Property Group",
+    "website": "https://satterley.com.au",
+    "phone": "(03) 9223 6700",
+    "email": "info@satterley.com.au",
+    "address": "Level 10, 5 Queens Road, Melbourne VIC 3004 (PO Box 33244, Domain LPO, Melbourne VIC 3004)",
+    "contact_page": "https://satterley.com.au/contact/corporate-offices/",
+    "notes": "Melbourne office phone shown; general enquiries line is (08) 9368 9000 (Perth HQ, Level 3, 27-31 Troode St, West Perth). info@satterley.com.au is the 'Email us' link on the corporate offices page."
+  },
+  {
+    "name": "SIG Group",
+    "website": "https://siggroup.com.au",
+    "phone": "",
+    "email": "admin@siggroup.com.au",
+    "address": "Level 9, 5 Queens Road (Suite 1), Melbourne VIC 3004",
+    "contact_page": "https://siggroup.com.au/contact/",
+    "notes": "Company contact page is form only with address (no phone/email shown). admin@siggroup.com.au taken from SIG Group's Facebook page (facebook.com/SIGgroupau). No phone on official site; data aggregators conflict (RocketReach 1300 788 827, SignalHire 03 9958 2408) so phone left blank. Not to be confused with SIG Property Group (sigpropertygroup.com.au, Qld)."
+  },
+  {
+    "name": "SOHO Living",
+    "website": "https://www.soholiving.com.au",
+    "phone": "13 76 46",
+    "email": "info@soholiving.com.au",
+    "address": "Unit 11, 41 Sabre Drive, Port Melbourne VIC 3207",
+    "contact_page": "https://www.soholiving.com.au/contact-us/",
+    "notes": "General enquiries email/phone from contact page (maintenance@soholiving.com.au for warranty). Head office address from LinkedIn/Birdeye (Facebook lists 9/435 Williamstown Rd, Port Melbourne). Builder and land developer; part of Mirrastone group."
+  },
+  {
+    "name": "Stockland",
+    "website": "https://www.stockland.com.au",
+    "phone": "13 52 63",
+    "email": "customercareteam@stockland.com.au",
+    "address": "Level 7, 452 Flinders Street, Melbourne VIC 3000",
+    "contact_page": "https://www.stockland.com.au/residential/buying-and-building/general-faqs",
+    "notes": "No single corporate contact page found (/contact-us 404s). Phone 13 52 63 and customercareteam@stockland.com.au appear on Stockland community contact pages (e.g. /residential/qld/aura/contact-us) and the residential FAQ page. Melbourne office address from Stockland LinkedIn; national HQ is in Sydney."
+  },
+  {
+    "name": "Sunrise Ventures",
+    "website": "",
+    "phone": "",
+    "email": "",
+    "address": "",
+    "contact_page": "",
+    "notes": "Northern Geelong Growth Area: one of four landowners in the Lovely Banks Development Group (with Riverlee, Bamfa Properties, Costa Asset Management; Newland Developers is development partner). AFR describes it as a company co-owned by Peter Davis and Stephen Hay. No website or public contact details found; approach via LBDG partners (e.g. Riverlee)."
+  },
+  {
+    "name": "Tripleton",
+    "website": "https://www.tripleton.com.au",
+    "phone": "+61 415 384 955",
+    "email": "info@tripleton.com.au",
+    "address": "24/5 Bridge Street, Newtown VIC 3220",
+    "contact_page": "https://www.tripleton.com.au/contact",
+    "notes": "Geelong-based developer (Tripleton Developments). Phone is a mobile number as published on contact page."
+  },
+  {
+    "name": "Villawood Properties",
+    "website": "https://villawoodproperties.com.au",
+    "phone": "(03) 9695 3000",
+    "email": "villawood@villawoodproperties.com",
+    "address": "Level 4, 6 Riverside Quay, Southbank VIC 3006",
+    "contact_page": "https://villawoodproperties.com.au/contact/",
+    "notes": "Melbourne HQ details. Also Bendigo office (47 Queen St, Bendigo; (03) 5444 0002; adminbendigo@villawoodproperties.com). Note email domain is .com, not .com.au."
+  },
+  {
+    "name": "Wel.Co",
+    "website": "https://welcogroup.com.au",
+    "phone": "+61 3 8595 8300",
+    "email": "info@welcogroup.com.au",
+    "address": "Level 10, 2 Southbank Boulevard, Southbank VIC 3006",
+    "contact_page": "https://welcogroup.com.au/contact",
+    "notes": "Phone/address from welcogroup.com.au contact page (Framer site content index). info@welcogroup.com.au seen on Wel.Co Facebook page and Wel.Co's Fernvale project site footer (thefernvale.com.au); privacyofficer@welcogroup.com.au also on site."
+  },
+  {
+    "name": "Wolfdene",
+    "website": "https://wolfdene.com.au",
+    "phone": "+61 3 9827 8830",
+    "email": "info@wolfdene.com.au",
+    "address": "95 Cubitt Street, Cremorne VIC 3121",
+    "contact_page": "https://wolfdene.com.au/contact/",
+    "notes": "Also has Perth office: Level 5, 28 The Esplanade, Perth WA 6000."
+  },
+  {
+    "name": "YourLand Developments",
+    "website": "https://yourland.com",
+    "phone": "",
+    "email": "melbourne@yourland.com",
+    "address": "Level 1, 68 Clarke Street, Southbank VIC 3006",
+    "contact_page": "https://yourland.com/contact/",
+    "notes": "'YourLand 3L Alliance' resolved as two separate entities: YourLand Developments and 3L Alliance (no joint venture linking them found). No head-office phone published; contact page lists community sales lines (e.g. Seventh Bend 0418 577 055). media@yourland.com for media. Also a Bendigo office at 57A Queen St, Bendigo (Yelp/Facebook)."
+  },
+  {
+    "name": "3L Alliance",
+    "website": "https://3lalliance.com",
+    "phone": "+61 3 8600 9500",
+    "email": "info@3lalliance.com",
+    "address": "Level 19, 350 Queen Street, Melbourne VIC 3000",
+    "contact_page": "https://3lalliance.com/contact/",
+    "notes": "Separate entity from YourLand (source listed 'YourLand 3L Alliance'). Melbourne developer of Queens Place and greenfield communities. Phone/email from contact page and privacy policy text (search-index excerpts; page is JS-rendered)."
+  },
+  {
+    "name": "Bamfa Properties",
+    "website": "https://bamfa.com.au",
+    "phone": "03 9429 6432",
+    "email": "",
+    "address": "480 Swan Street, Richmond VIC 3121 (postal: PO Box 5005, Burnley VIC 3121)",
+    "contact_page": "https://bamfa.com.au/",
+    "notes": "Lovely Banks Development Group (Northern Geelong Growth Area) consortium member; family company led by Adam and Luke Agosta. Phone and PO Box from bamfa.com.au content (site appears compromised with casino spam pages; homepage did not render for scraping). Street address from Central Index business listing. No email published."
+  },
+  {
+    "name": "Arc Living (Arc.)",
+    "website": "https://arcliving.com.au",
+    "phone": "1300 877 767",
+    "email": "hello@arcliving.com.au",
+    "address": "Level 1, 85 Union Street, Armadale VIC 3143",
+    "contact_page": "https://arcliving.com.au/contact-us/",
+    "notes": "Townhouse developer in SE Melbourne and Geelong; division/subsidiary of Up Property (upproperty.com.au). Address in full from privacy policy page. Land acquisition contact Ben Cribb +61 427 889 297."
+  },
+  {
+    "name": "Integra Group",
+    "website": "https://www.integragroup.com.au",
+    "phone": "03 5322 5999",
+    "email": "enquiries@integragroup.com.au",
+    "address": "25 Lilburne Street, Lucas VIC 3350",
+    "contact_page": "https://www.integragroup.com.au/contact",
+    "notes": "Ballarat land developer (Lucas, Aberdeen estates). Lucas Land Sales Centre 03 5322 5902; Aberdeen Land Sales Centre 0418 857 264."
+  },
+  {
+    "name": "Urban Land Projects",
+    "website": "https://www.thenorthquarter.com.au",
+    "phone": "0407 503 140",
+    "email": "paul@urbanlandprojects.com.au",
+    "address": "",
+    "contact_page": "https://www.thenorthquarter.com.au/",
+    "notes": "Developer of The North Quarter estate, Verney Road, North Shepparton (estate address 145 Verney Road per Openlot). No company website found; contacts are from the estate site: Paul Ranson (project management) - personal mobile/email, no general address published. Sales via Gagliardi Scott Real Estate (Rocky Gagliardi 0407 826 542, rocky@gagliardiscott.com.au)."
+  },
+  {
+    "name": "Marlton Group",
+    "website": "https://montanakilmore.com.au",
+    "phone": "+61 438 555 498",
+    "email": "montana@rpmgrp.com.au",
+    "address": "6 McIvors Road, Kilmore VIC 3764 (estate sales office)",
+    "contact_page": "https://montanakilmore.com.au/contact/",
+    "notes": "Developer of Montana Estate, Kilmore per Openlot listing. No Marlton Group website/contacts found; phone/email/address are the Montana estate sales office run by project marketer RPM Group."
+  },
+  {
+    "name": "The Corcoris Group Developments Pty Ltd",
+    "website": "https://www.ooranyaestate.com.au",
+    "phone": "1300 035 791",
+    "email": "sales@ooranyaestate.com.au",
+    "address": "36 Whiteside Street, Beveridge VIC 3753 (estate sales office)",
+    "contact_page": "https://www.ooranyaestate.com.au/",
+    "notes": "Ooranya Estate, Beveridge. Estate documents name The Corcoris Group Developments Pty Ltd as developer, with the estate managed by TCG Construction Services Pty Ltd on behalf of the landowners; Landsales lists the developer as Ooranya Estate Pty Ltd. Sales handled by Bevan Projects. Phone/email verified on ooranyaestate.com.au; sales office address from search snippet. No developer company website found."
+  }
+]

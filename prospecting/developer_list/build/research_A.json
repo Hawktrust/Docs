@@ -1,0 +1,173 @@
+[
+  {
+    "name": "ABN Group",
+    "website": "https://www.abngroup.com.au",
+    "phone": "03 9674 4550",
+    "email": "",
+    "address": "81 Lorimer St, Docklands VIC 3008",
+    "contact_page": "https://www.abngroup.com.au/contact/",
+    "notes": "Melbourne office (group founded in Perth). General enquiries via contact form only; the only email seen is the accounts-payable inbox invoicesvic@abngroup.com.au (submitting-invoices page), which isn't for general enquiries. Details from search excerpt of contact page; page scrape was rate-limited."
+  },
+  {
+    "name": "Accord Property Group",
+    "website": "http://www.accordpg.com.au",
+    "phone": "03 9830 7722",
+    "email": "enquiries@accordpg.com.au",
+    "address": "23 Shierlaw Avenue, Canterbury VIC 3126 (PO Box 241, Canterbury VIC 3126)",
+    "contact_page": "http://www.accordpg.com.au/contact/",
+    "notes": "Ambiguous name: picked the Victorian Accord PG (Canterbury). Not the same as Accord Property (accord.property), which is Adelaide-based. Scraped contact page."
+  },
+  {
+    "name": "AHB Group (now Mirrastone)",
+    "website": "https://mirrastone.com.au",
+    "phone": "(03) 8390 1000",
+    "email": "",
+    "address": "56 Barclay Road, Derrimut VIC 3026",
+    "contact_page": "https://mirrastone.com.au/contact-us/",
+    "notes": "AHB Group has been renamed Mirrastone (parent of Sherridon Homes, SOHO Living, etc.; Victoria's largest homebuilder). No general email published: contact form / Customer Help Centre only. Details from search excerpt of contact page."
+  },
+  {
+    "name": "APD Projects",
+    "website": "https://apdprojects.com.au",
+    "phone": "1300 067 927",
+    "email": "sayhello@apdprojects.com.au",
+    "address": "Suite 2, Level 3, 100 Dorcas Street, Southbank VIC 3006",
+    "contact_page": "https://apdprojects.com.au/#contact",
+    "notes": "Scraped homepage contact section. Also has a QLD office in Newstead. LinkedIn and RocketReach still list an older address: Suite 2, Level 8, 412 St Kilda Rd."
+  },
+  {
+    "name": "AVID Property Group",
+    "website": "https://avid.com.au",
+    "phone": "03 8373 1928",
+    "email": "enquiries@avid.com.au",
+    "address": "Suite 2, Level 8, 380 St Kilda Road, Melbourne VIC 3004",
+    "contact_page": "https://avid.com.au/contact-us/",
+    "notes": "Melbourne office phone and address from the AVID site (contact page excerpt plus footer on avid.com.au/avidconnect/). The email is listed on avid.com.au/privacy-policy/ and the AVID Facebook page. National head office is Sydney (02 8316 7700)."
+  },
+  {
+    "name": "Abiwood",
+    "website": "https://abiwood.com.au",
+    "phone": "03 9589 6300",
+    "email": "info@abiwood.com.au",
+    "address": "2/44 Weatherall Road, Cheltenham VIC 3192",
+    "contact_page": "https://abiwood.com.au/contact-us/",
+    "notes": "Scraped contact page."
+  },
+  {
+    "name": "Balcon Group",
+    "website": "https://balcongroup.com.au",
+    "phone": "+61 3 9822 6507",
+    "email": "admin@balcon.net.au",
+    "address": "2A Mercer Road, Armadale VIC 3143 (PO Box 521 Malvern VIC 3144)",
+    "contact_page": "https://balcongroup.com.au/",
+    "notes": "Developer of the Orana estate (Clyde North). Details from the 'Get in touch' section of the homepage (search excerpt). Note the email domain is balcon.net.au."
+  },
+  {
+    "name": "Bevan Property Group",
+    "website": "https://bevanprojects.com.au",
+    "phone": "03 9646 5536",
+    "email": "office@bevanprojects.com.au",
+    "address": "PO Box 482, Port Melbourne VIC 3207 (postal only; no street address published)",
+    "contact_page": "https://bevanprojects.com.au/bevan-property-group/",
+    "notes": "Bevan Property Group is shown under Bevan Projects (Port Melbourne). A separate bevanpropertygroup.com.au domain exists but showed no contact details. Details from search excerpt."
+  },
+  {
+    "name": "Bisinella Developments",
+    "website": "https://bisinella.com.au",
+    "phone": "(03) 5274 4000",
+    "email": "sales@bisinella.com.au",
+    "address": "195-225 Forest Road South, Lara VIC 3212 (PO Box 44, Lara VIC 3212)",
+    "contact_page": "https://bisinella.com.au/contact/",
+    "notes": "L. Bisinella Developments Pty Ltd, Geelong region. sales@ is also given for general/corporate enquiries. Details from contact page excerpt."
+  },
+  {
+    "name": "Birchgrove Property",
+    "website": "https://birchgrove.com.au",
+    "phone": "(03) 5442 6464",
+    "email": "",
+    "address": "45 Edwards Road, Strathdale VIC 3550",
+    "contact_page": "https://birchgrove.com.au/",
+    "notes": "Bendigo residential estate developer. Sales mobile: 0417 127 127 (Lisa). No email seen on the site. The BeBendigo directory gives a different phone and address ((03) 5442 7816, 276 Hargreaves Mall); I used the company's own site."
+  },
+  {
+    "name": "Brown Property Group",
+    "website": "https://brownpropertygroup.com.au",
+    "phone": "+61 3 9230 2900",
+    "email": "info@bpg.com.au",
+    "address": "Level 3, 2 Roche Street, Hawthorn VIC (PO Box 6039, Hawthorn West VIC 3122)",
+    "contact_page": "https://brownpropertygroup.com.au/contact/",
+    "notes": "Victorian developer, not the US Brown Property Group (Fayetteville NC). The contact page has a form, phone and address. info@bpg.com.au is from the company's privacy-policy page."
+  },
+  {
+    "name": "Cedar Woods",
+    "website": "https://www.cedarwoods.com.au",
+    "phone": "(03) 9820 1777",
+    "email": "melbourne@cedarwoods.com.au",
+    "address": "Level 5, 412 St Kilda Road, Melbourne VIC 3004",
+    "contact_page": "https://www.cedarwoods.com.au/contact-us",
+    "notes": "Melbourne office of Cedar Woods Properties (ASX listed, HQ West Perth). Contact page excerpt."
+  },
+  {
+    "name": "Central Equity",
+    "website": "https://centralequity.com.au",
+    "phone": "1800 638 888",
+    "email": "",
+    "address": "151 City Road, Southbank VIC 3006",
+    "contact_page": "https://centralequity.com.au/contact",
+    "notes": "Head office phone 1800 638 888 (free call) / +61 3 9278 8888. No general email: contact form only (privacy@centralequity.com.au is listed only for privacy matters). Address is from the Domain agency listing and isn't on the contact page."
+  },
+  {
+    "name": "Costa Property Group / Costa Asset Management",
+    "website": "https://www.costaland.com.au",
+    "phone": "(03) 5224 1477",
+    "email": "info@costaland.com.au",
+    "address": "Level 1, 2 Myers St, Geelong VIC 3220 (PO Box 315, Geelong VIC 3220)",
+    "contact_page": "https://www.costaland.com.au/",
+    "notes": "Costa Property Group (costaland.com.au) is the land/estate developer arm. Parent Costa Asset Management (family office): https://www.costafamilyoffice.com.au, 174 Moorabool Street, Geelong VIC 3220, +61 3 5292 8200, info@costafamilyoffice.com.au. Both from site excerpts."
+  },
+  {
+    "name": "Dennis Family Corporation",
+    "website": "https://denniscorp.com.au",
+    "phone": "+61 3 9573 1100",
+    "email": "",
+    "address": "863 High Street, Armadale VIC 3143",
+    "contact_page": "https://denniscorp.com.au/contact-us/",
+    "notes": "Head office details from contact page. No general email published: contact form only (the only email seen is accounts_payable@denniscorp.com.au for suppliers). QLD office: +61 7 3457 8600."
+  },
+  {
+    "name": "Development Edge",
+    "website": "https://developmentedge.com.au",
+    "phone": "+61 3 5831 1800",
+    "email": "",
+    "address": "122 High St, Shepparton VIC 3630",
+    "contact_page": "https://developmentedge.com.au/contact/",
+    "notes": "Shepparton / Goulburn Valley land developer. Website contact page is a contact form only (no phone, email or address shown). Address from MapQuest; phone from the Maptons directory listing, not the company's own site."
+  },
+  {
+    "name": "Development Victoria",
+    "website": "https://www.development.vic.gov.au",
+    "phone": "+61 3 8317 3400",
+    "email": "",
+    "address": "8 Exhibition Street, Melbourne VIC 3000",
+    "contact_page": "https://www.development.vic.gov.au/contact",
+    "notes": "Victorian Government development agency. General enquiries via online form only. Emails seen elsewhere are function-specific only: foi@development.vic.gov.au (OVIC listing) and recruitment.enquiries@development.vic.gov.au (LinkedIn)."
+  },
+  {
+    "name": "Exford Waters (developer: Wegg Pty Ltd)",
+    "website": "https://www.exfordwaters.com.au",
+    "phone": "0499 123 119",
+    "email": "exfordwaters@rpmgrp.com.au",
+    "address": "Sales office: 5 Riversdale Boulevard, Weir Views VIC 3338 (estate at 255-299 Exford Road, Weir Views)",
+    "contact_page": "https://www.exfordwaters.com.au/contact/",
+    "notes": "Estate, not a company. Developer is Wegg Pty Ltd (named on the estate's rebate terms and design guidelines; OpenLot and RPM list 'Wegg' as developer). Sales and marketing are by RPM Group (https://www.rpmgrp.com.au/project/exfordwaters/). Phone is the Estate Manager's (Shaam Sharma) from the contact page; 1800 777 800 also appears on estate blog pages. Email is from the Exford Waters Facebook and Instagram pages. No standalone Wegg website or contact details found."
+  },
+  {
+    "name": "Frasers Property Australia",
+    "website": "https://www.frasersproperty.com.au",
+    "phone": "+61 3 9258 1200",
+    "email": "",
+    "address": "Level 9, 484 St Kilda Road, Melbourne VIC 3004",
+    "contact_page": "https://www.frasersproperty.com.au/contact",
+    "notes": "Melbourne office. National residential enquiries 13 38 38; customer care 13 86 88. No email published: phone / contact form only."
+  }
+]
