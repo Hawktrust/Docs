@@ -116,16 +116,18 @@ def area(projects):
     if not found: return ""
     return found[0] if len(found) == 1 else ", ".join(found[:-1][:3]) + " and " + found[min(len(found) - 1, 3)]
 
-BODY = """Hi team,
+BODY = """Hi Acquisition team,
 Quick one. I'm representing several development sites across Melbourne's north and west that may suit {who} pipeline{alongside}:
 
 * Shovel-ready residential and industrial.
 * Permit-approved townhouse sites, including one for 44 townhouses.
 * Childcare and townhouse sites, both raw and approved.
-* About 50 acres of investigation-area land.
+* 50 acres under investigation area.
 
 Who in acquisitions should I send the details to?
+
 If it's not a fit, just let me know and I won't follow up.
+
 {signature}"""
 
 # One named project per developer, for "especially alongside {project}". Workbook regional projects
@@ -175,7 +177,6 @@ Principal /OIEC
 CROWN REAL ESTATE AGENTS
 Phone no: 0484 926 324
 Inder@crownrea.com.au
-www.crownrea.com.au
 
 Disclaimer : This email and any attachments are confidential and intended solely for the intended recipient(s). If you are not the intended recipient, please notify the sender immediately, delete this email, and refrain from disclosing, copying, or using any part of this communication.
 
