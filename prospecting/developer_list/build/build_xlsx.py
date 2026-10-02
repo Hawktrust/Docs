@@ -35,6 +35,45 @@ MARKETS = ["Geelong", "Bendigo", "Ballarat", "Shepparton", "Kilmore", "Beveridge
            "Werribee", "Melton", "Wyndham", "Mickleham", "Craigieburn", "Kalkallo", "Donnybrook", "Lara", "Armstrong Creek",
            "Drysdale", "Clyde", "Officer", "Pakenham", "Cranbourne", "Newborough", "Kilmore", "Wallan", "Sunbury"]
 
+COUNCILS = [  # councils whose area holds one of the listed sites: name, email, phone, contact page, email source, suburbs
+    ("City of Whittlesea", "info@whittlesea.vic.gov.au", "03 9217 2170",
+     "https://www.whittlesea.vic.gov.au/About-us/Contact-us", "council annual report 2022-23 and official Facebook page", "Wollert"),
+    ("Mitchell Shire Council", "mitchell@mitchellshire.vic.gov.au", "03 5734 6200",
+     "https://www.mitchellshire.vic.gov.au/contact", "council contact page", "Beveridge"),
+    ("Wyndham City Council", "mail@wyndham.vic.gov.au", "1300 023 411",
+     "https://www.wyndham.vic.gov.au/contact-us", "council contact page", "Tarneit and Truganina"),
+    ("Melton City Council", "csu@melton.vic.gov.au", "03 9747 7200",
+     "https://www.melton.vic.gov.au/Council/Customer-Service/Contact-Us", "business.gov.au and vic.gov.au council listings",
+     "Deanside, Bonnie Brook and Fraser Rise"),
+    ("City of Greater Geelong", "contactus@geelongcity.vic.gov.au", "03 5272 5272",
+     "https://www.geelongcity.vic.gov.au/contact", "council customer service charter and business.gov.au", "Geelong"),
+]
+COUNCIL_BODY = """Hi Property and Strategic Acquisitions Team,
+
+My name is Inder Sandhu with Crown Real Estate Agents. I specialise in development land across Melbourne's western and northern growth corridors and regional Victoria.
+
+I have development sites available in {suburbs}, within {council}'s area, as well as in {others}:
+
+* Shovel-ready residential and industrial.
+* Permit-approved townhouse sites, including one for 44 townhouses.
+* Childcare and townhouse sites, both raw and approved.
+* About 50 acres of investigation-area land.
+
+Given Council's role in planning for growth in {suburbs}, some of these sites may suit Council's strategic land or community infrastructure needs.
+Could you please forward this to the appropriate contact in Council's property or strategic acquisitions team so I can share further details?
+
+If you'd rather not hear from me about sites, just let me know and I won't contact you again.
+
+Kind regards,
+Inder Sandhu
+Crown Real Estate Agents
+0484 926 324 | inder@crownrea.com.au"""
+
+SITES = ["Wollert", "Beveridge", "Tarneit", "Geelong", "Deanside", "Bonnie Brook", "Fraser Rise", "Truganina"]
+def others(suburbs):
+    rest = [x for x in SITES if x not in suburbs]
+    return ", ".join(rest[:-1]) + " and " + rest[-1]
+
 def msg_name(dev):
     if dev in MSG_NAME: return MSG_NAME[dev]
     return re.sub(r"\s+(Pty\.? Ltd\.?|Limited|Ltd)$", "", dev).strip()
@@ -122,7 +161,13 @@ for r in rows:
                 "Inder Sandhu", "inder@crownrea.com.au", "0484926324", "Crown Real Estate Agents",
                 "Development sites – Wollert, Beveridge, Tarneit, Geelong & more",
                 BODY.format(who=(lambda n: n + ("'" if n.endswith('s') else "'s"))(msg_name(dev)), where=where), "Not sent", "", ""])
-oh = ["Developer", "Contact form / contact page", "Website", "Published email", "Phone", "Your name", "Your email",
+for name, em, ph, page, source, suburbs in COUNCILS:
+    out.append([name, page, re.sub(r"(https://[^/]+).*", r"\1", page), em, ph,
+                "Inder Sandhu", "inder@crownrea.com.au", "0484926324", "Crown Real Estate Agents",
+                f"Development sites in {suburbs.replace(' and ', ' & ')}",
+                COUNCIL_BODY.format(suburbs=suburbs, council=("the " if name.startswith("City of") else "") + name, others=others(suburbs)), "Not sent", "",
+                f"Local council – sites in {suburbs}. General inbox; email source: {source}"])
+oh = ["Developer / council", "Contact form / contact page", "Website", "Published email", "Phone", "Your name", "Your email",
       "Your mobile", "Company", "Subject", "Message (personalised)", "Status", "Date sent", "Response / notes"]
 ws = sheet(wb, "Outreach", oh, out, [30, 40, 30, 32, 15, 13, 24, 12, 22, 34, 80, 11, 11, 30], wrap_cols=(11,))
 for row in ws.iter_rows(min_row=2):
