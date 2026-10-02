@@ -70,10 +70,7 @@ Could you please forward this to the appropriate contact in Council's property o
 
 If you'd rather not hear from me about sites, just let me know and I won't contact you again.
 
-Kind regards,
-Inder Sandhu
-Crown Real Estate Agents
-0484 926 324 | inder@crownrea.com.au"""
+{signature}"""
 COUNCIL_BODY = """Hi Property and Strategic Acquisitions Team,
 
 My name is Inder Sandhu with Crown Real Estate Agents. I specialise in development land across Melbourne's western and northern growth corridors and regional Victoria.
@@ -90,10 +87,7 @@ Could you please forward this to the appropriate contact in Council's property o
 
 If you'd rather not hear from me about sites, just let me know and I won't contact you again.
 
-Kind regards,
-Inder Sandhu
-Crown Real Estate Agents
-0484 926 324 | inder@crownrea.com.au"""
+{signature}"""
 
 SITES = ["Wollert", "Beveridge", "Tarneit", "Geelong", "Deanside", "Bonnie Brook", "Fraser Rise", "Truganina"]
 def others(suburbs):
@@ -138,10 +132,25 @@ Could you please direct me to the appropriate contact in your acquisitions depar
 
 If you'd rather not hear from me about sites, just let me know and I won't contact you again.
 
-Kind regards,
+{signature}"""
+
+SIGNATURE = """Kind Regards,
 Inder Sandhu
-Crown Real Estate Agents
-0484 926 324 | inder@crownrea.com.au"""
+Principal /OIEC
+CROWN REAL ESTATE AGENTS
+Phone no: 0484 926 324
+Inder@crownrea.com.au
+www.crownrea.com.au
+
+Disclaimer : This email and any attachments are confidential and intended solely for the intended recipient(s). If you are not the intended recipient, please notify the sender immediately, delete this email, and refrain from disclosing, copying, or using any part of this communication.
+
+The information in this email is for general informational purposes only and should not be considered legal, financial, or professional advice. Crown Real Estate Agencts makes no guarantees regarding its accuracy or completeness. Any views expressed are those of the author and do not necessarily reflect the views of Crown Real Estate Agents.
+
+Crown Real Estate Agents complies with all relevant Victorian and Australian laws, including the Estate Agents Act 1980 (Vic) and the Australian Consumer Law. We are committed to fair trading, privacy, and anti-discrimination practices, as required by the Equal Opportunity Act 2010 (Vic) and the Privacy Act 1988 (Cth).
+
+While precautions are taken to prevent viruses, Crown Real Estate Agents accepts no liability for damage caused by email transmission.
+
+No binding agreements may be concluded via email without written confirmation by an authorized representative of Crown Real Estate Agents."""
 
 FONT = "Arial"
 HDR_FILL = PatternFill("solid", fgColor="1F3864")
@@ -202,26 +211,26 @@ for r in rows:
     out.append([DISPLAY.get(dev, dev), form, r["Website"], r["Email"] if "@" in r["Email"] else "", r["Phone"],
                 "Inder Sandhu", "inder@crownrea.com.au", "0484926324", "Crown Real Estate Agents",
                 "Development sites – Wollert, Beveridge, Tarneit, Geelong & more",
-                BODY.format(who=(lambda n: n + ("'" if n.endswith('s') else "'s"))(msg_name(dev)), where=where), "Not sent", "", ""])
+                BODY.format(signature=SIGNATURE, who=(lambda n: n + ("'" if n.endswith('s') else "'s"))(msg_name(dev)), where=where), "Not sent", "", ""])
     if dev in ROLE:
         out[-1][10] = out[-1][10].replace("active presence in ", "role in ")
 for name, em, ph, page, source, suburbs in COUNCILS:
     out.append([name, page, re.sub(r"(https://[^/]+).*", r"\1", page), em, ph,
                 "Inder Sandhu", "inder@crownrea.com.au", "0484926324", "Crown Real Estate Agents",
                 f"Development sites in {suburbs.replace(' and ', ' & ')}",
-                COUNCIL_BODY.format(suburbs=suburbs, council=("the " if name.startswith("City of") else "") + name, others=others(suburbs)), "Not sent", "",
+                COUNCIL_BODY.format(signature=SIGNATURE, suburbs=suburbs, council=("the " if name.startswith("City of") else "") + name, others=others(suburbs)), "Not sent", "",
                 f"Local council – sites in {suburbs}. General inbox; email source: {source}"])
 for name, em, ph, page, source, region in REGIONAL_COUNCILS:
     out.append([name, page, re.sub(r"(https://[^/]+).*", r"\1", page), em, ph,
                 "Inder Sandhu", "inder@crownrea.com.au", "0484926324", "Crown Real Estate Agents",
                 "Development land – Crown Real Estate Agents",
-                REGIONAL_COUNCIL_BODY.format(region=region), "Not sent", "",
+                REGIONAL_COUNCIL_BODY.format(signature=SIGNATURE, region=region), "Not sent", "",
                 f"Regional council – no listed site in its area yet. General inbox; email source: {source}"])
 oh = ["Developer / council", "Contact form / contact page", "Website", "Published email", "Phone", "Your name", "Your email",
       "Your mobile", "Company", "Subject", "Message (personalised)", "Status", "Date sent", "Response / notes"]
 ws = sheet(wb, "Outreach", oh, out, [30, 40, 30, 32, 15, 13, 24, 12, 22, 34, 80, 11, 11, 30], wrap_cols=(11,))
 for row in ws.iter_rows(min_row=2):
-    ws.row_dimensions[row[0].row].height = 150
+    ws.row_dimensions[row[0].row].height = 409
 ws.cell(row=len(out) + 3, column=1, value="Left out of outreach (and why):").font = Font(name=FONT, bold=True)
 for j, (n, why) in enumerate(skipped):
     ws.cell(row=len(out) + 4 + j, column=1, value=n).font = BODY_FONT
