@@ -17,8 +17,6 @@ MSG_NAME = {"AHB Group": "Mirrastone", "Costa Asset Management": "Costa Property
             "Star Investment Group Australia (Star Marketing)": "Star Investment Group", "Gull & Company": "Gull & Co",
             "Wel.Co": "Wel.Co", "GURNER": "GURNER", "ID_Land": "ID_Land"}
 SKIP = {  # left out of the Outreach tab, with the reason
-    "Community Housing Victoria Ltd": "Community housing provider", "Housing Choices Australia Limited (Victoria)": "Community housing provider",
-    "HousingFirst Ltd": "Community housing provider", "Launch Housing": "Homelessness charity", "Bolton Clarke": "Aged-care not-for-profit",
     "Banner Asset Management": "Finance firm", "Three Thirds Group": "Professional services firm",
     "Antipodean Land Developments": "Only contact is a personal gmail", "Sunrise Ventures": "No public contact details",
     "The Range (Trafalgar) Pty Ltd": "Landowner entity, no contacts", "Trafalgar Property Developments Pty Ltd": "Landowner entity, no contacts",
@@ -28,7 +26,7 @@ SKIP = {  # left out of the Outreach tab, with the reason
     "LOGOS": "Site now redirects to ESR Australia — contact ESR instead",
     "Mount Atkinson Holdings": "Domain no longer belongs to the company",
     "Eight Property Investments": "In liquidation (ASIC notice)", "Montego Homes": "Collapsed in 2024",
-    "AVJennings": "Website now redirects to AVID Property Group — contact AVID instead", "Seebeck Group Enterprise": "No contact details",
+    "AVJennings": "Website now redirects to AVID Property Group — contact AVID instead",
 }
 MARKETS = ["Geelong", "Bendigo", "Ballarat", "Shepparton", "Kilmore", "Beveridge", "Moe", "Wollert", "Tarneit", "Truganina",
            "Werribee", "Melton", "Wyndham", "Mickleham", "Craigieburn", "Kalkallo", "Donnybrook", "Lara", "Armstrong Creek",
@@ -72,6 +70,17 @@ SITES = ["Wollert", "Beveridge", "Tarneit", "Geelong", "Deanside", "Bonnie Brook
 def others(suburbs):
     rest = [x for x in SITES if x not in suburbs]
     return ", ".join(rest[:-1]) + " and " + rest[-1]
+
+ROLE = {
+    "Homes Victoria": "delivering new homes across Melbourne's growth areas and regional Victoria",
+    "Community Housing Victoria Ltd": "delivering community and affordable housing across Victoria",
+    "Housing Choices Australia Limited (Victoria)": "delivering community and affordable housing across Victoria",
+    "HousingFirst Ltd": "delivering community and affordable housing across Melbourne",
+    "Launch Housing": "delivering housing for people experiencing homelessness across Melbourne",
+    "Bolton Clarke": "delivering retirement living and aged care communities across Victoria",
+}
+MSG_NAME.update({"Community Housing Victoria Ltd": "Community Housing Limited", "Housing Choices Australia Limited (Victoria)": "Housing Choices Australia",
+                 "HousingFirst Ltd": "HousingFirst"})
 
 def msg_name(dev):
     if dev in MSG_NAME: return MSG_NAME[dev]
@@ -154,16 +163,19 @@ for r in rows:
     if dev in SKIP: skipped.append([DISPLAY.get(dev, dev), SKIP[dev]]); continue
     a = area(r["Regional projects / footprint"])
     where = f"in {a}" if a else "across Melbourne's growth corridors and regional Victoria"
-    if dev == "Homes Victoria":  # its only listed project is 7 social homes in Moe
-        where = "in delivering new homes across Melbourne's growth areas and regional Victoria"
-    form = r["Contact page"] if "openlot.com.au" not in r["Contact page"] else ""
-    form = form or r["Website"] or "No website — use email / phone"
+    if dev in ROLE:  # government and not-for-profit bodies: speak to their role, not a listed project
+        where = "in " + ROLE[dev]
+    # use the contact page unless it is a third-party listing, Facebook page or non-contact page
+    third = ("facebook.com", "crunchbase.com", "trustpilot.com", "acnc.gov.au", "openlot.com.au", "health.qld.gov.au",
+             "2020ar.goodman.com", "complaints-management")
+    form = r["Contact page"] if not any(t in r["Contact page"] for t in third) else ""
+    form = form or r["Website"] or r["Contact page"] or "No website — use email / phone"
     out.append([DISPLAY.get(dev, dev), form, r["Website"], r["Email"] if "@" in r["Email"] else "", r["Phone"],
                 "Inder Sandhu", "inder@crownrea.com.au", "0484926324", "Crown Real Estate Agents",
                 "Development sites – Wollert, Beveridge, Tarneit, Geelong & more",
                 BODY.format(who=(lambda n: n + ("'" if n.endswith('s') else "'s"))(msg_name(dev)), where=where), "Not sent", "", ""])
-    if dev == "Homes Victoria":
-        out[-1][10] = out[-1][10].replace("active presence in delivering", "role in delivering")
+    if dev in ROLE:
+        out[-1][10] = out[-1][10].replace("active presence in ", "role in ")
 for name, em, ph, page, source, suburbs in COUNCILS:
     out.append([name, page, re.sub(r"(https://[^/]+).*", r"\1", page), em, ph,
                 "Inder Sandhu", "inder@crownrea.com.au", "0484926324", "Crown Real Estate Agents",

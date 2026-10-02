@@ -138,6 +138,18 @@ hv["notes"].append("No email published; contact form at homes.vic.gov.au/get-tou
                    "Fairness and Housing general enquiries line (dffh.vic.gov.au/contact-us); Homes Victoria's own "
                    "1800 825 955 line is for housing support.")
 
+# 5c. Community Housing (Vic) Ltd now operates as Community Housing Limited; its only
+# published emails are for anonymous feedback and the company secretary.
+ch = rec("Community Housing Victoria Ltd")
+put(ch, "website", "Research", "https://chl.org.au/")
+put(ch, "phone", "Research", "1300 245 468")
+ch["contact_page"] = "https://chl.org.au/contact/"
+ch["notes"].append("Now Community Housing Limited (vic.gov.au CHVL archive page). Contact form only; info@chl.org.au is "
+                   "published for anonymous feedback and companysecretary@chl.org.au for legal service (ACNC), so neither is listed.")
+# Bolton Clarke's contact page, in place of the Queensland health directory the email search found.
+bc = rec("Bolton Clarke")
+bc["contact_page"] = "https://www.boltonclarke.com.au/contact-us/"
+
 # 6. Email-enrichment pass
 for f in ("emails_1.json", "emails_2.json", "emails_3.json"):
     for d in load(f, []):
