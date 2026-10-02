@@ -12,6 +12,7 @@ Fixture records are test data. They live in a throwaway database, they are
 prefixed TEST- or flagged DEMO_SYNTHETIC, and they never touch a database a
 person reads a figure from.
 """
+import glob
 import os
 import subprocess
 import uuid
@@ -22,29 +23,20 @@ import pytest
 
 HERE = os.path.dirname(__file__)
 ROOT = os.path.join(HERE, "..")
-MIGRATIONS = [
-    os.path.join(ROOT, "migrations", "0001_ticket01_thin_loop.sql"),
-    os.path.join(ROOT, "migrations", "0002_rls_policies.sql"),
-    os.path.join(ROOT, "migrations", "0003_retrieval_method.sql"),
-    os.path.join(ROOT, "migrations", "0004_integrity_fixes.sql"),
-    os.path.join(ROOT, "migrations", "0005_audit_and_controls.sql"),
-    os.path.join(ROOT, "migrations", "0006_real_authentication.sql"),
-    os.path.join(ROOT, "migrations", "0007_personal_information.sql"),
-    os.path.join(ROOT, "migrations", "0008_prospecting_controls.sql"),
-    os.path.join(ROOT, "migrations", "0009_automated_access.sql"),
-    os.path.join(ROOT, "migrations", "0010_land_layer.sql"),
-    os.path.join(ROOT, "migrations", "0011_market_signals.sql"),
-    os.path.join(ROOT, "migrations", "0012_watchlists_and_alerts.sql"),
-    os.path.join(ROOT, "migrations", "0013_close_the_base_tables.sql"),
-    os.path.join(ROOT, "migrations", "0014_terms_read.sql"),
-    os.path.join(ROOT, "migrations", "0015_councils_and_signature.sql"),
-    os.path.join(ROOT, "migrations", "0016_going_live.sql"),
-    os.path.join(ROOT, "migrations", "0017_close_the_sender_identity.sql"),
-    os.path.join(ROOT, "migrations", "0018_operational_readiness.sql"),
-]
+# Every migration in the directory, in order, discovered rather than listed.
+#
+# This was a hand-maintained list of 26 paths, and the identical list in
+# .github/workflows/ci.yml had already drifted: 0020-0026 were appended to it
+# wrongly and stopped being applied. A list here that falls behind the directory
+# is worse than that, because it fails silently — the whole suite would run
+# against a schema missing the newest migration and every test would still pass.
+# Sorting is lexicographic, which for the four-digit prefixes is numeric order.
+MIGRATIONS = sorted(glob.glob(os.path.join(ROOT, "migrations", "[0-9]*.sql")))
 LEADS_FILE = os.path.join(ROOT, "seeds", "relay_leads.json")
 SEEDS = [
-    os.path.join(ROOT, "seeds", "001_users_and_config.sql"),
+    os.path.join(ROOT, "seeds", "001_config.sql"),
+    # The suite needs a user per role; a production database does not.
+    os.path.join(ROOT, "seeds", "dev_only_users.sql"),
     os.path.join(ROOT, "seeds", "002_buyer_mandates.sql"),
     os.path.join(ROOT, "seeds", "003_candidate_sources.sql"),
 ]
@@ -54,6 +46,19 @@ APP_PASSWORD = "test-only-password"
 # The seeded mandates, all synthetic. One place to update when the seed changes;
 # test_the_seed_file_matches_this_count keeps it from drifting silently.
 SEEDED_MANDATE_COUNT = 23
+
+
+def a_body(text="Hello. Crown is writing about your land."):
+    """A message body whose way out a reader would actually find.
+
+    Since 0025 an addressed artefact must draw attention to the opt-out, not
+    merely carry one, so `{"body": "hi"}` is no longer a message — it is a
+    message with no way out. This is the shortest thing that is one.
+    """
+    from crown.message import OPT_OUT_MARKER
+    return (f"{text}\n\n"
+            f"If you would rather not hear from us, stop it here:\n"
+            f"{OPT_OUT_MARKER}\n")
 
 
 def seeded_leads():
@@ -69,21 +74,54 @@ def _run_sql(dsn, path):
         raise RuntimeError(f"{os.path.basename(path)} failed:\n{result.stderr}")
 
 
-@pytest.fixture()
-def database():
-    """Build a database, hand back its two DSNs, drop it afterwards."""
-    name = f"crown_test_{uuid.uuid4().hex[:10]}"
+@pytest.fixture(scope="session")
+def schema_template():
+    """Build the schema once per run, and let Postgres copy it after that.
+
+    Every test still gets its own database — they write, and a shared one would
+    make the suite order-dependent, which is the bug you find last. What
+    changed is how that database is built. It used to be twenty-six psql
+    subprocesses per test, once per migration and seed; across the suite that
+    is several thousand process spawns to produce the same bytes every time.
+
+    Now the migrations run once into a template, and CREATE DATABASE ...
+    TEMPLATE copies it at the file level. Same schema, same seeds, same
+    isolation, a fraction of the wall clock.
+
+    The template is per-run rather than left behind: a stale one would silently
+    serve yesterday's schema to today's tests, which is worse than slow.
+    """
+    name = f"crown_tpl_{uuid.uuid4().hex[:10]}"
     admin = psycopg.connect(ADMIN_DSN, autocommit=True)
     admin.execute(f'CREATE DATABASE "{name}"')
 
     base, _ = ADMIN_DSN.rsplit("/", 1)
-    owner_dsn = f"{base}/{name}"
-    for path in MIGRATIONS + SEEDS:
-        _run_sql(owner_dsn, path)
+    try:
+        for path in MIGRATIONS + SEEDS:
+            _run_sql(base + "/" + name, path)
+        # crown_app is created by migration 0002 at cluster level; give it a
+        # password so the tests can connect over TCP as that role.
+        admin.execute(f"ALTER ROLE crown_app WITH PASSWORD '{APP_PASSWORD}'")
+        yield name
+    finally:
+        admin.execute(f'DROP DATABASE IF EXISTS "{name}" WITH (FORCE)')
+        admin.close()
 
-    # crown_app is created by migration 0002 at cluster level; give it a password
-    # so the tests can connect over TCP as that role.
-    admin.execute(f"ALTER ROLE crown_app WITH PASSWORD '{APP_PASSWORD}'")
+
+@pytest.fixture()
+def database(schema_template):
+    """Build a database, hand back its two DSNs, drop it afterwards."""
+    name = f"crown_test_{uuid.uuid4().hex[:10]}"
+    admin = psycopg.connect(ADMIN_DSN, autocommit=True)
+    # Postgres refuses to copy a template that anything is connected to, and
+    # the error names a different database from the one being created, which
+    # is confusing enough to be worth saying here: if this fails with "source
+    # database is being accessed by other users", something left a connection
+    # open to the template rather than to this database.
+    admin.execute(f'CREATE DATABASE "{name}" TEMPLATE "{schema_template}"')
+
+    base, _ = ADMIN_DSN.rsplit("/", 1)
+    owner_dsn = f"{base}/{name}"
     scheme, rest = base.split("://", 1)
     host = rest.split("@", 1)[1]
     app_dsn = f"{scheme}://crown_app:{APP_PASSWORD}@{host}/{name}"

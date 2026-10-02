@@ -7,10 +7,12 @@ function, one approval step, one attribution record:
 SIGNAL -> EVIDENCE -> OPPORTUNITY -> BUYER MATCH -> HUMAN APPROVAL -> ATTRIBUTION
 ```
 
-Everything is real except the buyer mandates, which are synthetic and labelled
-as such — with one exception that matters and is documented below: no real
-planning amendments have been ingested, because the build environment cannot
-reach the source.
+Everything is real except the buyer mandates, which are synthetic and labelled as
+such. Real planning amendments are ingested from DTP's official per-scheme *List
+of Amendments*: 522 of them across three LGAs, directly fetched from the
+publisher's own bucket. That document stops two years short of the present, which
+is a limit recorded on every record rather than worked around — the portal's JSON
+API, which would give current amendments, is still refused by network policy.
 
 ## Layout
 
@@ -28,14 +30,23 @@ reach the source.
 
 ```bash
 createdb crown_ai
-psql -v ON_ERROR_STOP=1 -d crown_ai -f migrations/0001_ticket01_thin_loop.sql
-psql -v ON_ERROR_STOP=1 -d crown_ai -f migrations/0002_rls_policies.sql
-psql -v ON_ERROR_STOP=1 -d crown_ai -f migrations/0003_retrieval_method.sql
-psql -v ON_ERROR_STOP=1 -d crown_ai -f migrations/0004_integrity_fixes.sql
-psql -v ON_ERROR_STOP=1 -d crown_ai -f seeds/001_users_and_config.sql
-psql -v ON_ERROR_STOP=1 -d crown_ai -f seeds/002_buyer_mandates.sql
 
-python -m ingest.cli --lga Wyndham          # blocked; see below
+# Every migration, in order. This listed only 0001-0004 for a long time, which
+# built a database without row-level security, the consent trigger or retention —
+# the controls, in other words. Apply the directory, not a remembered subset.
+for f in migrations/[0-9]*.sql; do
+    psql -v ON_ERROR_STOP=1 -d crown_ai -f "$f"
+done
+
+psql -v ON_ERROR_STOP=1 -d crown_ai -f seeds/001_config.sql
+psql -v ON_ERROR_STOP=1 -d crown_ai -f seeds/002_buyer_mandates.sql
+psql -v ON_ERROR_STOP=1 -d crown_ai -f seeds/003_candidate_sources.sql
+
+# Development only. Four accounts on a domain Crown does not own, holding
+# privileged roles. seeds/dev_only_* stays off a database anybody relies on.
+psql -v ON_ERROR_STOP=1 -d crown_ai -f seeds/dev_only_users.sql
+
+python -m ingest.cli --lga Wyndham --amendment-list   # real amendments, per LGA
 CROWN_DSN=postgresql://crown_app@/crown_ai CROWN_SECRET=... \
   flask --app crown.web:create_app run
 ```
@@ -61,7 +72,7 @@ afterwards. CI runs the same three checks.
 
 | # | Criterion | Status | Where |
 |---|---|---|---|
-| 1 | Real amendment from each of 3 LGAs, full provenance | **FAIL** | the only one outstanding. No amendment ingested; every Victorian host answers 403. Unblocked by `tools/collector.html` without waiting on the network policy |
+| 1 | Real amendment from each of 3 LGAs, full provenance | **PASS** | 522 amendments across Wyndham, Melton and Hume, `DIRECT_FETCH`/`AUTHORITATIVE`/`FACT`, from DTP's official *List of Amendments*. `python -m ingest.cli --lga Wyndham --amendment-list`; `tests/test_amendment_list.py`. That document is two years behind, so the allowlist request in `docs/EGRESS-ALLOWLIST-REQUEST.md` still stands for current amendments |
 | 2 | Re-running ingestion produces zero duplicates | PASS | `tests/test_ingest.py` |
 | 3 | Missing provenance rejected to review queue | PASS | `tests/test_ingest.py` |
 | 4 | Opportunity linked to evidence, named human owner | PASS | `tests/test_opportunity.py` |
@@ -257,7 +268,12 @@ anything, and it is shaped around that:
 
 Section 17 of the same Act wants the message to say who authorised it.
 `outbound_identity` holds one active sender, versioned rather than edited, and
-an `OUTREACH_DRAFT` cannot be created without one.
+an `OUTREACH_DRAFT` cannot be created without one. Since migration 0019 that
+row names a legal person — Crown Real Estate Agents Pty Ltd, ABN 86 690 344
+597 — rather than being empty, which is what made the gate unsatisfiable
+rather than merely unsatisfied. The ABN passes the ATO's checksum; that proves
+it is well formed and not that it belongs to this entity, so confirm it on ABN
+Lookup before the first message goes out.
 
 ## Land search
 
@@ -287,6 +303,31 @@ Three things it is careful about:
 `nearby()` finds parcels within a radius by centroid distance and says so: that
 is a proxy for adjacency, not adjacency. True touching needs PostGIS, which this
 cluster does not have.
+
+## The owner's name
+
+`/land` carries no owner because the cadastre has none. The authoritative record
+is the Victorian Titles Register, and the commercial platforms that show an owner
+can do so because they hold commercial licences to state land registry data —
+which is a licence question, not an access one. Crown's route is the same
+register, searched one property at a time under its own licence.
+
+Migration 0031 builds it and leaves both gates on it closed:
+
+- **No search can be recorded** until somebody has read the licence and
+  `data_source.terms_read_by` names them.
+- **No owner's name can be stored** until `privacy_basis` states which APP is
+  relied on for the intended use.
+
+A prospecting search must name the parcel or the opportunity it came from, so the
+register is read in answer to a question the system already had rather than swept
+for questions to ask. A recorded result is frozen — a register answer that has
+changed is a new search on a new date — and the name expires after twelve months
+while the search, its purpose and its fee stay, because those are the record of
+Crown's conduct under the licence. `title_search_spend` says what it has cost.
+
+`docs/TITLE-SEARCH-PATH.md` sets out the route and the two pieces of work that
+open the gates. `SELECT * FROM title_search_readiness;` says where they stand.
 
 ## Prospecting controls
 

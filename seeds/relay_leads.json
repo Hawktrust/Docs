@@ -3,7 +3,8 @@
     "discovered_by": "server-side web search, 2026-09-06",
     "why_not_evidence": "The pages themselves were never fetched: egress to planning.vic.gov.au, planning-schemes.app.planning.vic.gov.au and the council sites is refused by the network policy (403 at CONNECT). What is recorded here is what a search intermediary reported.",
     "reliability_finding": "The relay is reliable for identifiers and URL structure, and unreliable for detail. Two independent searches for C232melt gave different gazettal dates (7 May 2026 and 8 May 2026). Two for C272hume described substantively different amendments. Both are marked CONTRADICTED below and none of the relay_claims should be treated as established. Whittlesea leads added 2026-09-20 on the same basis: identifiers and URL structure only. C269wsea's canonical URL appeared in two independent searches; the rest are constructed from the confirmed URL pattern and must be checked against the page before anything is believed about them.",
-    "canonical_url_pattern": "https://planning-schemes.app.planning.vic.gov.au/{Scheme}/amendments/{AmendmentNumber}"
+    "canonical_url_pattern": "https://planning-schemes.app.planning.vic.gov.au/{Scheme}/amendments/{AmendmentNumber}",
+    "greater_geelong_2026_10_02": "Eight Greater Geelong leads added 2026-10-02, for Lara. Egress to planning-schemes.app.planning.vic.gov.au is still refused by this environment's network policy (403 at CONNECT, retested the same day), so these came through a third-party fetcher. That is a DIFFERENT and stronger thing than the September relay: the fetcher rendered DTP's own page and returned its text, rather than summarising it, so the brief descriptions marked CORROBORATED or SINGLE_SOURCE are verbatim rather than paraphrased. It is still not a direct fetch. Crown did not fetch the bytes and cannot attest they came from DTP, so none of these may enter the graph as evidence and all stay in the review queue. The ones marked URL_ONLY are search snippets, two of them truncated mid-sentence and left truncated. The City of Greater Geelong's own planning register was NOT fetched by any route: its terms are the one council set this project has actually read and they prohibit commercial reuse (COUNCIL_GREATER_GEELONG, automated_access = PROHIBITED)."
   },
   "leads": [
     {
@@ -119,6 +120,87 @@
         "title_from_council_url_slug": "Application of the Public Acquisition Overlay"
       },
       "notes": "The title comes from a council page's URL slug, which is structural rather than summarised, but the amendment page itself was never seen. URL constructed from the confirmed pattern."
+    },
+    {
+      "lga": "Greater Geelong",
+      "amendment_number": "C444ggee",
+      "canonical_url": "https://planning-schemes.app.planning.vic.gov.au/Greater%20Geelong/amendments/C444ggee",
+      "corroboration": "CORROBORATED",
+      "relay_claims": {
+        "brief_description": "Rezones land at 76-156 Canterbury Road East and 705-765, 775 and 785-805 Princes Highway, Lara from Farming Zone to General Residential Zone Schedule 1 (GRZ1) and applies the Environmental Audit Overlay (EAO) and Development Plan Overlay Schedule 48 (DPO48).",
+        "status_unconfirmed": "Approval Under Consideration"
+      },
+      "notes": "The highest-value Lara signal found: farming land proposed for residential. The description is verbatim from the rendered Greater Geelong amendment list, so it is not a summary — but the relay fetched the page, not Crown, so it is not a direct fetch either. The status came from a search snippet only and is the field most worth checking first. Note that C453ggee proposes INDUSTRIAL zoning over substantially the same land: see its note."
+    },
+    {
+      "lga": "Greater Geelong",
+      "amendment_number": "C453ggee",
+      "canonical_url": "https://planning-schemes.app.planning.vic.gov.au/Greater%20Geelong/amendments/C453ggee",
+      "corroboration": "SINGLE_SOURCE",
+      "relay_claims": {
+        "brief_description": "Rezones land at 76-156 Canterbury Road East, 705-765 and 785-805 Princes Highway and 610 Rennie Street, Lara from Farming Zone (FZ) to Industrial 1 Zone (IN1Z) and Industrial 3 Zone (IN3Z) and applies Design and Development Overlay Schedule 55 (DDO55) to facilitate the development of the Lara Business Park."
+      },
+      "notes": "Overlaps C444ggee on 76-156 Canterbury Road East and the 705-765 / 785-805 Princes Highway parcels, and proposes a different outcome for them — industrial rather than residential. Two live amendments over one landholding with competing zoning is a strong prospecting signal and also a reason to believe neither status until both pages are read: one of them may have lapsed or been split."
+    },
+    {
+      "lga": "Greater Geelong",
+      "amendment_number": "C477ggee",
+      "canonical_url": "https://planning-schemes.app.planning.vic.gov.au/Greater%20Geelong/amendments/C477ggee",
+      "corroboration": "SINGLE_SOURCE",
+      "relay_claims": {
+        "brief_description": "Facilitates master planning of the Greater Avalon Employment Precinct (GAEP) by rezoning land in GAEP West to Industrial 1 Zone and Rural Conservation Zone, applying the Development Plan Overlay (DPO), Design and Development Overlay (DDO), and making other consequential changes to the planning scheme."
+      },
+      "notes": "Avalon adjoins Lara. Not a Lara amendment on its face, and recorded because an employment precinct rezoning next door changes what farming land in Lara is worth. Whether any of the land is inside the Lara locality has not been established — the amendment names no Lara address."
+    },
+    {
+      "lga": "Greater Geelong",
+      "amendment_number": "C487ggee",
+      "canonical_url": "https://planning-schemes.app.planning.vic.gov.au/Greater%20Geelong/amendments/C487ggee",
+      "corroboration": "SINGLE_SOURCE",
+      "relay_claims": {
+        "brief_description": "Amends Schedule 3 to Clause 37.07 Urban Growth Zone (UGZ3) to specify the Transport Zone 1 (TRZ1) as the applied zone for land identified on Plan 1 of the Schedule as Railway Station Carpark and introduce a provision to allow the General Residential Zone Schedule 1 (GRZ1) to be applied to surplus land not required for transport purposes."
+      },
+      "notes": "Recorded WITHOUT attributing it to Lara. It names a UGZ3 precinct and a railway station car park and no locality, and Lara has a station — which is a reason to check the schedule, not a reason to file it as a Lara lead. Read Schedule 3 to Clause 37.07 before it is treated as one."
+    },
+    {
+      "lga": "Greater Geelong",
+      "amendment_number": "C285",
+      "canonical_url": "https://planning-schemes.app.planning.vic.gov.au/Greater%20Geelong/amendments/C285",
+      "corroboration": "URL_ONLY",
+      "relay_claims": {
+        "snippet": "Rezones approximately 62 hectares of land known as Manzeene Village, Lara"
+      },
+      "notes": "Search snippet only; the page was never rendered. Probably historical rather than live, which for prospecting makes it context — who developed it and what it became — rather than a lead."
+    },
+    {
+      "lga": "Greater Geelong",
+      "amendment_number": "C345",
+      "canonical_url": "https://planning-schemes.app.planning.vic.gov.au/Greater%20Geelong/amendments/C345",
+      "corroboration": "URL_ONLY",
+      "relay_claims": {
+        "snippet": "Applies an Environmental Audit Overlay to the land at 530 Bacchus Marsh Road, Lara to address the risk of legacy pollution"
+      },
+      "notes": "Search snippet only. An EAO is a constraint, not an opportunity, and it is recorded because a site carrying one is one a buyer must be told about."
+    },
+    {
+      "lga": "Greater Geelong",
+      "amendment_number": "C246",
+      "canonical_url": "https://planning-schemes.app.planning.vic.gov.au/Greater%20Geelong/amendments/C246",
+      "corroboration": "URL_ONLY",
+      "relay_claims": {
+        "snippet": "Proposes a number of changes to the Greater Geelong Planning Scheme to facilitate the future urban development of the Lara [locality — snippet truncated]"
+      },
+      "notes": "Search snippet only, and truncated mid-sentence. The truncation is recorded rather than completed: 'the Lara' could be Lara West, Lara North East or something else, and guessing which would invent the lead."
+    },
+    {
+      "lga": "Greater Geelong",
+      "amendment_number": "C248",
+      "canonical_url": "https://planning-schemes.app.planning.vic.gov.au/Greater%20Geelong/amendments/C248",
+      "corroboration": "URL_ONLY",
+      "relay_claims": {
+        "snippet": "Rezones parts of Princes Freeway roads and land associated with Stages [of the] Geelong Bypass Project between Lara [and ... — snippet truncated]"
+      },
+      "notes": "Search snippet only. Infrastructure context for the Princes Highway frontages in C444ggee and C453ggee rather than a lead in its own right."
     }
   ]
 }

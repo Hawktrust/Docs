@@ -164,7 +164,8 @@ None of the nine is ingestible. Splitting a source does not open it.
 
 **How all of this was read, and why that is written on every row.** By search
 relay. Every host named above answers 403 at the egress gateway, re-tested
-2026-09-21, so nothing here was read directly — and the relay failed visibly
+2026-09-27 — the Crown Prospecting environment opened the amendment portal and
+none of these — so nothing here was read directly, and the relay failed visibly
 while doing it: for three of the seven councils it returned the terms of a
 third-party community-engagement platform (The Loop, Melton Conversations,
 Participate Hume) rather than the council's own site. Those three are left

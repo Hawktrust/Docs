@@ -129,7 +129,7 @@ def test_robots_txt_is_honoured(monkeypatch):
         status_code = 200
         text = "User-agent: *\nDisallow: /private/\n"
 
-    monkeypatch.setattr(fetch.requests, "get", lambda *a, **k: Response())
+    monkeypatch.setattr(fetch._session, "get", lambda *a, **k: Response())
     fetch._robots.clear()
 
     assert fetch.robots_allows("https://example.test/public/page")
@@ -141,7 +141,7 @@ def test_a_disallowed_url_is_not_fetched(monkeypatch):
         status_code = 200
         text = "User-agent: *\nDisallow: /\n"
 
-    monkeypatch.setattr(fetch.requests, "get", lambda *a, **k: Response())
+    monkeypatch.setattr(fetch._session, "get", lambda *a, **k: Response())
     fetch._robots.clear()
 
     with pytest.raises(fetch.DisallowedByRobots):
@@ -155,6 +155,6 @@ def test_an_unreachable_robots_file_does_not_block(monkeypatch):
     def boom(*a, **k):
         raise requests_module.RequestException("no robots.txt")
 
-    monkeypatch.setattr(fetch.requests, "get", boom)
+    monkeypatch.setattr(fetch._session, "get", boom)
     fetch._robots.clear()
     assert fetch.robots_allows("https://example.test/anything")

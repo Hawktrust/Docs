@@ -48,44 +48,22 @@ jobs:
         run: pip install -r requirements-dev.txt
 
       - name: Migration applies to an empty database
+        # Every migration, in order, into a database built from nothing.
+        #
+        # A loop rather than one unrolled psql call per file. The unrolled list
+        # lost its line continuations when 0020-0026 were appended: the seven
+        # trailing "-f migrations/..." lines became separate shell commands, so
+        # the step died with "-f: command not found" and those seven migrations
+        # were never applied by this check at all. A loop cannot drift out of
+        # step with the directory, so adding 0027 needs no edit here.
         run: |
           psql -v ON_ERROR_STOP=1 -d "$CROWN_ADMIN_DSN" -c 'CREATE DATABASE crown_migration_check'
-          psql -v ON_ERROR_STOP=1 -d "postgresql://postgres:postgres@127.0.0.1:5432/crown_migration_check" \
-               -f migrations/0001_ticket01_thin_loop.sql
-          psql -v ON_ERROR_STOP=1 -d "postgresql://postgres:postgres@127.0.0.1:5432/crown_migration_check" \
-               -f migrations/0002_rls_policies.sql
-          psql -v ON_ERROR_STOP=1 -d "postgresql://postgres:postgres@127.0.0.1:5432/crown_migration_check" \
-               -f migrations/0003_retrieval_method.sql
-          psql -v ON_ERROR_STOP=1 -d "postgresql://postgres:postgres@127.0.0.1:5432/crown_migration_check" \
-               -f migrations/0004_integrity_fixes.sql
-          psql -v ON_ERROR_STOP=1 -d "postgresql://postgres:postgres@127.0.0.1:5432/crown_migration_check" \
-               -f migrations/0005_audit_and_controls.sql
-          psql -v ON_ERROR_STOP=1 -d "postgresql://postgres:postgres@127.0.0.1:5432/crown_migration_check" \
-               -f migrations/0006_real_authentication.sql
-          psql -v ON_ERROR_STOP=1 -d "postgresql://postgres:postgres@127.0.0.1:5432/crown_migration_check" \
-               -f migrations/0007_personal_information.sql
-          psql -v ON_ERROR_STOP=1 -d "postgresql://postgres:postgres@127.0.0.1:5432/crown_migration_check" \
-               -f migrations/0008_prospecting_controls.sql
-          psql -v ON_ERROR_STOP=1 -d "postgresql://postgres:postgres@127.0.0.1:5432/crown_migration_check" \
-               -f migrations/0009_automated_access.sql
-          psql -v ON_ERROR_STOP=1 -d "postgresql://postgres:postgres@127.0.0.1:5432/crown_migration_check" \
-               -f migrations/0010_land_layer.sql
-          psql -v ON_ERROR_STOP=1 -d "postgresql://postgres:postgres@127.0.0.1:5432/crown_migration_check" \
-               -f migrations/0011_market_signals.sql
-          psql -v ON_ERROR_STOP=1 -d "postgresql://postgres:postgres@127.0.0.1:5432/crown_migration_check" \
-               -f migrations/0012_watchlists_and_alerts.sql
-          psql -v ON_ERROR_STOP=1 -d "postgresql://postgres:postgres@127.0.0.1:5432/crown_migration_check" \
-               -f migrations/0013_close_the_base_tables.sql
-          psql -v ON_ERROR_STOP=1 -d "postgresql://postgres:postgres@127.0.0.1:5432/crown_migration_check" \
-               -f migrations/0014_terms_read.sql
-          psql -v ON_ERROR_STOP=1 -d "postgresql://postgres:postgres@127.0.0.1:5432/crown_migration_check" \
-               -f migrations/0015_councils_and_signature.sql
-          psql -v ON_ERROR_STOP=1 -d "postgresql://postgres:postgres@127.0.0.1:5432/crown_migration_check" \
-               -f migrations/0016_going_live.sql
-          psql -v ON_ERROR_STOP=1 -d "postgresql://postgres:postgres@127.0.0.1:5432/crown_migration_check" \
-               -f migrations/0017_close_the_sender_identity.sql
-          psql -v ON_ERROR_STOP=1 -d "postgresql://postgres:postgres@127.0.0.1:5432/crown_migration_check" \
-               -f migrations/0018_operational_readiness.sql
+          for f in migrations/[0-9]*.sql; do
+            echo "applying $f"
+            psql -v ON_ERROR_STOP=1 \
+                 -d "postgresql://postgres:postgres@127.0.0.1:5432/crown_migration_check" \
+                 -f "$f"
+          done
 
       - name: Test suite
         run: python -m pytest -q

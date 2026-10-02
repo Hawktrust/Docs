@@ -8,14 +8,23 @@ Two entry points:
   from_json(payload)  — the normalised interchange shape, defined below. Fully
                         implemented, and what the pipeline and tests run on.
 
-  from_html(body)     — parsing the live amendments page. NOT IMPLEMENTED. The
-                        page structure has never been observed from this
-                        environment (egress to planning.vic.gov.au is denied by
-                        policy), and a parser written against a guessed DOM
-                        would produce plausible records with real-looking
-                        provenance. That is exactly the silent failure the
-                        ticket's human review is meant to catch, so it raises
-                        instead.
+  from_html(body)     — parsing the live amendments page. NOT IMPLEMENTED, and
+                        now for a better reason than not having seen the page.
+                        The page WAS observed on 2026-09-27, once
+                        planning-schemes.app.planning.vic.gov.au was
+                        allowlisted: it is a 1.5 KB Vue shell that contains no
+                        amendment content at all. Every path on that host
+                        returns the same shell. The amendment data is served by
+                        api.app.planning.vic.gov.au, a separate host that is
+                        still denied by network policy at CONNECT.
+
+                        So there is nothing in this body to parse, and no DOM a
+                        parser could be written against. A parser that dug a
+                        record out of it anyway would be inventing one — with a
+                        real URL and a real retrieval timestamp wrapped around
+                        content nobody ever served. That is exactly the silent
+                        failure the ticket's human review is meant to catch, so
+                        it raises instead.
 
 Interchange shape — a JSON list of objects, each:
 
@@ -58,7 +67,12 @@ DEFAULT_CONFIDENCE = 0.5
 
 
 class SourceFormatUnknown(NotImplementedError):
-    """The live page format has not been observed, so it cannot be parsed."""
+    """The retrieved body carries no amendment content, so it cannot be parsed.
+
+    Raised, rather than returning an empty list, because an empty result is
+    indistinguishable from "this LGA has no amendments" and would let the
+    pipeline resolve a lead as though it had been checked.
+    """
 
 
 def classify(status: str | None) -> str:
@@ -67,11 +81,16 @@ def classify(status: str | None) -> str:
 
 def from_html(body: str, source_url: str):
     raise SourceFormatUnknown(
-        "The planning.vic.gov.au amendments page has not been observed from this "
-        "environment, so there is no verified parser for it. Provide a saved "
-        "response, or allowlist the host and write the parser against the real "
-        "markup. Do not guess at the DOM: a wrong parser yields records that look "
-        "correctly provenanced and are not."
+        f"no verified parser exists for {source_url} ({len(body)} bytes "
+        "retrieved). Observed 2026-09-27: planning-schemes.app.planning.vic.gov.au "
+        "serves the same 1.5 KB Vue shell for every path, amendment pages "
+        "included, so there is no amendment markup on it to write a parser "
+        "against. The data comes from api.app.planning.vic.gov.au, which network "
+        "policy still denies at CONNECT — allowlisting the portal alone is not "
+        "enough. Until that host is open, use an operator capture "
+        "(tools/collector.html), which renders the page in a real browser. Do not "
+        "guess at the DOM: a wrong parser yields records that look correctly "
+        "provenanced and are not."
     )
 
 

@@ -113,6 +113,76 @@ def deployment_checks(environ=None) -> tuple:
     return tuple(checks)
 
 
+def connection_checks(conn) -> tuple:
+    """Whether the role the application connects as can be constrained at all.
+
+    Row-level security is this system's authorisation model: twenty tables, and
+    every policy in the schema assumes the connection is subject to them. Three
+    things defeat that silently, and none of them is visible in the application
+    or reported by `launch_readiness`, because a bypassing connection reads the
+    view perfectly happily and sees nothing wrong.
+
+    This is the check that matters most at deployment and the one most likely to
+    be got wrong, because managed Postgres hands out an administrative user by
+    default and it is the obvious thing to paste into CROWN_DSN.
+    """
+    checks = []
+
+    row = conn.execute(
+        """SELECT current_user,
+                  (SELECT rolsuper    FROM pg_roles WHERE rolname = current_user),
+                  (SELECT rolbypassrls FROM pg_roles WHERE rolname = current_user)"""
+    ).fetchone()
+    role, is_super, bypasses = (row[0], bool(row[1]), bool(row[2])) if row \
+        else ("unknown", True, True)
+
+    # A superuser is exempt from row-level security entirely — FORCE included.
+    checks.append(Check(
+        code="THE_APPLICATION_ROLE_IS_NOT_A_SUPERUSER",
+        severity=BLOCKING,
+        passes=not is_super,
+        detail=(f"connected as {role}, which is a SUPERUSER and is exempt from "
+                "every row-level security policy in the schema"
+                if is_super else f"connected as {role}, not a superuser"),
+        closes_it=("point CROWN_DSN at crown_app. A managed database hands you "
+                   "an administrative user and it is the obvious one to paste "
+                   "in; it bypasses all twenty policies and nothing would say "
+                   "so"),
+    ))
+
+    # BYPASSRLS defeats FORCE ROW LEVEL SECURITY specifically, which is the
+    # thing the schema relies on to constrain even a table's owner.
+    checks.append(Check(
+        code="THE_APPLICATION_ROLE_CANNOT_BYPASS_RLS",
+        severity=BLOCKING,
+        passes=not bypasses,
+        detail=(f"{role} has BYPASSRLS, which defeats FORCE ROW LEVEL SECURITY"
+                if bypasses else f"{role} is subject to row-level security"),
+        closes_it=f"ALTER ROLE {role} NOBYPASSRLS, or connect as crown_app",
+    ))
+
+    # Every RLS table is FORCEd today. Without FORCE, the table's owner is
+    # exempt from its own policies — so a table added later without it would
+    # quietly open a hole that no test of the policies themselves would catch.
+    unforced = conn.execute(
+        """SELECT count(*), coalesce(string_agg(relname, ', ' ORDER BY relname), '')
+           FROM pg_class
+           WHERE relkind = 'r' AND relrowsecurity AND NOT relforcerowsecurity"""
+    ).fetchone()
+    n, names = (unforced[0], unforced[1]) if unforced else (0, "")
+    checks.append(Check(
+        code="ROW_LEVEL_SECURITY_APPLIES_TO_THE_OWNER",
+        severity=BLOCKING,
+        passes=n == 0,
+        detail=(f"{n} table(s) have policies the owner is exempt from: {names}"
+                if n else "every table with policies FORCEs them"),
+        closes_it=("ALTER TABLE ... FORCE ROW LEVEL SECURITY. Without it the "
+                   "owner is exempt from its own policies, which a test of the "
+                   "policies alone would not notice"),
+    ))
+    return tuple(checks)
+
+
 def check(conn, environ=None) -> Report:
     """Read every launch condition — the database's and the deployment's.
 
@@ -124,6 +194,8 @@ def check(conn, environ=None) -> Report:
            FROM launch_readiness"""
     ).fetchall()
 
-    checks = tuple(Check(*row) for row in rows) + deployment_checks(environ)
+    checks = (tuple(Check(*row) for row in rows)
+              + deployment_checks(environ)
+              + connection_checks(conn))
     return Report(checks=tuple(sorted(
         checks, key=lambda c: (c.passes, not c.blocking, c.code))))
