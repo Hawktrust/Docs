@@ -45,6 +45,36 @@ COUNCILS = [  # councils whose area holds one of the listed sites: name, email, 
     ("City of Greater Geelong", "contactus@geelongcity.vic.gov.au", "03 5272 5272",
      "https://www.geelongcity.vic.gov.au/contact", "council customer service charter and business.gov.au", "Geelong"),
 ]
+REGIONAL_COUNCILS = [  # regional councils without a listed site: name, email, phone, contact page, email source, region
+    ("City of Greater Bendigo", "requests@bendigo.vic.gov.au", "1300 002 642",
+     "https://www.bendigo.vic.gov.au/contact-us", "council contact page", "Greater Bendigo"),
+    ("City of Ballarat", "info@ballarat.vic.gov.au", "03 5320 5500",
+     "https://www.ballarat.vic.gov.au/about-us/contact-us", "council contact page (phone from council eServices page)", "Ballarat"),
+    ("Greater Shepparton City Council", "council@shepparton.vic.gov.au", "03 5832 9700",
+     "https://greatershepparton.com.au/", "business.gov.au and OVIC agency listings", "Greater Shepparton"),
+    ("Latrobe City Council", "latrobe@latrobe.vic.gov.au", "1300 367 700",
+     "https://www.latrobe.vic.gov.au/Contact_Us", "council contact page and vic.gov.au listing", "Latrobe, including Moe and Newborough"),
+]
+REGIONAL_COUNCIL_BODY = """Hi Property and Strategic Acquisitions Team,
+
+My name is Inder Sandhu with Crown Real Estate Agents. I specialise in development land across Melbourne's western and northern growth corridors and regional Victoria, including {region}.
+
+I currently have development sites available across Wollert, Beveridge, Tarneit, Geelong, Deanside, Bonnie Brook, Fraser Rise and Truganina:
+
+* Shovel-ready residential and industrial.
+* Permit-approved townhouse sites, including one for 44 townhouses.
+* Childcare and townhouse sites, both raw and approved.
+* About 50 acres of investigation-area land.
+
+Given Council's role in planning for growth in {region}, I'd welcome the chance to understand Council's strategic land priorities, so I can bring you suitable sites as they come up.
+Could you please forward this to the appropriate contact in Council's property or strategic acquisitions team?
+
+If you'd rather not hear from me about sites, just let me know and I won't contact you again.
+
+Kind regards,
+Inder Sandhu
+Crown Real Estate Agents
+0484 926 324 | inder@crownrea.com.au"""
 COUNCIL_BODY = """Hi Property and Strategic Acquisitions Team,
 
 My name is Inder Sandhu with Crown Real Estate Agents. I specialise in development land across Melbourne's western and northern growth corridors and regional Victoria.
@@ -182,6 +212,12 @@ for name, em, ph, page, source, suburbs in COUNCILS:
                 f"Development sites in {suburbs.replace(' and ', ' & ')}",
                 COUNCIL_BODY.format(suburbs=suburbs, council=("the " if name.startswith("City of") else "") + name, others=others(suburbs)), "Not sent", "",
                 f"Local council – sites in {suburbs}. General inbox; email source: {source}"])
+for name, em, ph, page, source, region in REGIONAL_COUNCILS:
+    out.append([name, page, re.sub(r"(https://[^/]+).*", r"\1", page), em, ph,
+                "Inder Sandhu", "inder@crownrea.com.au", "0484926324", "Crown Real Estate Agents",
+                "Development land – Crown Real Estate Agents",
+                REGIONAL_COUNCIL_BODY.format(region=region), "Not sent", "",
+                f"Regional council – no listed site in its area yet. General inbox; email source: {source}"])
 oh = ["Developer / council", "Contact form / contact page", "Website", "Published email", "Phone", "Your name", "Your email",
       "Your mobile", "Company", "Subject", "Message (personalised)", "Status", "Date sent", "Response / notes"]
 ws = sheet(wb, "Outreach", oh, out, [30, 40, 30, 32, 15, 13, 24, 12, 22, 34, 80, 11, 11, 30], wrap_cols=(11,))
