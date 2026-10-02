@@ -116,23 +116,61 @@ def area(projects):
     if not found: return ""
     return found[0] if len(found) == 1 else ", ".join(found[:-1][:3]) + " and " + found[min(len(found) - 1, 3)]
 
-BODY = """Hi Acquisition Team,
+BODY = """Hi team,
 
-My name is Inder Sandhu with Crown Real Estate Agents. I specialise in development land across Melbourne's western and northern growth corridors and regional Victoria.
-
-I have development sites available across Wollert, Beveridge, Tarneit, Geelong, Deanside, Bonnie Brook, Fraser Rise and Truganina:
+Quick one. I'm representing several development sites across Melbourne's north and west that may suit {who} pipeline{alongside}:
 
 * Shovel-ready residential and industrial.
 * Permit-approved townhouse sites, including one for 44 townhouses.
 * Childcare and townhouse sites, both raw and approved.
 * About 50 acres of investigation-area land.
 
-Given {who} active presence {where}, I believe these sites would be a strong fit for your acquisitions pipeline.
-Could you please direct me to the appropriate contact in your acquisitions department so I can share further details?
+Who in acquisitions should I send the details to?
 
-If you'd rather not hear from me about sites, just let me know and I won't contact you again.
+If it's not a fit, just let me know and I won't follow up.
 
 {signature}"""
+
+# One named project per developer, for "especially alongside {project}". Workbook regional projects
+# first (clean project + suburb), then the workbook's example projects, then the Moe research.
+PROJECT_OVERRIDES = {  # from the regional table and research where the workbook has none or a generic one
+    "Newland Developers": ("Mandalay", "Beveridge"), "Gull & Company": ("Avenue Hill", "Ballarat"),
+    "Exford Waters": ("Exford Waters", "Weir Views"), "Marlton Group": ("Montana", "Kilmore"),
+    "The Corcoris Group Developments Pty Ltd": ("Ooranya", "Beveridge"), "Monno": ("Stella Maris", "Rippleside"),
+    "Nexus Developments": ("The Clan", "Beveridge"), "Riverlee": ("Lovely Banks", ""),
+    "LandGipps": ("Mitchell Grove", "Moe"), "Monash Views Pty Ltd": ("Monash Views", "Newborough"),
+    "Solovey": ("North Quarter", "Newborough"), "Development Edge": None,
+}
+def _projects():
+    w = json.load(open(os.path.join(S, "workbook.json")))
+    import merge
+    found = {}
+    def add(dev, name, sub):
+        k = merge.key(dev)
+        if k not in found and name and "portfolio" not in name.lower():
+            found[k] = (name.strip(), (sub or "").strip())
+    for r in w["Regional Projects"]:
+        if str(r["Project"]).lower().startswith(("big housing", "multiple")): continue
+        for e in str(r["Developer / Delivery Entity"]).split(";"):
+            add(e.strip(), str(r["Project"]), r["Suburb / Corridor"])
+    for d in w["Developer Universe"]:
+        ex = str(d["Example Named Projects"] or "")
+        if not ex or "listing" in ex.lower(): continue
+        m = re.match(r"(.*?)\s*\((.*?)\)\s*$", ex.split(";")[0].strip())
+        add(d["Developer"], m.group(1) if m else ex.split(";")[0], m.group(2) if m else "")
+    for d in json.load(open(os.path.join(S, "research_moe.json"))):
+        est = d.get("estate", ""); m = re.match(r"([^,(/]+)", est)
+        if m and "social homes" not in est and "Proposed" not in est: add(d["name"], m.group(1), "")
+    for dev, v in PROJECT_OVERRIDES.items():
+        found[merge.key(dev)] = v
+    return found, merge.key
+PROJECTS, _key = _projects()
+
+def alongside(dev):
+    p = PROJECTS.get(_key(dev))
+    if not p: return ""
+    name, sub = p
+    return f", especially alongside {name}" + (f" in {sub}" if sub and sub.lower() not in name.lower() else "")
 
 SIGNATURE = """Kind Regards,
 Inder Sandhu
@@ -199,10 +237,6 @@ out, skipped = [], []
 for r in rows:
     dev = r["Developer"]
     if dev in SKIP: skipped.append([DISPLAY.get(dev, dev), SKIP[dev]]); continue
-    a = area(r["Regional projects / footprint"])
-    where = f"in {a}" if a else "across Melbourne's growth corridors and regional Victoria"
-    if dev in ROLE:  # government and not-for-profit bodies: speak to their role, not a listed project
-        where = "in " + ROLE[dev]
     # use the contact page unless it is a third-party listing, Facebook page or non-contact page
     third = ("facebook.com", "crunchbase.com", "trustpilot.com", "acnc.gov.au", "openlot.com.au", "health.qld.gov.au",
              "2020ar.goodman.com", "complaints-management")
@@ -211,9 +245,8 @@ for r in rows:
     out.append([DISPLAY.get(dev, dev), form, r["Website"], r["Email"] if "@" in r["Email"] else "", r["Phone"],
                 "Inder Sandhu", "inder@crownrea.com.au", "0484926324", "Crown Real Estate Agents",
                 "Development sites – Wollert, Beveridge, Tarneit, Geelong & more",
-                BODY.format(signature=SIGNATURE, who=(lambda n: n + ("'" if n.endswith('s') else "'s"))(msg_name(dev)), where=where), "Not sent", "", ""])
-    if dev in ROLE:
-        out[-1][10] = out[-1][10].replace("active presence in ", "role in ")
+                BODY.format(signature=SIGNATURE, who=(lambda n: n + ("'" if n.endswith('s') else "'s"))(msg_name(dev)),
+                            alongside=alongside(dev)), "Not sent", "", ""])
 for name, em, ph, page, source, suburbs in COUNCILS:
     out.append([name, page, re.sub(r"(https://[^/]+).*", r"\1", page), em, ph,
                 "Inder Sandhu", "inder@crownrea.com.au", "0484926324", "Crown Real Estate Agents",
