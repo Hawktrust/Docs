@@ -47,7 +47,7 @@ Run manually:
 python3 automation/momentum_bot.py
 ```
 
-## aggressive_bot.py (active 2026-09-28 to 2026-10-01 — bounded high-variance experiment)
+## aggressive_bot.py (inactive — bounded high-variance experiment, 2026-09-28 to 2026-10-01)
 
 Built after the user set an explicit $10,000-in-3-days target, which was
 pushed back on clearly as not a realistic target for any legitimate
@@ -57,10 +57,16 @@ current equity per position (vs. $1000 flat), a 0.05% signal threshold
 (much tighter than momentum_bot.py's 0.15%), a faster 2/6-bar crossover on
 15-min bars, and deliberately none of momentum_bot.py's risk controls (no
 regime filter, no trailing stop). Crypto-only to avoid the Pattern Day
-Trader rule at this trade frequency. Currently running hourly via the
-Routine; scheduled to auto-revert to `momentum_bot.py` on 2026-10-01 with
-a P&L report — see `notes.md` for the full reasoning and the eventual
-result.
+Trader rule at this trade frequency.
+
+**Result: −$11,525.88 net (realized + unrealized) across 86 filled orders**
+over the 3 days, on the 7-symbol crypto watchlist — nowhere close to the
+$10k target and in the wrong direction. GRT/USD alone accounted for
+−$7,673 of the loss; BTC and ETH came out slightly positive, everything
+else lost money. See `notes.md` for the full per-symbol breakdown and
+methodology. The Routine was reverted to `momentum_bot.py` afterward (with
+a ~13-hour delay past the planned revert time — also logged in
+`notes.md`). Kept for reference; not currently run by the Routine.
 
 ## daytrading_bot.py (inactive — bounded 3-day experiment, 2026-09-24 to 2026-09-27)
 

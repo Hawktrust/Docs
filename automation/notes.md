@@ -1,5 +1,59 @@
 # Trading bot notes
 
+## 2026-10-02 ~02:59 UTC — Aggressive-bot experiment ended, reverted to momentum_bot.py
+
+Scheduled revert ran (late — see note below) at the end of the bounded
+2026-09-28→2026-10-01 window. Routine `trig_01CoW1HYzK2mUehKfw7dkZas`
+switched back from `aggressive_bot.py` to `momentum_bot.py`, renamed back
+to "Alpaca swing bot check".
+
+**Result: net loss, as flagged going in.** Pulled all filled orders for
+the 7 traded crypto symbols since 2026-09-28T00:00Z (86 filled orders) and
+computed P&L by cash flow (total sell proceeds − total buy cost + current
+market value of anything still held) rather than naive FIFO matching,
+since FIFO on order-level quantities gets thrown off by small qty
+residuals (fees taken in the base asset) that don't reflect real open
+positions — verified directly against `/v2/positions/{symbol}` for each
+of the 7 symbols (only BTC and GRT still held at the end; the other 5 are
+confirmed fully closed, 404 on the positions endpoint).
+
+| Symbol | Orders | Bought ($) | Sold ($) | Net cash | Open mkt value | P&L |
+|---|---|---|---|---|---|---|
+| BTC/USD | 24 | 372,289.05 | 344,178.97 | −28,110.09 | 28,415.68 | **+305.59** |
+| ETH/USD | 15 | 218,776.93 | 220,080.36 | +1,303.43 | 0 (closed) | **+1,303.43** |
+| DOGE/USD | 9 | 123,550.62 | 122,917.54 | −633.08 | 0 (closed) | **−633.08** |
+| LTC/USD | 12 | 125,278.66 | 122,368.85 | −2,909.80 | 0 (closed) | **−2,909.80** |
+| SOL/USD | 9 | 92,440.18 | 92,301.37 | −138.80 | 0 (closed) | **−138.80** |
+| GRT/USD | 11 | 187,764.29 | 152,034.71 | −35,729.58 | 28,056.53 | **−7,673.05** |
+| UNI/USD | 6 | 95,201.30 | 93,421.14 | −1,780.16 | 0 (closed) | **−1,780.16** |
+
+**Total: −$11,525.88 net (realized + unrealized) across 86 filled orders
+over the 3 days**, on 35%-of-equity sizing per position. GRT/USD was the
+single biggest loser by far (−$7,673), consistent with the bot having no
+regime filter or trailing stop to avoid chasing / to cut a losing position
+early — exactly the failure mode predicted when this was built. BTC and
+ETH came out slightly positive; everything else lost money. Win rate on
+the (user-asked) "are we losing" mid-experiment check was 31.8%, which
+matches the overall outcome.
+
+**Versus the user's $10,000-in-3-days target: not even close, and in the
+wrong direction** — net result is roughly −$11.5k, not +$10k. This
+confirms what was said at the outset: there is no tuning of a rule-based
+bot that makes a 10%-in-3-days target a realistic outcome. Running it
+aggressively (35% equity sizing, no risk controls) didn't get closer to
+the target, it just produced a bigger loss than the safer bot likely
+would have over the same window.
+
+**Process failure, logged for accuracy:** the scheduled revert was meant
+to fire at 2026-10-01T14:07 UTC but the session didn't act on it — it sat
+read-but-unexecuted for about 13 hours while `aggressive_bot.py` kept
+running hourly past its intended end time (last fires before this revert:
+2026-10-01 14:58 through 2026-10-02 02:58 UTC, roughly 13 extra cycles).
+The P&L above covers the full window through this revert, so it already
+includes whatever those extra cycles did — no separate adjustment needed,
+but noting the delay since it meant extra hours of the riskier bot running
+unsupervised past its planned end.
+
 ## 2026-09-28 ~14:06 UTC — Started 3-day aggressive-bot experiment ($10k-in-3-days ask)
 
 User asked how to make more money, then explicitly set a target of
