@@ -98,7 +98,12 @@ def test_the_shipped_leads_file_is_real_and_honest_about_itself():
     for lead in payload["leads"]:
         assert lead["canonical_url"].startswith(
             "https://planning-schemes.app.planning.vic.gov.au/")
-        assert lead["lga"] in ("Wyndham", "Melton", "Hume", "Whittlesea")
+        # An allowlist rather than a derived set, so a lead for an LGA
+        # Crown does not cover cannot be added without this line being
+        # changed on purpose. Greater Geelong joined it on 2026-10-02
+        # with eight Lara leads.
+        assert lead["lga"] in ("Wyndham", "Melton", "Hume", "Whittlesea",
+                               "Greater Geelong")
 
 
 def test_leads_go_to_the_review_queue_and_never_into_the_graph(db):
