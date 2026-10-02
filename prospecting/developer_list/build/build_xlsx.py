@@ -117,7 +117,6 @@ def area(projects):
     return found[0] if len(found) == 1 else ", ".join(found[:-1][:3]) + " and " + found[min(len(found) - 1, 3)]
 
 BODY = """Hi team,
-
 Quick one. I'm representing several development sites across Melbourne's north and west that may suit {who} pipeline{alongside}:
 
 * Shovel-ready residential and industrial.
@@ -126,9 +125,7 @@ Quick one. I'm representing several development sites across Melbourne's north a
 * About 50 acres of investigation-area land.
 
 Who in acquisitions should I send the details to?
-
 If it's not a fit, just let me know and I won't follow up.
-
 {signature}"""
 
 # One named project per developer, for "especially alongside {project}". Workbook regional projects
@@ -188,7 +185,7 @@ Crown Real Estate Agents complies with all relevant Victorian and Australian law
 
 While precautions are taken to prevent viruses, Crown Real Estate Agents accepts no liability for damage caused by email transmission.
 
-No binding agreements may be concluded via email without written confirmation by an authorized representative of Crown Real Estate Agents."""
+No binding agreements may be concluded via email without written confirmation by an authorised representative of Crown Real Estate Agents."""
 
 FONT = "Arial"
 HDR_FILL = PatternFill("solid", fgColor="1F3864")
