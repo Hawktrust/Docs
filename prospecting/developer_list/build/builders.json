@@ -1,0 +1,98 @@
+[
+ {
+  "name": "Henley Homes (Henley Properties)",
+  "website": "https://www.henley.com.au",
+  "phone": "03 9574 5330",
+  "email": "",
+  "email_source_url": "",
+  "notes": "Contact form only for new-home/general enquiries (build-enquiry, buy-enquiry, general-enquiry forms). The only published email is the maintenance address homeassurance@henley.com.au (https://www.henley.com.au/contact-us), and the 03 9574 5330 number sits under that maintenance heading. Head office: 395 Ferntree Gully Rd, Mount Waverley VIC 3149."
+ },
+ {
+  "name": "Orbit Homes",
+  "website": "https://orbithomes.com.au",
+  "phone": "03 9377 0000",
+  "email": "info@orbithomes.com.au",
+  "email_source_url": "https://au.linkedin.com/company/orbit-homes-group",
+  "notes": "Email published on official LinkedIn page; privacy policy also points to info@orbithomes.com... (truncated excerpt). Contact page has form only. VIC head office: 286 Mt Alexander Rd, Ascot Vale VIC 3032; sales line 1300 672 484."
+ },
+ {
+  "name": "Sherridon Homes",
+  "website": "https://www.sherridonhomes.com.au",
+  "phone": "1300 188 668",
+  "email": "info@sherridonhomes.com.au",
+  "email_source_url": "https://www.facebook.com/TraralgonGolfClub/posts/we-welcome-sherridon-homes-as-a-new-pro-am-platinum-sponsorphone-1300-188-668web/1147625110424260/",
+  "notes": "Email seen only on a golf club sponsor post, not an official Sherridon page. Company website has contact form only. Email comes from a third-party sponsor post (Traralgon Golf Club Facebook) that lists Sherridon's details, not from an official Sherridon page, so verify before relying on it."
+ },
+ {
+  "name": "Boutique Homes",
+  "website": "https://www.boutiquehomes.com.au",
+  "phone": "03 9674 4500",
+  "email": "enquiries@boutiquehomes.com.au",
+  "email_source_url": "https://www.facebook.com/boutiquehomesvic/",
+  "notes": "Email from official Facebook page. Part of ABN Group. Website contact page lists only the warranty email warranty@abngroup.com.au / (03) 9674 4554. HQ Docklands VIC."
+ },
+ {
+  "name": "JG King Homes",
+  "website": "https://jgkinghomes.com.au",
+  "phone": "1300 545 464",
+  "email": "marketing@jgking.com.au",
+  "email_source_url": "https://www.facebook.com/jgkinghomes/",
+  "notes": "Marketing email from official Facebook contact info; no general or land email seen. Website contact page has form only. HQ Port Melbourne VIC."
+ },
+ {
+  "name": "Fairhaven Homes",
+  "website": "https://fairhavenhomes.com.au",
+  "phone": "1800 324 742",
+  "email": "info@fairhavenhomes.com.au",
+  "email_source_url": "https://fairhavenhomes.com.au/support",
+  "notes": "1800 Fairhaven; sales 0400 660 960. Level 6, 1 Peters Ave, Mulgrave VIC 3170."
+ },
+ {
+  "name": "Bold Properties",
+  "website": "https://boldliving.com.au",
+  "phone": "1800 462 653",
+  "email": "",
+  "email_source_url": "",
+  "notes": "Could not find a Victorian builder called Bold Properties. boldproperties.com.au belongs to Bold Properties (QLD) Pty Ltd / Bold Living, a Queensland builder at 71 Stapylton St, North Lakes QLD (QBCC 1189357). Its site has a contact form only. Confirm this is the right company."
+ },
+ {
+  "name": "Mimosa Homes",
+  "website": "https://www.mimosahomes.com.au",
+  "phone": "(03) 8361 1900",
+  "email": "info@mimosahomes.com.au",
+  "email_source_url": "https://www.mimosahomes.com.au/contact-us/",
+  "notes": "Head office email. Also 1300 MIMOSA (1300 646 672); sales@mimosahomes.com.au is listed on the head-office display page."
+ },
+ {
+  "name": "Eight Homes",
+  "website": "https://www.8homes.com.au",
+  "phone": "(03) 8398 1000",
+  "email": "enquiry@8homes.com.au",
+  "email_source_url": "https://www.8homes.com.au/company-info/contact-us/",
+  "notes": "Also shown in the privacy policy. Sales line 03 8398 1188."
+ },
+ {
+  "name": "Rawdon Hill",
+  "website": "http://www.rawdonhill.com.au",
+  "phone": "(03) 9702 4477",
+  "email": "",
+  "email_source_url": "",
+  "notes": "COLLAPSED: Rawdon Hill Constructions Pty Ltd went into liquidation on 25 May 2023 (liquidator Dye & Co; ASIC notice https://publishednotices.asic.gov.au/browsesearch-notices/notice-details/RAWDON-HILL-CONSTRUCTIONS-PTY-LTD-IN-LIQUIDATION-086408157/52863d29-9ea0-4db2-a5f1-71059017c22e). An old directory listing still shows sales@rawdonhill.com.au, but it is not used. Phone shown is the old number."
+ },
+ {
+  "name": "Dennis Family Homes",
+  "website": "https://www.simonds.com.au/about-us/about-dennis-family-homes-acquisition",
+  "phone": "1300 746 663",
+  "email": "",
+  "email_source_url": "",
+  "notes": "Dennis Family Homes was acquired by Simonds Homes and no longer trades as a standalone builder. The phone is Simonds' (1300 SIMONDS). The parent land developer, Dennis Family Corporation (denniscorp.com.au, +61 3 9573 1100, masterplanned communities), still operates, but no email was seen; its site has a contact page/form."
+ },
+ {
+  "name": "Hallmark Homes",
+  "website": "https://hallmarkhomes.com.au",
+  "phone": "07 5531 3130",
+  "email": "",
+  "email_source_url": "https://hallmarkhomes.com.au/contact/",
+  "notes": "Excluded: the only Hallmark Homes found is a Queensland builder (info@hallmarkhomes.com.au). No Victorian Hallmark Homes found. The Australian Hallmark Homes is a South East Queensland builder (head office Southport QLD), so it may not be the intended company. Confirm before use."
+ }
+]
