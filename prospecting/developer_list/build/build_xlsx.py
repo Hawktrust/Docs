@@ -288,7 +288,7 @@ TOWNHOUSE_DEVS = [  # from the list: UDIA "Medium Density / Townhouse" developer
     "Sunkin Property Group", "Milieu", "ID_Land", "Antipodean Land Developments",
 ]
 TOWNHOUSE_BODY = """Hi Acquisition team,
-Quick one. I'm representing three townhouse sites, both permit-approved and raw, in the heart of Tarneit, Weir Views, Werribee and Geelong that could suit {who} townhouse pipeline:
+Quick one. I'm representing four townhouse sites, both permit-approved and raw, in the heart of Tarneit, Weir Views, Werribee and Geelong that could suit {who} townhouse pipeline:
 
 * Permit-approved townhouse sites for a faster start.
 * Raw townhouse sites with room to design your own scheme.
