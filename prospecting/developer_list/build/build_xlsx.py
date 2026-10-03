@@ -117,7 +117,7 @@ def area(projects):
     return found[0] if len(found) == 1 else ", ".join(found[:-1][:3]) + " and " + found[min(len(found) - 1, 3)]
 
 BODY = """Hi Acquisition team,
-Quick one. I'm representing several development sites across Melbourne's north and west that may suit {who} pipeline{alongside}:
+Quick one. {opener}:
 
 * Shovel-ready residential and industrial.
 * Permit-approved townhouse sites, including one for 44 townhouses.
@@ -164,6 +164,14 @@ def _projects():
         found[merge.key(dev)] = v
     return found, merge.key
 PROJECTS, _key = _projects()
+
+def opener(dev, who):
+    """With a known project, anchor on it; without one, anchor on where the sites are instead."""
+    a = alongside(dev)
+    if a:
+        return f"I'm representing several development sites across Melbourne's north and west that may suit {who} pipeline{a}"
+    return (f"I'm representing several development sites across Melbourne's north and west, from Wollert and "
+            f"Beveridge through to Tarneit, Truganina and Geelong, that could be a strong fit for {who} pipeline")
 
 def alongside(dev):
     p = PROJECTS.get(_key(dev))
@@ -243,8 +251,7 @@ for r in rows:
     out.append([DISPLAY.get(dev, dev), form, r["Website"], r["Email"] if "@" in r["Email"] else "", r["Phone"],
                 "Inder Sandhu", "inder@crownrea.com.au", "0484926324", "Crown Real Estate Agents",
                 "Development sites – Wollert, Beveridge, Tarneit, Geelong & more",
-                BODY.format(signature=SIGNATURE, who=(lambda n: n + ("'" if n.endswith('s') else "'s"))(msg_name(dev)),
-                            alongside=alongside(dev)), "Not sent", "", ""])
+                BODY.format(signature=SIGNATURE, opener=opener(dev, (lambda n: n + ("'" if n.endswith('s') else "'s"))(msg_name(dev)))), "Not sent", "", ""])
 for name, em, ph, page, source, suburbs in COUNCILS:
     out.append([name, page, re.sub(r"(https://[^/]+).*", r"\1", page), em, ph,
                 "Inder Sandhu", "inder@crownrea.com.au", "0484926324", "Crown Real Estate Agents",
