@@ -264,6 +264,11 @@ for name, em, ph, page, source, region in REGIONAL_COUNCILS:
                 "Development land – Crown Real Estate Agents",
                 REGIONAL_COUNCIL_BODY.format(signature=SIGNATURE, region=region), "Not sent", "",
                 f"Regional council – no listed site in its area yet. General inbox; email source: {source}"])
+# Status from the Gmail campaign log, so nobody is contacted twice
+_status = json.load(open(os.path.join(S, "outreach_status.json"))) if os.path.exists(os.path.join(S, "outreach_status.json")) else {}
+for o in out:
+    if o[3] and o[3].strip().lower() in _status:
+        o[11] = _status[o[3].strip().lower()]
 oh = ["Developer / council", "Contact form / contact page", "Website", "Published email", "Phone", "Your name", "Your email",
       "Your mobile", "Company", "Subject", "Message (personalised)", "Status", "Date sent", "Response / notes"]
 ws = sheet(wb, "Outreach", oh, out, [30, 40, 30, 32, 15, 13, 24, 12, 22, 34, 80, 11, 11, 30], wrap_cols=(11,))
