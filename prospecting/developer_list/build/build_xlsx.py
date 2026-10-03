@@ -279,6 +279,49 @@ for j, (n, why) in enumerate(skipped):
     ws.cell(row=len(out) + 4 + j, column=1, value=n).font = BODY_FONT
     ws.cell(row=len(out) + 4 + j, column=2, value=why).font = BODY_FONT
 
+# 2b. Townhouse campaign: townhouse developers and volume builders only
+TOWNHOUSE_DEVS = [  # from the list: UDIA "Medium Density / Townhouse" developers and builder/developers
+    "Metricon Homes", "Carlisle Homes", "Simonds Homes Victoria", "Burbank Group", "Glenvill Homes", "SJD Homes",
+    "Creation Homes", "Hudson Ridge Builders", "Integra Group", "Kode Living", "Mirvac", "SOHO Living", "Oreana",
+    "Arc Living", "Hub Property Group", "Hygge Property", "Little Projects", "Lowe Living", "Maax Global",
+    "OYOB Property Group", "Resimax Group", "Resi Ventures", "SIG Group", "SightStone", "SYP Property",
+    "Sunkin Property Group", "Milieu", "ID_Land", "Antipodean Land Developments",
+]
+TOWNHOUSE_BODY = """Hi Acquisition team,
+Quick one. I'm representing three townhouse sites, both permit-approved and raw, in the heart of Tarneit, Weir Views, Werribee and Geelong that could suit {who} townhouse pipeline:
+
+* Permit-approved townhouse sites for a faster start.
+* Raw townhouse sites with room to design your own scheme.
+* Central locations in Tarneit, Weir Views, Werribee and Geelong.
+
+Who in acquisitions should I send the details to?
+
+If it's not a fit, just let me know and I won't follow up.
+
+{signature}"""
+MSG_NAME.update({"Metricon Homes": "Metricon", "Simonds Homes Victoria": "Simonds", "Burbank Group": "Burbank"})
+TOWNHOUSE_SUBJECT = "Townhouse sites – Tarneit, Weir Views, Werribee & Geelong"
+_poss = lambda n: n + ("'" if n.endswith("s") else "'s")
+by_name = {r["Developer"]: r for r in rows}
+th = []
+for dev in TOWNHOUSE_DEVS:
+    r = by_name[dev]
+    th.append([DISPLAY.get(dev, dev), r["Email"] if "@" in r["Email"] else "", r["Phone"], r["Website"], "Developer list",
+               TOWNHOUSE_SUBJECT, TOWNHOUSE_BODY.format(who=_poss(msg_name(dev)), signature=SIGNATURE), "Not sent", ""])
+_builders = os.path.join(S, "builders.json")
+for b in (json.load(open(_builders)) if os.path.exists(_builders) else []):
+    if b.get("email"):
+        name = re.sub(r"\s*\(.*?\)", "", b["name"]).strip()
+        th.append([name, b["email"], b.get("phone", ""), b.get("website", ""), "Volume builder research",
+                   TOWNHOUSE_SUBJECT, TOWNHOUSE_BODY.format(who=_poss(name), signature=SIGNATURE), "Not sent", b.get("notes", "")])
+_tstatus = json.load(open(os.path.join(S, "townhouse_status.json"))) if os.path.exists(os.path.join(S, "townhouse_status.json")) else {}
+for t in th:
+    if t[1] and t[1].lower() in _tstatus: t[7] = _tstatus[t[1].lower()]
+ws = sheet(wb, "Townhouse Outreach", ["Developer / builder", "Email", "Phone", "Website", "Source", "Subject",
+           "Message", "Status", "Notes"], th, [30, 34, 15, 30, 18, 40, 80, 24, 40], wrap_cols=(7, 9))
+for row in ws.iter_rows(min_row=2):
+    ws.row_dimensions[row[0].row].height = 300
+
 # 3. Cross-check
 sheet(wb, "Cross-check", ["Developer", "Differences between sources (your workbook vs UDIA vs fresh research)"],
       [[DISPLAY.get(c["Developer"], c["Developer"]), c["Flags"]] for c in checks], [34, 120], wrap_cols=(2,))
