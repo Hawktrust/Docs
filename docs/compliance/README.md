@@ -22,22 +22,30 @@ Filling them raised three new ones, which is the ordinary way of these
 documents — naming a contact address makes "how fast do you answer it" a
 question that was not being asked while the address was blank, and naming a
 postal address raises whether it is the one registered with ASIC.
-**Seven remain**: three in the privacy policy,
-three in the breach plan, one in the collection notice — and every one of the
-seven is a fact nobody has yet rather than a judgement nobody has made.
+**Six remain**: three in the privacy policy, two in the breach plan, one in the
+collection notice — and every one is a fact nobody has yet rather than a
+judgement nobody has made.
 
-They are: the policy's URL and whether hosting is onshore (both wait on a
-deployment), who at Crown ratifies the section 4 position, a mobile number for
-the breach roster, the date the tabletop was run, and the same URL again in the
-collection notice. Nothing else is outstanding that reading this repository
-could settle.
+Six blanks over five facts, because the policy's URL is asked for in two places.
+The five: the policy's URL and whether hosting is onshore (both wait on a
+deployment), who at Crown ratifies the section 4 position and when, a mobile
+number for the breach roster, and the date the tabletop was run. Nothing else is
+outstanding that reading this repository could settle.
+
+This paragraph said seven, split 3/3/1, until the marks were counted rather than
+remembered on 2026-10-04. The breach plan has two, not three — a third occurrence
+is the explanatory note attached to the roster's mobile blank, not a separate
+decision. Two more occurrences in this file and one in the breach plan are the
+legend explaining the convention. A cover note that miscounts what is
+outstanding sends a reviewer chasing an item that does not exist, or lets them
+miss one that does, which is the opposite of its job.
 
 The privacy policy stopped being a form. Every section of it is now answered,
 with the positions taken on Crown's behalf collected in an appendix rather than
 scattered as blanks — a lawyer can only argue with a document that says
 something, and a draft full of gaps postpones the review it is supposed to
-enable. The four marks still in it are facts nobody has yet: a URL, a hosting
-decision, and two names.
+enable. The three marks still in it are facts nobody has yet: a URL, a hosting
+decision, and who ratified section 4.
 
 A fourth document joins the three. `CONSENT-POSITION.md` works the question the
 policy's section 4 had been deferring, and reaches a conclusion that costs
@@ -51,7 +59,8 @@ and that the ABN is registered to the company, which migration 0023 records.
 Before any of this is published or relied on:
 
 1. Fill every remaining `[DECIDE]`.
-2. Have a lawyer review all three together — they cross-reference each other,
+2. Have a lawyer review all five together — the four documents in this folder
+   and `docs/TITLE-SEARCH-PATH.md` — because they cross-reference each other,
    and the privacy basis chosen in one determines wording in the others.
 3. Publish the privacy policy before collection begins, not after (APP 1.3).
 
