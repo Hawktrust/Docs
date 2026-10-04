@@ -4,7 +4,8 @@
     "why_not_evidence": "The pages themselves were never fetched: egress to planning.vic.gov.au, planning-schemes.app.planning.vic.gov.au and the council sites is refused by the network policy (403 at CONNECT). What is recorded here is what a search intermediary reported.",
     "reliability_finding": "The relay is reliable for identifiers and URL structure, and unreliable for detail. Two independent searches for C232melt gave different gazettal dates (7 May 2026 and 8 May 2026). Two for C272hume described substantively different amendments. Both are marked CONTRADICTED below and none of the relay_claims should be treated as established. Whittlesea leads added 2026-09-20 on the same basis: identifiers and URL structure only. C269wsea's canonical URL appeared in two independent searches; the rest are constructed from the confirmed URL pattern and must be checked against the page before anything is believed about them.",
     "canonical_url_pattern": "https://planning-schemes.app.planning.vic.gov.au/{Scheme}/amendments/{AmendmentNumber}",
-    "greater_geelong_2026_10_02": "Eight Greater Geelong leads added 2026-10-02, for Lara. Egress to planning-schemes.app.planning.vic.gov.au is still refused by this environment's network policy (403 at CONNECT, retested the same day), so these came through a third-party fetcher. That is a DIFFERENT and stronger thing than the September relay: the fetcher rendered DTP's own page and returned its text, rather than summarising it, so the brief descriptions marked CORROBORATED or SINGLE_SOURCE are verbatim rather than paraphrased. It is still not a direct fetch. Crown did not fetch the bytes and cannot attest they came from DTP, so none of these may enter the graph as evidence and all stay in the review queue. The ones marked URL_ONLY are search snippets, two of them truncated mid-sentence and left truncated. The City of Greater Geelong's own planning register was NOT fetched by any route: its terms are the one council set this project has actually read and they prohibit commercial reuse (COUNCIL_GREATER_GEELONG, automated_access = PROHIBITED)."
+    "greater_geelong_2026_10_02": "Eight Greater Geelong leads added 2026-10-02, for Lara. Egress to planning-schemes.app.planning.vic.gov.au is still refused by this environment's network policy (403 at CONNECT, retested the same day), so these came through a third-party fetcher. That is a DIFFERENT and stronger thing than the September relay: the fetcher rendered DTP's own page and returned its text, rather than summarising it, so the brief descriptions marked CORROBORATED or SINGLE_SOURCE are verbatim rather than paraphrased. It is still not a direct fetch. Crown did not fetch the bytes and cannot attest they came from DTP, so none of these may enter the graph as evidence and all stay in the review queue. The ones marked URL_ONLY are search snippets, two of them truncated mid-sentence and left truncated. The City of Greater Geelong's own planning register was NOT fetched by any route: its terms are the one council set this project has actually read and they prohibit commercial reuse (COUNCIL_GREATER_GEELONG, automated_access = PROHIBITED).",
+    "relay_reliability_revisited_2026_10_04": "The reliability_finding above says the relay is reliable for identifiers and unreliable for detail. That was measured on search SUMMARIES in September. On 2026-10-04 two Greater Geelong amendment pages were RENDERED by a third-party fetcher and returned verbatim, and the detail was accurate — descriptions matched and the status the relay had claimed for C444ggee was exactly what the page said. A rendered page and a search summary are different trust levels and this register should stop treating them as one. Neither is a direct fetch: both stay in the review queue, because Crown did not fetch the bytes and cannot attest they came from DTP. The error that mattered on 2026-10-02 was not the relay's — it was the inference drawn from accurate data, which is the failure a provenance model does not catch."
   },
   "leads": [
     {
@@ -125,22 +126,36 @@
       "lga": "Greater Geelong",
       "amendment_number": "C444ggee",
       "canonical_url": "https://planning-schemes.app.planning.vic.gov.au/Greater%20Geelong/amendments/C444ggee",
-      "corroboration": "CORROBORATED",
+      "corroboration": "RELAY_PAGE_RENDERED",
       "relay_claims": {
         "brief_description": "Rezones land at 76-156 Canterbury Road East and 705-765, 775 and 785-805 Princes Highway, Lara from Farming Zone to General Residential Zone Schedule 1 (GRZ1) and applies the Environmental Audit Overlay (EAO) and Development Plan Overlay Schedule 48 (DPO48).",
-        "status_unconfirmed": "Approval Under Consideration"
+        "status_unconfirmed": "Approval Under Consideration",
+        "status": "Approval Under Consideration",
+        "planning_authority": "Greater Geelong City Council, 137 Mercer Street Geelong VIC 3220, (03) 5272 4820",
+        "exhibition": "08 October 2025 to 16 November 2025",
+        "panel": "requested 27 January 2026, appointed 11 February 2026",
+        "decision": "Adopted by the planning authority 24 August 2026",
+        "outcome": "Pending; no gazettal recorded",
+        "page_last_updated": "03 September 2026"
       },
-      "notes": "The highest-value Lara signal found: farming land proposed for residential. The description is verbatim from the rendered Greater Geelong amendment list, so it is not a summary — but the relay fetched the page, not Crown, so it is not a direct fetch either. The status came from a search snippet only and is the field most worth checking first. Note that C453ggee proposes INDUSTRIAL zoning over substantially the same land: see its note."
+      "notes": "RELAY-CONFIRMED 2026-10-04 by rendering the amendment's own page; see docs/LARA-VERIFICATION.md. Still not a direct fetch and still a lead: Crown did not fetch the bytes. THE EARLIER NOTE ON THIS LEAD WAS WRONG and is corrected here. It read the shared addresses in C444ggee and C453ggee as two amendments competing over one landholding. They are not competing. Both were exhibited 08 Oct to 16 Nov 2025, went to a panel requested 27 Jan and appointed 11 Feb 2026, and were ADOPTED BY THE COUNCIL ON THE SAME DAY, 24 August 2026, and both now await the Minister with no gazettal recorded. They are a coordinated pair splitting one growth front: C444ggee takes the residential part to GRZ1, C453ggee takes the industrial part to IN1Z and IN3Z for the Lara Business Park. A single title can be split between them, which is why the address ranges overlap in text. The relay's facts were right; the inference drawn from them was not."
     },
     {
       "lga": "Greater Geelong",
       "amendment_number": "C453ggee",
       "canonical_url": "https://planning-schemes.app.planning.vic.gov.au/Greater%20Geelong/amendments/C453ggee",
-      "corroboration": "SINGLE_SOURCE",
+      "corroboration": "RELAY_PAGE_RENDERED",
       "relay_claims": {
-        "brief_description": "Rezones land at 76-156 Canterbury Road East, 705-765 and 785-805 Princes Highway and 610 Rennie Street, Lara from Farming Zone (FZ) to Industrial 1 Zone (IN1Z) and Industrial 3 Zone (IN3Z) and applies Design and Development Overlay Schedule 55 (DDO55) to facilitate the development of the Lara Business Park."
+        "brief_description": "Rezones land at 76-156 Canterbury Road East, 705-765 and 785-805 Princes Highway and 610 Rennie Street, Lara from Farming Zone (FZ) to Industrial 1 Zone (IN1Z) and Industrial 3 Zone (IN3Z) and applies Design and Development Overlay Schedule 55 (DDO55) to facilitate the development of the Lara Business Park.",
+        "status": "Approval Under Consideration",
+        "planning_authority": "Greater Geelong City Council, 137 Mercer Street Geelong VIC 3220, (03) 5272 4820",
+        "exhibition": "08 October 2025 to 16 November 2025",
+        "panel": "requested 27 January 2026, appointed 11 February 2026",
+        "decision": "Adopted by the planning authority 24 August 2026",
+        "outcome": "Pending; no gazettal recorded",
+        "page_last_updated": "04 September 2026"
       },
-      "notes": "Overlaps C444ggee on 76-156 Canterbury Road East and the 705-765 / 785-805 Princes Highway parcels, and proposes a different outcome for them — industrial rather than residential. Two live amendments over one landholding with competing zoning is a strong prospecting signal and also a reason to believe neither status until both pages are read: one of them may have lapsed or been split."
+      "notes": "RELAY-CONFIRMED 2026-10-04 by rendering the amendment's own page; see docs/LARA-VERIFICATION.md. Still not a direct fetch and still a lead: Crown did not fetch the bytes. THE EARLIER NOTE ON THIS LEAD WAS WRONG and is corrected here. It read the shared addresses in C444ggee and C453ggee as two amendments competing over one landholding. They are not competing. Both were exhibited 08 Oct to 16 Nov 2025, went to a panel requested 27 Jan and appointed 11 Feb 2026, and were ADOPTED BY THE COUNCIL ON THE SAME DAY, 24 August 2026, and both now await the Minister with no gazettal recorded. They are a coordinated pair splitting one growth front: C444ggee takes the residential part to GRZ1, C453ggee takes the industrial part to IN1Z and IN3Z for the Lara Business Park. A single title can be split between them, which is why the address ranges overlap in text. The relay's facts were right; the inference drawn from them was not."
     },
     {
       "lga": "Greater Geelong",
