@@ -11,6 +11,11 @@ information is collected from someone other than the individual, the notice must
 be given as soon as practicable after collection, and the usual answer is that
 the first contact carries it.
 
+**Crown agreed this approach 2026-09-22:** collecting from a register rather
+than from the person does not remove the APP 5 duty, so the first contact
+carries the notice. That settles the shape of the document. The `[DECIDE]`
+marks below are details inside it, and they are still open.
+
 Two versions follow because they do different jobs.
 
 ---
@@ -20,16 +25,17 @@ Two versions follow because they do different jobs.
 This goes in every first approach, near the opt-out link. It must be readable by
 someone who did not ask to hear from Crown and is mildly annoyed to have.
 
-> **Why you are hearing from us.** `[DECIDE: legal entity]` identified your
-> property through Victorian public planning and property registers — the same
-> records anyone can search. We hold your name and the property address, and we
-> use them to contact owners about land that may suit a buyer we work with.
+> **Why you are hearing from us.** Crown Real Estate Agents Pty Ltd (ABN 86 690
+> 344 597) identified your property through Victorian public planning and
+> property registers — the same records anyone can search. We hold your name and
+> the property address, and we use them to contact owners about land that may
+> suit a buyer we work with.
 >
 > We did not get your details from a broker, a list, or social media.
 >
 > You can stop this immediately: [remove me]. You can also ask what we hold and
-> have it corrected, at `[DECIDE: contact]`. Our privacy policy is at
-> `[DECIDE: URL]`.
+> have it corrected, at info@crownrea.com.au or 208/2 Infinity Drive,
+> Truganina VIC 3029. Our privacy policy is at `[DECIDE: URL]`.
 
 Three things that wording does deliberately:
 
@@ -59,9 +65,13 @@ Three things that wording does deliberately:
 > We collect it to identify land that may suit a buyer we work with, and to
 > contact the parties connected with it.
 >
-> `[DECIDE]` Who it may be disclosed to. If a buyer receives a brief naming a
-> landholder, that is a disclosure and must be stated here. If briefs name only
-> the property and not the person, say that instead — and make sure it is true.
+> **Who sees it.** A brief prepared for a buyer names the land, the planning
+> position, the evidence it rests on and why Crown thinks it fits what that
+> buyer is looking for. **It does not name you.** Crown does not pass a
+> landholder's name to a buyer, and the system is built so that a brief carries
+> no landholder identity at all.
+>
+> If you ask, Crown will tell you which register your details came from.
 >
 > If you do not want to hear from us, tell us and we will stop. We keep a record
 > that you asked, so that the request is not undone by accident later.
@@ -70,11 +80,19 @@ Three things that wording does deliberately:
 
 ## What has to be true before either is used
 
-- [ ] `[DECIDE]` Does a `BUYER_BRIEF` ever name an identified landholder? If so,
-      that is a disclosure to a third party and section B must say so. The
-      schema does not currently prevent it.
-- [ ] `[DECIDE]` The privacy policy must exist and be published first. A notice
-      pointing at a policy that does not exist is worse than no notice.
+- [x] **Does a `BUYER_BRIEF` ever name an identified landholder? No.**
+      Answered from the code rather than asserted: `outbound.build_content()`
+      assembles the geography, the stage rule, the buyer label, the five score
+      contributions and the evidence provenance. No landholder identity is
+      among them. `tests/test_brief.py` asserts that, so adding one later fails
+      a test that names this notice — the point being that if the answer ever
+      changes, section B has to change with it rather than quietly becoming
+      untrue.
+- [ ] **The privacy policy must be published before this notice is used.** A
+      notice pointing at a policy that does not exist is worse than no notice.
+      The policy is written and complete; it needs a URL, which needs a
+      deployment. That ordering is the only thing left between this document
+      and use.
 - [ ] The opt-out link must be live. It is — `crown/optout.py`, and the
       readiness gate blocks a launch if any message lacks one.
 

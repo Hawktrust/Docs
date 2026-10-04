@@ -239,7 +239,8 @@ def score(profile: OpportunityProfile, mandate: dict, weights: Weights,
     return result
 
 
-def evaluate(conn, opportunity_id, *, as_of: date | None = None) -> list[MatchScore]:
+def evaluate(conn, opportunity_id, *, as_of: date | None = None,
+             weights: Weights | None = None) -> list[MatchScore]:
     """Score every mandate against one opportunity and return the ranking.
 
     Reads only. Displaying a ranking must not change the database, so the page
@@ -247,7 +248,11 @@ def evaluate(conn, opportunity_id, *, as_of: date | None = None) -> list[MatchSc
     action.
     """
     as_of = as_of or date.today()
-    weights = active_weights(conn)
+    # rank() has already read the weights when it calls this, and re-reading them
+    # mid-pass would also let a weight change land between two opportunities in
+    # the same run — so the ranking would mix two configurations and the stored
+    # weight_config_version would only describe some of it.
+    weights = weights or active_weights(conn)
 
     row = conn.execute(
         "SELECT lga, geography_label FROM opportunity WHERE id = %s", (opportunity_id,)
@@ -276,11 +281,17 @@ def rank(conn, opportunity_id, *, as_of: date | None = None,
     """Evaluate the ranking and store it, so the approval queue can be built."""
     correlation_id = correlation_id or audit.new_correlation_id()
     weights = active_weights(conn)
-    results = evaluate(conn, opportunity_id, as_of=as_of)
+    results = evaluate(conn, opportunity_id, as_of=as_of, weights=weights)
 
-    for result in results:
-        conn.execute(
-            """
+    # One executemany rather than one execute per mandate. This was a round trip
+    # per mandate, so a statewide pass cost mandates x opportunities round trips
+    # and spent nearly all its time waiting on the network rather than in the
+    # database. The statement, its conflict handling and the approval guard below
+    # are unchanged — only the number of times Python waits for the server is.
+    if results:
+        with conn.cursor() as cur:
+            cur.executemany(
+                """
             INSERT INTO match_result (opportunity_id, buyer_mandate_id,
                 weight_config_version, total_score, geographic_fit_score,
                 asset_fit_score, price_fit_score, size_fit_score, freshness_score,
@@ -302,14 +313,16 @@ def rank(conn, opportunity_id, *, as_of: date | None = None,
             WHERE NOT EXISTS (SELECT 1 FROM approval a
                               WHERE a.match_result_id = match_result.id)
             """,
-            (opportunity_id, result.buyer_mandate_id, weights.version, result.total,
-             result.factor("geographic_fit").contribution,
-             result.factor("asset_fit").contribution,
-             result.factor("price_fit").contribution,
-             result.factor("size_fit").contribution,
-             result.factor("mandate_freshness").contribution,
-             result.is_excluded, result.why_not),
-        )
+                [(opportunity_id, result.buyer_mandate_id, weights.version,
+                  result.total,
+                  result.factor("geographic_fit").contribution,
+                  result.factor("asset_fit").contribution,
+                  result.factor("price_fit").contribution,
+                  result.factor("size_fit").contribution,
+                  result.factor("mandate_freshness").contribution,
+                  result.is_excluded, result.why_not)
+                 for result in results],
+            )
 
     audit.write(conn, correlation_id, "MATCHES_COMPUTED", "opportunity", opportunity_id,
                 new_state={"weight_config_version": weights.version,

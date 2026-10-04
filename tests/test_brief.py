@@ -152,3 +152,36 @@ def test_a_missing_recommendation_is_a_404(client, db):
     db.commit()
     sign_in(client, "analyst@crown.local")
     assert client.get("/brief/00000000-0000-0000-0000-000000000000").status_code == 404
+
+
+# ----------------------------------- what a brief may and may not carry
+
+def test_a_brief_carries_no_landholder_identity(db):
+    """The collection notice tells a landholder that Crown does not pass their
+    name to a buyer. That sentence is only true while this stays true, so it is
+    a test rather than an intention.
+
+    If a landholder identity is ever added to what a brief carries, this fails
+    — and section B of docs/compliance/COLLECTION-NOTICE.draft.md has to change
+    before it can be made to pass, because handing a named landholder to a
+    buyer is a disclosure to a third party.
+    """
+    from crown import approval, outbound
+    from tests.test_governance import a_match
+
+    _, match_id = a_match(db)
+    approver = user_id(db, "compliance@crown.local")
+    approval_id = approval.decide(db, match_id, "APPROVED", "checked",
+                                  approver, "COMPLIANCE")
+
+    content = outbound.build_content(db, approval_id, note="for the buyer")
+
+    assert set(content) == {"note", "body", "approval", "opportunity",
+                            "buyer", "score", "evidence"}
+    # The land, the reasoning and the provenance. Not a person.
+    assert set(content["opportunity"]) == {"lga", "geography", "stage",
+                                           "stage_rule"}
+    assert set(content["buyer"]) == {"label", "origin"}
+    for item in content["evidence"]:
+        assert "landholder" not in item
+        assert "owner" not in item

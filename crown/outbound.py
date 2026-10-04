@@ -7,7 +7,7 @@ the approval exists, and that it says APPROVED rather than REJECTED.
 """
 from psycopg.types.json import Jsonb
 
-from . import audit, suppression
+from . import audit, message, suppression
 
 ACTOR_AGENT = "crown.outbound"
 
@@ -27,9 +27,34 @@ ARTIFACT_TYPES = ("EXPORT", "OUTREACH_DRAFT", "BUYER_BRIEF",
 # the difference, so it requires them of both.
 ADDRESSED_TO_A_PERSON = ("OUTREACH_DRAFT", "BUYER_BRIEF")
 
+# How a message goes out. There is no PHONE: the Do Not Call Register Act wants
+# numbers washed before telemarketing and Crown has not built that, so a value
+# the schema appears to bless and the law does not would be worse than no value.
+CHANNELS = ("POST", "EMAIL")
+
+# Who is being written to. The distinction is not decoration — it decides which
+# channels are lawful, because the Spam Act asks whether the address was
+# published by the person in a work capacity, and a landholder on a planning
+# permit was not.
+RECIPIENT_CLASSES = ("LANDHOLDER_FROM_REGISTER", "PROFESSIONAL_CONTACT",
+                     "MANDATED_BUYER")
+
+# The one combination the Spam Act refuses outright. See
+# docs/compliance/CONSENT-POSITION.md.
+NEEDS_EXPRESS_CONSENT = ("EMAIL", "LANDHOLDER_FROM_REGISTER")
+
 
 class ApprovalRequired(Exception):
     """No usable approval id, so nothing leaves."""
+
+
+class ChannelNotPermitted(Exception):
+    """This recipient may be written to, but not by this route.
+
+    Distinct from NoWayOut because the fix is different: NoWayOut means name a
+    recipient, this means change the channel or record the consent that opens
+    it.
+    """
 
 
 class NoWayOut(Exception):
@@ -61,7 +86,7 @@ def build_content(conn, approval_id, *, note: str = "") -> dict:
     refuses it a moment later.
     """
     if approval_id is None or str(approval_id).strip() == "":
-        return {"note": note}
+        return {"note": note, "body": message.standard_body(note)}
 
     header = conn.execute(
         """SELECT o.lga, o.geography_label, o.stage::text, o.stage_rule,
@@ -78,7 +103,7 @@ def build_content(conn, approval_id, *, note: str = "") -> dict:
         (approval_id,),
     ).fetchone()
     if header is None:
-        return {"note": note}
+        return {"note": note, "body": message.standard_body(note)}
 
     evidence = conn.execute(
         """SELECT e.source_reference, e.title, e.evidence_class::text,
@@ -95,6 +120,10 @@ def build_content(conn, approval_id, *, note: str = "") -> dict:
 
     return {
         "note": note,
+        # Since 0025 an addressed artefact must draw attention to the way out.
+        # Assembling it here rather than asking every caller to remember is the
+        # difference between a rule and a habit.
+        "body": message.standard_body(note),
         "approval": {
             "id": str(approval_id),
             "decision": header[13],
@@ -173,8 +202,28 @@ def active_identity(conn):
     ).fetchone()
 
 
+def has_express_consent(conn, scope: str, identifier: str) -> bool:
+    """Did this person actually say yes to being emailed?
+
+    Express only. A mandate is consent from a buyer and says nothing about a
+    landholder, and impracticability is an APP 7 argument the Spam Act does not
+    accept.
+    """
+    row = conn.execute(
+        """SELECT EXISTS (
+               SELECT 1 FROM contact_consent
+               WHERE withdrawn_at IS NULL
+                 AND basis IN ('EXPRESS_REPLY', 'EXPRESS_WRITTEN')
+                 AND scope = %s
+                 AND normalised = %s)""",
+        (scope, suppression.normalise(identifier)),
+    ).fetchone()
+    return bool(row[0]) if row else False
+
+
 def create(conn, approval_id, artifact_type: str, content: dict, created_by,
-           *, contact=None, correlation_id=None) -> str:
+           *, contact=None, channel=None, recipient_class=None,
+           correlation_id=None) -> str:
     if approval_id is None or str(approval_id).strip() == "":
         raise ApprovalRequired(
             f"a {artifact_type} needs a stored approval id; refusing to create one"
@@ -226,18 +275,53 @@ def create(conn, approval_id, artifact_type: str, content: dict, created_by,
                 "one before writing anything addressed to a person.")
         sender_identity_id = sender[0]
 
+        # How it goes out is part of whether it may go out at all. The trigger
+        # in 0024 refuses the unlawful row either way; these say what to do
+        # about it, because "check_violation" is not an instruction.
+        if channel not in CHANNELS:
+            raise ChannelNotPermitted(
+                f"a {artifact_type} needs a channel, one of "
+                f"{', '.join(CHANNELS)}. Whether Crown may send it at all "
+                "depends on which, so it is not a detail to fill in later.")
+        if recipient_class not in RECIPIENT_CLASSES:
+            raise ChannelNotPermitted(
+                f"a {artifact_type} needs a recipient class, one of "
+                f"{', '.join(RECIPIENT_CLASSES)}. It decides which channels "
+                "are lawful for this person.")
+
+        # The way out has to be findable, not merely present. The trigger in
+        # 0025 refuses the row; this says what to change, and says it before a
+        # draft exists that somebody might send.
+        message.check(content.get("body"))
+
+        if (channel, recipient_class) == NEEDS_EXPRESS_CONSENT \
+                and not has_express_consent(conn, scope, identifier):
+            raise ChannelNotPermitted(
+                f"{identifier} was identified from a public register, and "
+                "emailing them is a commercial electronic message. The Spam "
+                "Act needs consent that a register does not supply — a "
+                "council published the address under a statute, not the "
+                "person in a work capacity. Send this by post, or record the "
+                "reply that gave consent. See "
+                "docs/compliance/CONSENT-POSITION.md.")
+
     correlation_id = correlation_id or audit.new_correlation_id()
     artifact_id = conn.execute(
         """INSERT INTO outbound_artifact (approval_id, artifact_type, content,
                    created_by, contact_scope, contact_identifier,
-                   sender_identity_id)
-           VALUES (%s,%s,%s,%s,%s,%s,%s) RETURNING id""",
+                   sender_identity_id, channel, recipient_class)
+           VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id""",
         (approval_id, artifact_type, Jsonb(content), created_by,
-         scope, identifier, sender_identity_id),
+         scope, identifier, sender_identity_id, channel, recipient_class),
     ).fetchone()[0]
 
+    said = {"artifact_type": artifact_type}
+    if channel is not None:
+        said["channel"] = channel
+    if recipient_class is not None:
+        said["recipient_class"] = recipient_class
     audit.write(conn, correlation_id, "OUTBOUND_CREATED", "outbound_artifact",
-                artifact_id, new_state={"artifact_type": artifact_type},
+                artifact_id, new_state=said,
                 approval_id=approval_id, actor_user_id=created_by,
                 actor_agent=ACTOR_AGENT)
     return artifact_id

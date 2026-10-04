@@ -17,10 +17,11 @@ that runs and a system somebody can run:
 """
 import psycopg
 import pytest
+from psycopg.types.json import Jsonb
 
 from crown import optout, outbound
 from scripts import run_alerts
-from tests.conftest import approved_match, add_evidence, user_id
+from tests.conftest import a_body, approved_match, add_evidence, user_id
 from tests.test_optout import an_identity
 
 SECRET = "the-current-signing-secret"
@@ -139,15 +140,17 @@ def test_a_buyer_brief_now_needs_a_recipient_and_a_sender(db):
     approval_id, creator = approved_match(db)
 
     with pytest.raises(outbound.NoWayOut, match="message to a person"):
-        outbound.create(db, approval_id, "BUYER_BRIEF", {"body": "hi"}, creator)
+        outbound.create(db, approval_id, "BUYER_BRIEF", {"body": a_body()}, creator)
 
 
 def test_a_buyer_brief_with_both_is_produced(db):
     an_identity(db)
     approval_id, creator = approved_match(db)
 
-    artifact_id = outbound.create(db, approval_id, "BUYER_BRIEF", {"body": "hi"},
-                                  creator, contact={"ORGANISATION": "A Buyer Pty Ltd"})
+    artifact_id = outbound.create(db, approval_id, "BUYER_BRIEF", {"body": a_body()},
+                                  creator, contact={"ORGANISATION": "A Buyer Pty Ltd"},
+                                  channel="EMAIL",
+                                  recipient_class="MANDATED_BUYER")
     scope, identifier, sender = db.execute(
         """SELECT contact_scope, contact_identifier, sender_identity_id
            FROM outbound_artifact WHERE id = %s""", (artifact_id,)).fetchone()
@@ -173,7 +176,8 @@ def test_the_database_refuses_it_even_if_the_code_is_bypassed(db):
         db.execute(
             """INSERT INTO outbound_artifact
                    (approval_id, artifact_type, content, created_by)
-               VALUES (%s, 'BUYER_BRIEF', '{}', %s)""", (approval_id, creator))
+               VALUES (%s, 'BUYER_BRIEF', %s, %s)""",
+            (approval_id, Jsonb({"body": a_body()}), creator))
     db.rollback()
 
 
