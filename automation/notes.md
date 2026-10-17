@@ -1,5 +1,64 @@
 # Trading bot notes
 
+## 2026-10-17 ~15:40 UTC — Full-account loss audit: found and closed an orphaned GRT position, added a hard stop-loss
+
+User asked why the account is down overall and to fix it. Account:
+started at $100,000 (2026-08-06), was at ~$76.85k before this entry — a
+-$23.15k total drawdown. Pulled every filled order since inception (402
+fills) and FIFO-matched realized P&L per symbol, cross-checked against
+live `/v2/positions`. Breakdown of where the loss actually is:
+
+| Source | P&L | Status |
+|---|---|---|
+| aggressive_bot 3-day experiment (2026-09-28→10-02) | **-$11,525.88** | Closed out at the time, logged above |
+| GRT/USD — bought during that experiment, never closed when the watchlist reverted | **-$6,851.70 realized + -$5,389.39 unrealized = -$12,241.09** | **Found still open, bleeding, unmanaged for 2+ weeks. Closed just now.** |
+| UNI/USD — leftover from the earlier day-trading experiment | -$1,633.39 | Already fully closed |
+| v1 swing-bot equity dregs (BYDDY/GS/ISRG/MRVL/MSFT) | ~-$40 net | Found still open. Close orders placed just now (queued for Monday open — equities, market closed Saturday) |
+| **momentum_bot.py itself, current watchlist, since the 10-02 revert (the actual live strategy)** | **+$59.13 realized over ~15 days** | **Running, roughly flat** |
+
+The headline "we're losing a lot of money" is true for the account as a
+whole, but almost none of it is the currently-running strategy: it's a
+deliberate high-risk experiment (flagged as a bad idea going in, done
+anyway on explicit instruction, logged at the time) plus **a process
+failure** — GRT/USD was bought by `aggressive_bot.py`, that script's
+`SYMBOLS` was never carried into `momentum_bot.py`, and nothing ever went
+back to close the position when the bot reverted. It just sat there with
+no bot watching it, round-tripping its own -18.8% unrealized loss into
+real realized loss territory for over two weeks. Same thing, smaller
+scale, happened to five equity positions left over from the original v1
+bot even earlier. The actual momentum_bot.py strategy (regime filter +
+trailing stop, the one that's been running hourly) is close to breakeven
+over its live window — small by design ($1000/position), not a money
+machine, but not the loss driver either.
+
+**Fixes made to `momentum_bot.py`:**
+
+1. **Orphan sweep** (`sweep_orphaned_positions()`, called first thing in
+   `main()`): every run, close any open position whose symbol isn't in
+   the current `SYMBOLS` watchlist, and report it. Directly prevents the
+   GRT failure mode from recurring the next time the watchlist changes.
+2. **Hard stop-loss** (`HARD_STOP_PCT = 0.02`, `check_hard_stop()`): sell
+   immediately if a held position is down 2% from entry, independent of
+   the trailing stop's peak-gain requirement. Gap found: the trailing
+   stop only protects a position that first went up — a straight decline
+   that never reaches +0.5% unrealized has *no* stop at all before this,
+   just the lagging crossover-down signal. Checked first, ahead of the
+   trailing stop, in `check_symbol()`.
+
+**Immediate action taken (not a code change):** sold GRT/USD (964,891.14
+units @ $0.023507, ~$22,685 proceeds) and placed closing sell orders for
+BYDDY/GS/ISRG/MRVL/MSFT (queued for Monday's equity open). Cash went from
+$46,973.52 to $69,632.65 right away from the GRT close alone.
+
+**Declined, with reasoning given to the user:** shorting to profit from a
+market decline. Alpaca's crypto trading here is long-only spot (no
+shorting), which is 5 of 6 current watchlist symbols. COIN (the one
+equity) could technically be shorted on margin, but that's unlimited-risk
+exposure bolted onto a rule-based bot with no human judgment in the loop
+checking each trade — a materially different risk profile, not something
+to fold into the existing "safe" bot silently. Offered to build it
+separately, explicitly flagged, if wanted after weighing that tradeoff.
+
 ## 2026-10-02 ~02:59 UTC — Aggressive-bot experiment ended, reverted to momentum_bot.py
 
 Scheduled revert ran (late — see note below) at the end of the bounded

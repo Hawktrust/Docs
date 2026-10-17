@@ -63,6 +63,7 @@ NOTIONAL = "1000"  # dollars per new entry
 SIGNAL_THRESHOLD = 0.0015  # 0.15% minimum SMA gap to count as a real signal (see daytrading_bot.py)
 MIN_PEAK_GAIN = 0.005  # 0.5% — a position must have been up at least this much to arm the trailing stop
 TRAILING_STOP_PCT = 0.01  # sell if price gives back 1% off its peak since entry, once armed
+HARD_STOP_PCT = 0.02  # sell if a position is down 2% from entry, regardless of peak gain or signal
 
 
 def _request(url, method="GET", data=None):
@@ -159,6 +160,20 @@ def get_peak_since(symbol, asset_class, start_iso):
     return max(b["h"] for b in bars)
 
 
+def check_hard_stop(symbol, pos):
+    # Unconditional downside floor: fires on a straight decline that never
+    # arms the trailing stop (never reached +0.5% since entry), which the
+    # trailing stop alone cannot catch. Independent of signal/regime — a
+    # held position that is down HARD_STOP_PCT gets closed before waiting
+    # for the lagging crossover to confirm the move.
+    plpc = float(pos.get("unrealized_plpc", 0))
+    if plpc > -HARD_STOP_PCT:
+        return None
+    qty = pos["qty"]
+    place_order(symbol, "sell", qty=qty)
+    return f"SOLD {qty} {symbol} (hard stop: unrealized {plpc:+.2%} breached -{HARD_STOP_PCT:.0%} floor)"
+
+
 def check_trailing_stop(symbol, asset_class, pos):
     entry_time = get_last_entry_time(symbol)
     if entry_time is None:
@@ -195,6 +210,41 @@ def place_order(symbol, side, qty=None, notional=None):
     if status not in (200, 201):
         raise RuntimeError(f"order {side} {symbol}: {status} {body}")
     return body
+
+
+def sweep_orphaned_positions():
+    # 2026-10-17: found GRT/USD sitting unmanaged since the aggressive_bot
+    # experiment ended 2026-10-02 — the watchlist reverted to SYMBOLS
+    # (which never included GRT) but the open position was never closed,
+    # so it just bled (-18.8% unrealized, -$5.4k) with nothing watching
+    # it for over two weeks. Same thing happened to five equity positions
+    # left over from the original v1 swing bot. Close anything open that
+    # isn't in the current SYMBOLS watchlist, every run, so a future
+    # watchlist change can't repeat this silently.
+    status, body = _request(f"{TRADE_BASE}/positions")
+    if status != 200:
+        raise RuntimeError(f"positions: {status} {body}")
+    results = []
+    for p in body:
+        raw_symbol = p["symbol"]
+        asset_class = p.get("asset_class")
+        if asset_class == "crypto" and "/" not in raw_symbol and raw_symbol.endswith("USD"):
+            lookup_symbol = raw_symbol[:-3] + "/USD"
+        else:
+            lookup_symbol = raw_symbol
+        if lookup_symbol in SYMBOLS:
+            continue  # actively managed by check_symbol this run
+        order_symbol = lookup_symbol if asset_class == "crypto" else raw_symbol
+        data = {"symbol": order_symbol, "side": "sell", "type": "market",
+                "time_in_force": "gtc" if asset_class == "crypto" else "day",
+                "qty": str(p["qty"])}
+        o_status, o_body = _request(f"{TRADE_BASE}/orders", method="POST", data=data)
+        plpc = float(p.get("unrealized_plpc", 0))
+        if o_status in (200, 201):
+            results.append(f"CLOSED ORPHANED {p['qty']} {raw_symbol} (not in watchlist, was {plpc:+.2%} unrealized)")
+        else:
+            results.append(f"{raw_symbol}: ERROR closing orphaned position: {o_status} {o_body}")
+    return results
 
 
 def sma(closes, n):
@@ -237,11 +287,15 @@ def check_symbol(symbol, asset_class):
     if has_open_order(symbol):
         return f"{symbol}: order already pending — not re-ordering this run"
 
-    # Trailing stop takes priority over the crossover exit for a held
-    # position — it can fire even on a "neutral" or "up" reading, since the
-    # whole point is to lock in a gain before the lagging crossover gives
-    # it back.
+    # Hard stop and trailing stop both take priority over the crossover
+    # exit for a held position — they can fire even on a "neutral" or "up"
+    # reading. Hard stop checked first: it catches a straight decline that
+    # never armed the trailing stop (never reached +0.5% since entry), so
+    # it must not depend on the trailing stop's gain requirement.
     if pos is not None:
+        hard_result = check_hard_stop(symbol, pos)
+        if hard_result is not None:
+            return hard_result
         trail_result = check_trailing_stop(symbol, asset_class, pos)
         if trail_result is not None:
             return trail_result
@@ -266,6 +320,10 @@ def check_symbol(symbol, asset_class):
 
 def main():
     results = []
+    try:
+        results.extend(sweep_orphaned_positions())
+    except Exception as e:
+        results.append(f"orphan sweep: ERROR {e}")
     for sym, cls in SYMBOLS.items():
         try:
             results.append(check_symbol(sym, cls))
