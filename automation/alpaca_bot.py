@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
 """
+ARCHIVED 2026-10-17 — do not schedule this. Superseded by momentum_bot.py
+(fixed +3%/-2% thresholds barely triggered on the symbols this traded; see
+reports/alpaca-connection-test.md). This v1 left five equity positions
+(BYDDY/GS/ISRG/MRVL/MSFT) open and unmanaged for weeks after momentum_bot.py
+took over with a different watchlist — found and closed 2026-10-17.
+
 Paper-trading swing bot for the Alpaca connection test (PR #5).
 
 Rule: sell a held position once it is up SELL_TRIGGER from cost basis;

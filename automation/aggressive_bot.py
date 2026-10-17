@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
 """
+ARCHIVED 2026-10-17 — do not schedule this. Kept only for the historical
+record (see notes.md's 2026-09-28/10-02 entries for the result: -$11,525.88
+over the 3-day run, plus a GRT/USD position this script bought that got
+left open and unmanaged for two weeks after reverting — found and closed
+2026-10-17). The live bot is momentum_bot.py.
+
 Aggressive bot for the Alpaca connection test (PR #5) — a bounded 3-day
 high-variance experiment (2026-09-28 to 2026-10-01), after the user asked
 for a $10,000-in-3-days target.

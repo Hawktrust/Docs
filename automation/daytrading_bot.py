@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
 """
+ARCHIVED 2026-10-17 — do not schedule this. Kept only for the historical
+record (see notes.md's 2026-09-27 entry: -$71.00 net over the 3-day run,
+plus a UNI/USD position this script bought that ended up abandoned and
+closed at a loss much later). The live bot is momentum_bot.py.
+
 Day-trading bot for the Alpaca connection test (PR #5) — a bounded 3-day
 experiment starting 2026-09-24, scheduled to auto-stop and revert to
 momentum_bot.py's hourly checks afterward.
